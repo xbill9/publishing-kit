@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+"""Serve an article body over localhost so a browser can copy it.
+
+This exists because getting ~15 KB of markdown into a rich-text `contenteditable`
+is harder than it looks, and three obvious routes are closed:
+
+  * cross-origin `fetch` of the raw markdown from the page -- blocked by CSP
+  * the system clipboard from a shell (`wl-copy`, `xclip`) -- both hang holding
+    the selection and time the command out, even detached with setsid/nohup
+  * hand-transcribed base64 through a JS bridge -- MEASURED failure: a 3,192
+    character chunk arrived as 3,152. Base64 has no redundancy, so a dropped
+    character fails the decode outright.
+
+What works is letting the BROWSER do the copying. `file://` is blocked by the
+Chrome extension, but `http://127.0.0.1` is not:
+
+    1. python3 serve-body.py article.md
+    2. open the printed URL in a second tab
+    3. Ctrl+A, Ctrl+C there
+    4. click the editor body in the first tab, Ctrl+V
+
+Zero transcription, and the markdown converts properly on paste -- headings, real
+tables, line-numbered code blocks.
+
+The title and any `*Subtitle:*` line are stripped, because those are separate
+fields in the editor. Note the off-by-one that makes `sed '1,2d'` wrong here: line
+2 is usually the blank line after the title, so the subtitle survives it.
+
+Ctrl-C to stop, or stop the background task that started it.
+"""
+
+import argparse
+import hashlib
+import http.server
+import pathlib
+import socketserver
+import sys
+
+
+def strip_front(text: str) -> str:
+    keep = [ln for ln in text.splitlines()
+            if not (ln.startswith("# ") or ln.startswith("*Subtitle:"))]
+    return "\n".join(keep).lstrip("\n")
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("article")
+    ap.add_argument("--port", type=int, default=8899)
+    ap.add_argument("--keep-title", action="store_true",
+                    help="do not strip the H1 and subtitle")
+    a = ap.parse_args()
+
+    src = pathlib.Path(a.article)
+    text = src.read_text()
+    body = text if a.keep_title else strip_front(text)
+    payload = body.encode()
+
+    print(f"{src.name}: {len(payload)} bytes  sha256 {hashlib.sha256(payload).hexdigest()[:16]}")
+    print(f"first line: {body.splitlines()[0][:70]}")
+    print(f"last line : {body.splitlines()[-1][:70]}")
+    print(f"\n  http://127.0.0.1:{a.port}/body.md\n")
+    print("open that in a second tab, Ctrl+A Ctrl+C, then Ctrl+V into the editor")
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            # text/plain so the browser renders it verbatim rather than as HTML
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+
+        def log_message(self, *args):
+            pass
+
+    socketserver.TCPServer.allow_reuse_address = True
+    try:
+        socketserver.TCPServer(("127.0.0.1", a.port), H).serve_forever()
+    except KeyboardInterrupt:
+        print("\nstopped")
+        return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

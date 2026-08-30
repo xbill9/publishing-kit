@@ -44,6 +44,7 @@ which numbers you are asserting from memory.
 | `check-facts.py` | Fact-tracing against evidence files. Exits non-zero on untraced claims. `.factsignore` records deliberate exemptions with reasons. |
 | `make-medium.py` | Tables and diagrams to PNG, emits `-embed.html` (paste) and `-hosted.html` (import). |
 | `make-cover.py` | Cover images. `--mode devto` (1376x768) and `--mode builder` (1200x675, text-free per AWS guidance). |
+| `serve-body.py` | Serves an article body on localhost so a browser can copy it into a rich-text editor. Strips the title and subtitle, prints a checksum. |
 
 ## Typical run
 
@@ -70,6 +71,15 @@ image base URL, so a copy taken elsewhere pointed every `<img>` at another
 project's URLs — all 404 — while the paste variant hid it completely because its
 images are inlined. Five copies already had the fix. The one that got copied did
 not. It is one script here.
+
+**A body that would not paste.** Getting 15 KB of markdown into AWS Builder
+Center's `contenteditable` defeated three obvious routes: cross-origin `fetch` is
+blocked by CSP, `wl-copy`/`xclip` hang the shell holding the selection, and
+hand-transcribed base64 through a JS bridge dropped 40 characters out of 3,192 —
+which base64 fails on rather than degrades. What works is letting the browser copy
+for itself: `serve-body.py` puts the text on localhost (`file://` is blocked by the
+extension, `http://127.0.0.1` is not), and a real Ctrl+A/Ctrl+C/Ctrl+V transfers it
+with no transcription at all.
 
 **A wrong fact that survived proof-reading.** Archiving the EC2 instance-type data
 as evidence for one article surfaced that two instance families had been described

@@ -157,7 +157,8 @@ a Google property finds nothing.
 - Drafts: `builder.aws.com/profile/content?tab=draft`
 - New article: **"+" in the top bar → Article.** Do not open an existing draft's
   preview and edit it — that overwrites the existing piece.
-- Fields: **Title** (255), **Description** (512), **Body**, plus a cover upload.
+- Fields: **Title** (255), **Description** (512), **Body**, plus a cover upload
+  (1200x675 recommended, 2 MB cap) and a **tag picker, 5 maximum**.
 - **Tables and multi-line code blocks both render correctly**, unlike Medium. No
   image conversion needed; code shows with line numbers.
 - The editor **autosaves** — a "Saving…" indicator, no save button.
@@ -165,13 +166,50 @@ a Google property finds nothing.
 - **Required closing line:** *"Any opinions in this article are those of the
   individual author and may not reflect the opinions of AWS."*
 
+Tags are a searchable fixed vocabulary, not free text — you pick from their list.
+`amazon-ec2`, `generative-ai` and `cost-optimization` exist; **`gpu` does not, and
+neither does a usable `inference`** (the matches are `application-inference-profile`
+and `aws-elemental-inference`, both unrelated). Search before assuming a tag exists.
+
+The cover uploads through a real `<input type=file>`: locate it with `find`, then
+use the upload tool with its ref. **Never click a file input** — that opens a
+native picker you cannot see.
+
 ### Getting the body in
 
 Title and Description are ordinary inputs — click and type.
 
-The body is a `contenteditable` div with no exposed editor handle. **A synthetic
-paste event carrying `text/plain` markdown works** and converts properly —
-headings, real tables, line-numbered code:
+The body is a `contenteditable` div with no exposed editor handle, and the winning
+move is to **let the browser do the copying**. Serve the markdown over localhost,
+open it in a second tab, and do a real Ctrl+A / Ctrl+C / Ctrl+V:
+
+```python
+# tiny server; send text/plain so the browser renders it verbatim
+# then: navigate tab 2 to http://127.0.0.1:8899/body.md
+#       Ctrl+A, Ctrl+C in tab 2  ->  click the body in tab 1, Ctrl+V
+```
+
+`file://` is **blocked** by the extension ("Can't interact with browser-internal
+or unparseable URLs"), but `http://127.0.0.1` is fine. This transfers ~15 KB with
+zero transcription and converts correctly — headings, real tables, line-numbered
+code. Verify the served bytes with a checksum first, and note that a cross-tab
+click inside a batch can be refused: switch tabs in its own call.
+
+Strip the `# ` title and any `*Subtitle:*` line first — those are separate fields.
+Watch the line numbering when you do: `sed '1,2d'` deletes the title and the blank
+line after it, leaving the subtitle behind.
+
+**Routes that do not work, so you do not spend the time:**
+
+- **Cross-origin `fetch`** of the raw markdown from the page — blocked by CSP.
+- **The system clipboard from the shell** (`wl-copy`, `xclip`) — both hang holding
+  the selection and time the command out, even detached with `setsid`/`nohup`.
+- **Hand-transcribed base64 through the JS bridge** — measured failure: a 3,192
+  character chunk arrived as 3,152. At this size a model will drop characters, and
+  base64 has no redundancy, so it fails the decode rather than degrading. If you
+  must go this way, verify with a hash in the page before decoding.
+
+A synthetic paste event **does** work if you can get the text in some other way:
 
 ```js
 const ed = document.querySelector('[contenteditable="true"]');
@@ -183,12 +221,6 @@ ed.dispatchEvent(new ClipboardEvent('paste', {clipboardData: dt, bubbles: true, 
 
 `dispatchEvent` returns **`false`** — that is `preventDefault`, not refusal. Verify
 by screenshot, never by return value.
-
-The real obstacle is getting ~15 KB of markdown into the page. Two routes are
-closed: cross-origin `fetch` of the raw markdown is **blocked by CSP**, and the
-system clipboard (`wl-copy` / `xclip`) hangs the shell holding the selection. So
-either inline the markdown in chunks, or let a human paste it. Strip the `# `
-title and any subtitle line first — those are separate fields.
 
 **Never click Publish.** Leave it as a draft and hand back the link.
 
