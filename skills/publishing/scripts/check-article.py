@@ -122,7 +122,10 @@ def main():
     med = d / "medium"
     if med.exists():
         hosted = sorted(med.glob("*-hosted.html"))
-        imgs = sorted((med / "img").glob("*.png")) if (med / "img").exists() else []
+        imgdir = med / "img"
+        imgs = sorted(f for f in imgdir.iterdir()
+                      if f.suffix.lower() in (".png", ".jpg", ".jpeg")
+                      ) if imgdir.exists() else []
         if not hosted:
             warn("medium/ exists but has no -hosted.html")
         for h in hosted:
@@ -137,13 +140,13 @@ def main():
             missing = [r.split("/")[-1] for r in refs
                        if not (med / "img" / r.split("/")[-1]).exists()]
             if missing:
-                fail(f"{h.name} references {len(missing)} missing PNG(s): {missing[:3]}")
+                fail(f"{h.name} references {len(missing)} missing image(s): {missing[:3]}")
         if imgs:
             untracked = [i.name for i in imgs if not tracked(root, i)]
             if untracked:
-                fail(f"{len(untracked)} medium/img PNG(s) not committed: {untracked[:3]}")
+                fail(f"{len(untracked)} medium/img image(s) not committed: {untracked[:3]}")
             else:
-                ok(f"{len(imgs)} medium/img PNG(s) committed")
+                ok(f"{len(imgs)} medium/img image(s) committed")
 
     # 8  DEAD LINKS -----------------------------------------------------------
     dead = re.findall(r"\]\(\s*\)|\]\(#\)", text)

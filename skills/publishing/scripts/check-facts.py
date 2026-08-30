@@ -90,7 +90,7 @@ def main():
     claims = {}
     for pat, kind in PATTERNS:
         for m in re.finditer(pat, prose):
-            c = m.group(0).strip()
+            c = re.sub(r'\s+', ' ', m.group(0)).strip()
             if any(e in c for e in exempt):
                 continue
             claims.setdefault(c, kind)

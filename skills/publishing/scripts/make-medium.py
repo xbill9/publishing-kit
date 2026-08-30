@@ -214,7 +214,7 @@ def render_mono(lines: list[str], path: Path) -> None:
 BOX = set("┌┐└┘├┤┬┴┼─│")
 
 
-def convert(src: Path, outdir: Path, img_base: str = "") -> Path:
+def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = None) -> Path:
     text = src.read_text()
 
     # strip YAML front matter, keep title/description
@@ -287,6 +287,18 @@ def convert(src: Path, outdir: Path, img_base: str = "") -> Path:
 
     h = base.read_text()
     base.unlink()
+
+    # MEDIUM MAKES THE FIRST IMAGE IN THE BODY THE STORY COVER. Without this the
+    # cover becomes whatever table happened to render first -- a screenshot of a
+    # price table -- while the actual cover art, which only ever lived in dev.to
+    # front matter, never reaches Medium at all. Nothing warns you.
+    if cover and cover.exists():
+        dst = outdir / "img" / cover.name
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        if cover.resolve() != dst.resolve():
+            dst.write_bytes(cover.read_bytes())
+        h = h.replace("<body>", f'<body>\n<figure><img src="img/{cover.name}" '
+                                f'alt="{html.escape(title)}" /></figure>', 1)
 
     # pandoc repeats the title in a header block; Medium supplies its own.
     h = h.replace('<header id="title-block-header">',
@@ -371,4 +383,8 @@ if __name__ == "__main__":
     src = Path(args[0])
     img_base = flags.get("--img-base") or default_img_base(src)
     outdir = Path(args[1]) if len(args) > 1 else Path("medium")
-    convert(src, outdir, img_base)
+    cov = flags.get("--cover")
+    cover = Path(cov) if cov else next(
+        (c for c in sorted(src.parent.glob("*cover*.jpg")) + sorted(src.parent.glob("*cover*.png"))
+         if "builder" not in c.name), None)
+    convert(src, outdir, img_base, cover)
