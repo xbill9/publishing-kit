@@ -47,6 +47,20 @@ It cannot tell you a number is true; it tells you which numbers you are assertin
 without an artifact, which is where wrong numbers come from. Fenced code blocks
 are skipped, because pasted tool output is itself evidence.
 
+**Scope `--evidence` to text artifacts, or the check lies to you.** It compares on
+digits alone, so pointing it at a run directory containing compressed traces and
+protobufs (`*.trace.json.gz`, `*.xplane.pb`, read with `errors="ignore"`) produces
+**coincidental matches against binary noise**. A first pass reported `15 traced, 0
+untraced`; re-run against only the `.md` / `.json` / `.txt` artifacts it became `14
+traced, 1 untraced`, and that one was a real drifted figure that had no artifact
+anywhere. Two other "traced" claims were also false: `4.35 s` matched `4.355` (a
+kernel duration in ms) and an `SM 8.9` claim matched `8.976` inside a file for the
+*other* GPU.
+
+So: a green result from a directory full of binaries is not evidence of anything.
+Feed it text, and sanity-check *which file* each claim traced to — the tool reports
+the first match, not the best one.
+
 Every untraced claim is exactly one of three things:
 
 1. **Measured, but you did not archive the artifact.** Fix by archiving it. If the

@@ -85,9 +85,28 @@ Longest line after unwrapping runs ~650 chars. That is correct, not a problem.
 - Title and Description are ordinary inputs; click and type. Body is the
   `contenteditable` — use the JS bridge above.
 - Tables and multi-line code both render natively. No image conversion.
-- **The cover must be uploaded by hand** (drag-and-drop in the editor). There is no
-  headless route, so hand this step back explicitly rather than leaving the draft
-  looking finished.
+- **The cover uploads headlessly. Do not hand it back.** The widget looks like
+  drag-and-drop only, but there is a real `input[type=file]` behind the "Upload
+  image" button (`accept=".jpg, .jpeg, .png, .webp"`). Locate it with `find`, then
+  use `file_upload` with its ref:
+
+  ```
+  find      → "cover image file upload input"  → ref_NNN
+  file_upload  paths=["…/builder-cover.jpg"]  ref=ref_NNN
+  ```
+
+  A repo path works; the file does not need copying into a shared folder. After the
+  upload the ref is **destroyed** — the widget swaps to a preview card showing the
+  filename and size — so a following `scroll_to` on that ref errors. That error is
+  success, not failure; screenshot instead.
+
+  Never click a file-upload button directly: that opens a native picker you cannot
+  see or dismiss.
+- **Tags are a fixed AWS taxonomy, not free text.** Typing `jax` returns nothing at
+  all, which reads like a broken control. Search AWS terms: `EC2` → `amazon-ec2`,
+  `generative` → `generative-ai`, `machine` → `machine-learning` / `virtual-machine`.
+  Five maximum. Clicking the search box's clear-X reopens the full tag list; press
+  Escape and click elsewhere to dismiss it.
 - It autosaves — "Saved to your drafts", no save button.
 
 ## Free the browser when you are done
