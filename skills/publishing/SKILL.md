@@ -136,8 +136,16 @@ It renders every table and box-drawing diagram to PNG at 2x and emits two files:
 
 | File | Use |
 |---|---|
-| `<slug>-embed.html` | **Prefer this.** Images inlined as base64, self-contained. Open in a browser, Select All, Copy, paste into the Medium editor; Medium re-hosts the images. Pasting also preserves code blocks the importer would flatten. |
-| `<slug>-hosted.html` | For `medium.com/p/import`. Requires `medium/img/*.png` committed and pushed first. |
+| `<slug>-embed.html` | **Do not paste this into Medium.** Images are inlined as base64, and Medium **silently strips `data:` URIs on paste** — every image in the article disappears, with no error and no placeholder. Useful only where a self-contained single file is wanted for something other than Medium. |
+| `<slug>-hosted.html` | **Use this for both paste and import.** Real `https://` image URLs, which Medium fetches and re-hosts. Requires `medium/img/*.png` committed and pushed first. Pasting it (rather than importing) additionally preserves multi-line code blocks, which the importer flattens. |
+
+**Always pass `--cover=<file>`.** With no `--cover` the script takes the first
+`*cover*.{jpg,png}` **alphabetically** from the article's directory. A directory
+holding covers for several articles will therefore put the wrong art on the story,
+and since the first body image becomes Medium's cover, that is what ships.
+
+**Type the title in by hand.** No paste or import route fills Medium's Title field,
+even though the hosted variant carries an `<h1 class="title">`.
 
 **The image base URL is derived from the article's own directory.** This is the
 single most repeated bug in this toolchain: a per-project copy of the script used
@@ -148,6 +156,13 @@ the images will not be served from `<repo>/<article-dir>/medium/img/`.
 
 More importer quirks — the silent killers around figure captions, the URL-keyed
 cache, canonical-link resolution, heading sizes — are in `references/medium.md`.
+
+**Driving any of these editors in a browser: read `references/browser-publishing.md`
+first.** It carries the post-paste verification checklist (images, title, code,
+tables, last paragraph — each checked separately, because they fail independently),
+why the system clipboard must never be used, the base64 JS-bridge injection, the
+`file://` restriction, and the paragraph-unwrapping that Builder Center's editor
+needs.
 
 ## AWS Builder Center
 
@@ -175,52 +190,92 @@ The cover uploads through a real `<input type=file>`: locate it with `find`, the
 use the upload tool with its ref. **Never click a file input** — that opens a
 native picker you cannot see.
 
-### Getting the body in
+### Getting the body in — NEVER use the system clipboard
 
-Title and Description are ordinary inputs — click and type.
+Title and Description are ordinary inputs — click and type. The body is harder.
 
-The body is a `contenteditable` div with no exposed editor handle, and the winning
-move is to **let the browser do the copying**. Serve the markdown over localhost,
-open it in a second tab, and do a real Ctrl+A / Ctrl+C / Ctrl+V:
+**The clipboard is shared with whoever else is at the machine.** A synthetic
+Ctrl+C loses the race silently, and Ctrl+V then pastes *their* content into your
+editor — while your Ctrl+C clobbers what they had copied, which is the more
+expensive half. MEASURED 2026-08-30: someone else's article landed in this draft
+twice, and nothing anywhere reported a failed copy.
 
-```python
-# tiny server; send text/plain so the browser renders it verbatim
-# then: navigate tab 2 to http://127.0.0.1:8899/body.md
-#       Ctrl+A, Ctrl+C in tab 2  ->  click the body in tab 1, Ctrl+V
-```
+**And never hand the paste to a human.** Automate it.
 
-`file://` is **blocked** by the extension ("Can't interact with browser-internal
-or unparseable URLs"), but `http://127.0.0.1` is fine. This transfers ~15 KB with
-zero transcription and converts correctly — headings, real tables, line-numbered
-code. Verify the served bytes with a checksum first, and note that a cross-tab
-click inside a batch can be refused: switch tabs in its own call.
+**The route that works — fully automated, self-verifying, no clipboard:**
 
-Strip the `# ` title and any `*Subtitle:*` line first — those are separate fields.
-Watch the line numbering when you do: `sed '1,2d'` deletes the title and the blank
-line after it, leaving the subtitle behind.
+1. **Inject the text in chunks through the JS bridge**, JSON-escaped so you
+   control the escaping, appending to one variable and **checking the cumulative
+   length after every chunk**:
 
-**Routes that do not work, so you do not spend the time:**
+   ```js
+   window.__p = (window.__p || "") + "<json-escaped chunk>";
+   window.__p.length            // must equal the expected running total
+   ```
 
-- **Cross-origin `fetch`** of the raw markdown from the page — blocked by CSP.
-- **The system clipboard from the shell** (`wl-copy`, `xclip`) — both hang holding
-  the selection and time the command out, even detached with `setsid`/`nohup`.
-- **Hand-transcribed base64 through the JS bridge** — measured failure: a 3,192
-  character chunk arrived as 3,152. At this size a model will drop characters, and
-  base64 has no redundancy, so it fails the decode rather than degrading. If you
-  must go this way, verify with a hash in the page before decoding.
+   ~1400 characters per chunk. A mismatch means characters were dropped — redo
+   that chunk. Never proceed past a mismatch.
 
-A synthetic paste event **does** work if you can get the text in some other way:
+2. **Verify the whole payload before using it.** Checksum it in the page and
+   compare against the same computed locally. Use a NUMERIC checksum: a hex or
+   base64 SHA can be redacted in transit and tell you nothing.
 
-```js
-const ed = document.querySelector('[contenteditable="true"]');
-ed.focus();
-const dt = new DataTransfer();
-dt.setData('text/plain', md);
-ed.dispatchEvent(new ClipboardEvent('paste', {clipboardData: dt, bubbles: true, cancelable: true}));
-```
+   ```js
+   let a=0,b=0;
+   for(let i=0;i<window.__p.length;i++){a=(a+window.__p.charCodeAt(i))%65521;b=(b+a)%65521;}
+   ({chars:window.__p.length, adler_a:a, adler_b:b})
+   ```
 
-`dispatchEvent` returns **`false`** — that is `preventDefault`, not refusal. Verify
-by screenshot, never by return value.
+3. **Clear the editor with the KEYBOARD, not `execCommand`.**
+   `document.execCommand("delete")` over a selected range silently does nothing
+   here and the paste then APPENDS — you get the entire article twice, which
+   only a landmark count will catch. Click the body, then Ctrl+A, Delete.
+
+4. **Assert the editor is empty, then dispatch the paste.** The assertion is
+   what prevents the duplicate:
+
+   ```js
+   const ed = document.querySelector('[contenteditable="true"]');
+   if (ed.innerText.length > 50) throw new Error("not empty, refusing to paste");
+   ed.focus();
+   const dt = new DataTransfer();
+   dt.setData("text/plain", window.__p);
+   ed.dispatchEvent(new ClipboardEvent("paste", {clipboardData: dt, bubbles: true, cancelable: true}));
+   ```
+
+5. **Count landmarks afterwards.** The opening sentence, the summary heading and
+   the closing line must each appear exactly **once**.
+
+`dispatchEvent` returns `false` — that is `preventDefault`, not refusal. Judge by
+the landmark count, never by the return value.
+
+**Closed routes, so you do not spend time on them:** cross-origin `fetch` into
+the editor page (CSP `connect-src` — adding a CORS header does NOT help, and the
+failure is an identical bare "Failed to fetch" either way); `file://` navigation
+(blocked by the extension); `wl-copy`/`xclip` (both hang the shell holding the
+selection, even detached with setsid/nohup).
+
+Strip the `# ` title and any `*Subtitle:*` line first — separate fields. Watch the
+line numbering: `sed '1,2d'` removes the title and the blank line after it,
+leaving the subtitle behind.
+
+### Hard-wrapped source renders as hard breaks
+
+Builder Center's paste handler **preserves the source's newlines inside a
+paragraph**. Markdown folds a single newline into a space; this editor does not,
+so a file hard-wrapped at ~95 columns renders with a ragged break every ~95
+characters — visible only once published. Unwrap paragraphs first;
+`serve-body.py` has the logic and leaves code, tables, lists and headings alone.
+
+**Keep tables to about five columns.** Seven get squeezed until cells break
+mid-token — `g4dn.2x/large`, `g6.xlarg/e`. Move what the prose can carry out of
+the table.
+
+### Editing an already-published article
+
+Go to the published URL, open the **"..." menu on the article itself → Edit**.
+Do NOT navigate to `/create/content/<id>` — that silently creates a **new empty
+draft** instead of editing the existing piece.
 
 **Never click Publish.** Leave it as a draft and hand back the link.
 

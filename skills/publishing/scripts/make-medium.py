@@ -214,6 +214,29 @@ def render_mono(lines: list[str], path: Path) -> None:
 BOX = set("┌┐└┘├┤┬┴┼─│")
 
 
+# Emoji have no glyph in Liberation Sans, so PIL renders them as tofu boxes. The
+# dev.to source uses medal emoji to rank rows, and rendering those tables to PNG
+# turned the whole Rank column into empty squares -- visible only by looking at
+# the output, which is why step one of shipping an image is opening it.
+#
+# Substitute rather than switch fonts: NotoColorEmoji is a CBDT bitmap face that
+# PIL will only draw at one fixed size with embedded_color, and mixing faces
+# inside a table cell to get three glyphs is not worth it.
+#
+# A medal ALONE is a rank, so it becomes its ordinal. A medal BESIDE something is
+# a "this one won" marker, so it becomes a bullet the face actually has.
+_MEDALS = {"\U0001F947": "1", "\U0001F948": "2", "\U0001F949": "3"}
+
+
+def demoji(cell: str) -> str:
+    text = cell.strip()
+    if text and all(ch in _MEDALS or ch.isspace() for ch in text):
+        return " ".join(_MEDALS[ch] for ch in text if ch in _MEDALS)
+    for medal in _MEDALS:
+        text = text.replace(medal, "\u25cf")
+    return text.strip()
+
+
 def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = None) -> Path:
     text = src.read_text()
 
@@ -263,6 +286,8 @@ def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = No
             while j < len(lines) and lines[j].strip().startswith("|"):
                 j += 1
             hdr, body = parse_table(lines[i:j])
+            hdr = [demoji(c) for c in hdr]
+            body = [[demoji(c) for c in row] for row in body]
             n_tab += 1
             name = f"{slug}-table-{n_tab}.png"
             render_table(hdr, body, imgdir / name)

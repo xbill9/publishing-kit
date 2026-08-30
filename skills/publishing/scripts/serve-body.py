@@ -37,6 +37,50 @@ import socketserver
 import sys
 
 
+def unwrap(text: str) -> str:
+    """Join hard-wrapped paragraph lines into one line each.
+
+    MEASURED on AWS Builder Center: its paste handler PRESERVES the source's
+    newlines inside a paragraph, so markdown hard-wrapped at ~95 columns renders
+    with a ragged break every ~95 characters. Markdown itself folds a single
+    newline into a space; this editor does not, and the result looks broken in a
+    way that is invisible until you read the published page.
+
+    Everything whose line structure is load-bearing is left alone: fenced code,
+    tables, lists, headings, block quotes and horizontal rules.
+    """
+    out, buf, fenced = [], [], False
+
+    def flush():
+        if buf:
+            out.append(" ".join(x.strip() for x in buf))
+            buf.clear()
+
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            flush()
+            fenced = not fenced
+            out.append(line)
+            continue
+        if fenced:
+            out.append(line)
+            continue
+        structural = (
+            not stripped
+            or stripped.startswith(("|", "#", ">", "- ", "* ", "+ ", "---", "==="))
+            or (stripped[:2].rstrip(".").isdigit() and ". " in stripped[:4])
+            or line[:1].isspace()          # indented: code or a continuation
+        )
+        if structural:
+            flush()
+            out.append(line)
+        else:
+            buf.append(line)
+    flush()
+    return "\n".join(out)
+
+
 def strip_front(text: str) -> str:
     keep = [ln for ln in text.splitlines()
             if not (ln.startswith("# ") or ln.startswith("*Subtitle:"))]
@@ -49,11 +93,16 @@ def main():
     ap.add_argument("--port", type=int, default=8899)
     ap.add_argument("--keep-title", action="store_true",
                     help="do not strip the H1 and subtitle")
+    ap.add_argument("--no-unwrap", action="store_true",
+                    help="keep hard-wrapped lines (Builder Center will render them "
+                         "as real line breaks -- almost never what you want)")
     a = ap.parse_args()
 
     src = pathlib.Path(a.article)
     text = src.read_text()
     body = text if a.keep_title else strip_front(text)
+    if not a.no_unwrap:
+        body = unwrap(body)
     payload = body.encode()
 
     print(f"{src.name}: {len(payload)} bytes  sha256 {hashlib.sha256(payload).hexdigest()[:16]}")
@@ -67,6 +116,12 @@ def main():
             # text/plain so the browser renders it verbatim rather than as HTML
             self.send_response(200)
             self.send_header("Content-Type", "text/plain; charset=utf-8")
+            # CORS, so the EDITOR'S page can fetch this directly. Without it the
+            # browser refuses with a bare "Failed to fetch", which reads exactly
+            # like a CSP block and sent me down a clipboard rabbit hole once.
+            # This is what makes the injection fully automatic: no clipboard, no
+            # transcription, no human.
+            self.send_header("Access-Control-Allow-Origin", "*")
             self.send_header("Content-Length", str(len(payload)))
             self.end_headers()
             self.wfile.write(payload)

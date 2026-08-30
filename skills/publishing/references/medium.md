@@ -42,10 +42,34 @@ worth writing — it is the accessible equivalent and it survives.
 
 ## Prefer pasting over importing
 
-The embed variant from `make-medium.py` inlines every image as a base64 data URI.
-Open it in a browser, Select All, Copy, paste into the Medium editor: images ride
-along and Medium re-hosts them, nothing needs to be pushed first, **and code blocks
-survive** because the flattening is an importer behaviour.
+Pasting beats importing: **code blocks survive** as real multi-line blocks with
+syntax highlighting, because the flattening is an importer behaviour, not an editor
+one. Measured 2026-08-30 on a nine-code-block article.
+
+**But paste `-hosted.html`, never `-embed.html`.** This reverses what this file said
+before, and getting it wrong costs a full re-do:
+
+> **Medium silently strips `data:` URI images on paste.** The embed variant inlines
+> every image as base64, so pasting it drops **every image in the article** — cover
+> and all tables — with no error, no placeholder and no broken-image icon. You get
+> clean-looking prose with blank gaps where the tables were, and a story with no
+> cover. Verified 2026-08-30: 4 of 4 images lost from embed, 4 of 4 survived from
+> hosted.
+
+The hosted variant references real `https://` URLs, which Medium fetches and
+re-hosts. It needs the images **committed and pushed first**. That is the only cost
+and it is worth paying.
+
+**The title never transfers.** Neither variant fills Medium's Title field, even
+though `-hosted.html` carries an `<h1 class="title">`. The pasted `<h1>` is dropped
+and the Title field stays empty. Type the title in by hand, and check the top of the
+document for a stray empty block where the h1 was.
+
+**Always pass `--cover`.** With no `--cover`, `make-medium.py` takes the first
+`*cover*.{jpg,png}` **alphabetically** from the article's directory. A directory
+holding `builder-cover.jpg`, `devto-cover-aws.jpg` and `devto-cover-gde.jpg` put the
+*AWS* cover on the *GDE* article — and since the first body image becomes the
+story's cover, the wrong art would have shipped.
 
 Import only when you need a URL-driven flow.
 
