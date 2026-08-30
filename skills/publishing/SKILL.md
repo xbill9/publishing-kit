@@ -122,6 +122,30 @@ cover_image: https://raw.githubusercontent.com/<user>/<repo>/main/<dir>/devto-co
 
 `published: false` unless told otherwise.
 
+### Post it with the API, never the browser
+
+**dev.to has a REST API and this repo already wraps it.** `publish-devto.sh` exists
+in eight rigs; it is generic and takes any article path:
+
+```
+bash <any-rig>/publish-devto.sh <article>.md          # create a NEW draft
+bash <any-rig>/publish-devto.sh --list                # ids + published state
+bash <any-rig>/publish-devto.sh --update <id> <file>  # overwrite in place
+```
+
+It reads the key from `$DEV_TO_API_KEY` or `~/.devto.key` and never takes it on the
+command line. Front matter is part of `body_markdown`, so title, tags and
+`cover_image` all transfer — no field-filling, no cover upload, no title retyping.
+`--update` rewrites those too, and does not change the slug of an already-published
+article, so existing links survive.
+
+**Do not drive dev.to's editor in a browser.** It is slower, it needs the clipboard
+or a JS bridge, it silently splits front matter across separate title/tag/cover
+widgets depending on which editor version the account has, and it is entirely
+unnecessary. Before reaching for the browser on *any* destination, check the repo
+for an existing publish script — this one was sitting in eight directories while a
+whole browser flow was built around it.
+
 ## Medium — use the generator, never hand-write
 
 **Do not write a Medium markdown file by hand.** Medium's importer **strips

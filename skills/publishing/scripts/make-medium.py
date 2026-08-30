@@ -237,6 +237,32 @@ def demoji(cell: str) -> str:
     return text.strip()
 
 
+# MEDIUM HAS EXACTLY TWO HEADING SIZES. `#` and `##` both render as the big one;
+# `###` and smaller both render as the small one. A 21-section article written
+# with `##` therefore renders as 21 TITLES, which looks unhinged and is invisible
+# until you view it on Medium.
+#
+# So every section heading is demoted to `####`, and the document's `#` title is
+# DROPPED: Medium never fills its Title field from pasted content anyway, and the
+# orphaned h1 just leaves a stray empty block at the top.
+def demote_headings(lines: list[str]) -> list[str]:
+    out, fenced = [], False
+    for line in lines:
+        if line.strip().startswith("```"):
+            fenced = not fenced
+            out.append(line)
+            continue
+        if not fenced and line.startswith("#"):
+            level = len(line) - len(line.lstrip("#"))
+            text = line.lstrip("#").strip()
+            if level == 1:
+                continue          # title is a separate field; drop it
+            out.append("#### " + text)
+            continue
+        out.append(line)
+    return out
+
+
 def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = None) -> Path:
     text = src.read_text()
 
@@ -255,7 +281,7 @@ def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = No
     imgdir = outdir / "img"
     imgdir.mkdir(parents=True, exist_ok=True)
 
-    lines = text.split("\n")
+    lines = demote_headings(text.split("\n"))
     out: list[str] = []
     n_tab = n_dia = 0
     i = 0
@@ -374,8 +400,13 @@ def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = No
     p_hosted.write_text(h.replace('src="img/', f'src="{img_base}'))
 
     print(f"{src.name}: {n_tab} tables, {n_dia} diagrams")
-    print(f"   paste this  -> {p_embed}   ({p_embed.stat().st_size // 1024} KB, self-contained)")
-    print(f"   import this -> {p_hosted}  (needs img/ pushed)")
+    # The guidance printed here USED to say "paste the embed variant", and that
+    # is wrong: Medium silently strips data: URI images on paste, so the embed
+    # variant loses every image with no error and no placeholder.
+    print(f"   USE THIS   -> {p_hosted}  (paste or import; needs medium/img committed AND pushed)")
+    print(f"   not this   -> {p_embed}   ({p_embed.stat().st_size // 1024} KB; "
+          f"data: URIs, Medium drops them all on paste)")
+    print("   Medium never fills its Title field from pasted content -- set the title separately.")
     return p_embed
 
 

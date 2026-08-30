@@ -1,5 +1,12 @@
 # Driving the editors in a browser
 
+> **First: is there an API?** dev.to has one, and this repo already wraps it in
+> `publish-devto.sh` (present in eight rigs, generic, takes any article path). A
+> whole browser flow was once built for dev.to while that script sat unused. Check
+> the repo for a publish script before opening a tab. The browser is the fallback
+> for destinations with no API — currently Medium and AWS Builder Center.
+
+
 Measured 2026-08-30 while putting one article into Medium and AWS Builder Center.
 Every item below cost real time. The theme: **these editors fail silently and
 plausibly** — you get a clean-looking draft that is missing something, so the only
