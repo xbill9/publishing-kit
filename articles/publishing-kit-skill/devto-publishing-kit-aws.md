@@ -7,9 +7,9 @@ cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articl
 ---
 
 This article provides a step by step guide for publishing one technical article to AWS Builder
-Center, dev.to and Medium from a single source file. A Claude Code skill and nine Python scripts
-are built to simplify the process, and three of them exit non-zero rather than let a broken
-artifact ship.
+Center, dev.to and Medium from a single source file. A Claude Code skill and its toolchain are
+built to simplify the process, and a pre-flight exits non-zero rather than let a broken artifact
+ship.
 
 https://github.com/xbill9/publishing-kit
 
@@ -80,7 +80,7 @@ Projected token cost
   Always-on:   ~190 tok   added to every session
 
   component   always-on  on-invoke
-  publishing       ~190      ~9.5k
+  publishing       ~190     ~10.6k
 ```
 
 The 528 character description is what every session pays. The 526 line `SKILL.md` is read only
@@ -412,7 +412,7 @@ python3 scripts/serve-body.py builder-publishing-kit.md
 ```
 
 ```plaintext
-chars : 23245
+chars : 23242
 lines : 531 before unwrap, 411 after
 ```
 
@@ -522,7 +522,7 @@ measured results were:
   4 from real URLs.
 - **The covers are mandatory and differently sized**, 1376x578 at 84 KB by URL for dev.to and
   1200x675 at 15 KB uploaded and text-free for Builder Center.
-- **The skill costs ~190 tokens resident** and ~9.5k when it fires, across 3,049 lines.
+- **The skill costs ~190 tokens resident** and ~10.6k when it fires, across 3,511 lines.
 - **The pre-flight failed this article twice** before the artifacts were committed, which is
   what it is for.
 

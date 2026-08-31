@@ -3,7 +3,7 @@ title: "One Article, Four Destinations: a Claude Code Skill That Fails the Build
 published: false
 description: "Step-by-step: packaging a publishing workflow as a Claude Code skill — generating the cover, tracing every number to an artifact, building the Medium version, and posting over the dev.to API, with a pre-flight that exits non-zero."
 tags: ai, devtools, writing, opensource
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.b6f38735.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.b7730b47.jpg
 ---
 
 This tutorial walks through **publishing-kit**, a [Claude Code](https://claude.com/claude-code)
@@ -66,7 +66,7 @@ One source article, three derived artifacts, two checks between them:
      no browser         paste, never import   no clipboard, ever
 ```
 
-Nine scripts, one skill file, four reference files. The skill decides when each one runs.
+A dozen scripts, one skill file, four reference files. The skill decides when each one runs.
 
 #### One of them has an API. Two of them do not.
 
@@ -120,7 +120,7 @@ Projected token cost
   Always-on:   ~190 tok   added to every session
 
   component   always-on  on-invoke
-  publishing       ~190      ~9.5k
+  publishing       ~190     ~10.6k
 ```
 
 **That split is the design.** The 528 character description is the resident cost. The 526 line
@@ -132,7 +132,7 @@ Installing from a local path takes a snapshot. It does not link the working tree
 
 ```shell
 stat -c '%d:%i  %n' skills/publishing/SKILL.md \
-  ~/.claude/plugins/cache/publishing-kit/publishing/0.3.0/skills/publishing/SKILL.md
+  ~/.claude/plugins/cache/publishing-kit/publishing/0.4.0/skills/publishing/SKILL.md
 ```
 
 ```plaintext
@@ -157,7 +157,7 @@ title: "One Article, Four Destinations: a Claude Code Skill That Fails the Build
 published: false
 description: "Step-by-step: packaging a publishing workflow as a Claude Code skill..."
 tags: ai, devtools, writing, opensource
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.b6f38735.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.b7730b47.jpg
 ---
 ```
 
@@ -181,8 +181,8 @@ python3 scripts/make-cover.py --out devto-cover-gde.jpg --mode devto \
   --headline "One article, four|destinations, four artifacts." \
   --subhead "A Claude Code skill that fails the build instead of failing silently." \
   --tile "always-on|the skill description|~190|tokens per session|CARRIED EVERY SESSION|blue" \
-  --tile "on-invoke|SKILL.md when it fires|~9.5k|tokens per invocation|LOADED ON DEMAND|orange" \
-  --footer "publishing 0.3.0 - 1 skill, 4 references, 9 scripts, 3,049 lines" \
+  --tile "on-invoke|SKILL.md when it fires|~10.6k|tokens per invocation|LOADED ON DEMAND|orange" \
+  --footer "publishing 0.4.0 - 1 skill, 4 references, 12 scripts, 3,511 lines" \
   --content-address --url-base "$BASE"
 
 python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5 \
@@ -190,8 +190,8 @@ python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5
 ```
 
 ```plaintext
-wrote devto-cover-gde.b6f38735.jpg  1376x578   86 KB
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.b6f38735.jpg
+wrote devto-cover-gde.b7730b47.jpg  1376x578   86 KB
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.b7730b47.jpg
 wrote builder-cover.2b7f0305.jpg    1200x675   15 KB
 ```
 
@@ -238,7 +238,7 @@ python3 scripts/check-facts.py devto-publishing-kit-gde.md --evidence evidence/
 ```plaintext
 devto-publishing-kit-gde.md: 4 claim(s) against 8 evidence file(s)
 
-  ok    version      0.3.0                        <- install-is-a-snapshot.txt
+  ok    version      0.4.0                        <- install-is-a-snapshot.txt
   ok    version      12.3.0                       <- environment.txt
   ok    version      2.1.251                      <- environment.txt
   ok    version      3.13.14                      <- environment.txt
@@ -431,7 +431,7 @@ python3 scripts/serve-body.py builder-publishing-kit.md
 ```
 
 ```plaintext
-chars : 23245
+chars : 23242
 lines : 531 before unwrap, 411 after
 ```
 
@@ -475,20 +475,20 @@ fails the run if any appear.
 
 | Component | Lines |
 | --- | --- |
-| `SKILL.md` | 526 |
-| `references/browser-publishing.md` | 226 |
+| `SKILL.md` | 578 |
+| `references/browser-publishing.md` | 294 |
 | `references/house-style.md` | 66 |
 | `references/linkedin.md` | 148 |
 | `references/medium.md` | 119 |
 | `templates/linkedin-post.txt` | 9 |
-| 9 scripts | 1,955 |
-| **total** | **3,049** |
+| 12 scripts | 2,297 |
+| **total** | **3,511** |
 
-Of which ~190 tokens are resident in every session and ~9.5k load when the skill fires.
+Of which ~190 tokens are resident in every session and ~10.6k load when the skill fires.
 
 #### So, worth it?
 
-For one article, no. The kit is worth its 3,049 lines at the point where the same failure has
+For one article, no. The kit is worth its 3,511 lines at the point where the same failure has
 cost you twice, because every failure in it is one that produced a plausible-looking file and a
 broken published page.
 
@@ -524,7 +524,7 @@ gets **`-hosted.html`** and never the embed, and **no number ships without an ar
 
 ---
 
-*publishing-kit 0.3.0, Claude Code 2.1.251, Python 3.13.14, Pillow 12.3.0, on Linux x86_64.
+*publishing-kit 0.4.0, Claude Code 2.1.251, Python 3.13.14, Pillow 12.3.0, on Linux x86_64.
 Token costs are Claude Code's own projections, not measured usage. The Medium importer
 behaviours, the image survival counts, the clipboard incident and the tag limits are carried
 from the kit's measurement log dated 2026-08-23 and 2026-08-30 and were not re-measured here.
