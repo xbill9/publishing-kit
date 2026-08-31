@@ -65,6 +65,55 @@ headings, table rows (`|`), list items, and everything inside fenced code blocks
 
 Longest line after unwrapping runs ~650 chars. That is correct, not a problem.
 
+## Medium: the editor ignores DOM edits
+
+MEASURED 2026-08-30, twice, at the cost of a whole cleanup pass that silently
+undid itself.
+
+**Anything you change in the DOM is discarded.** `element.remove()`,
+`execCommand("delete")`, and a caret placed with the Selection API followed by a
+synthetic key all *appear* to work — the DOM updates, the audit reads clean — and
+then the change is gone on reload, because Medium's model never saw it. The first
+attempt at this was abandoned when a "Leave site?" dialog appeared, which is the
+only signal you get.
+
+**What works is a real click plus real keys.** Compute the element's viewport rect
+with a `Range`, click it with the mouse tool, then send keystrokes. Then **reload
+and re-audit** — the DOM immediately after an edit is not evidence, only the DOM
+after a reload is.
+
+- **Deleting an empty block:** click into it, `Backspace` twice — the first strips
+  the block format, the second removes the now-empty paragraph. Work bottom-up so
+  earlier positions do not shift.
+- **Changing one word:** get the character's rect from a `Range`, click at its
+  right edge, confirm the caret with `getSelection().anchorOffset` and the
+  surrounding text, then type. Do not double-click a one- or two-letter word — at
+  that size the hit lands on the neighbouring space and selects that instead.
+
+### Pasting inserts empty blockquotes
+
+A paste that contains a blockquote arrives with **empty blockquotes wrapped around
+the real one** — 3 empties around 1 real, in the measured case. Unlike the
+importer's empty code blocks (which do not render publicly), these show as blank
+quoted gaps. Count blockquotes against the source and delete the empties with the
+click-and-Backspace route above.
+
+### Re-pasting over an existing draft
+
+Import cannot update a draft, but paste can, and it keeps the id and the link:
+
+1. Click in the body, then `ctrl+a`. It selects **the title as well as the body** —
+   Medium is one editable. Read the selection back after ~1 s; read it immediately
+   and it comes back empty even when it worked.
+2. `Delete`. Assert the article is empty (`innerText` down to the `Tell your story…`
+   placeholder) before going further.
+3. Type the title, press `Return`. This re-creates the title block the `ctrl+a` ate
+   and leaves the caret in the body.
+4. Dispatch the paste with `text/html` only.
+5. Audit: landmark counts (opening, summary heading, closing line = 1 each), image
+   count and that each `src` is re-hosted (`miro.medium.com` / `0*`), heading level,
+   multi-line code blocks, then **reload and audit again**.
+
 ## Medium
 
 - Paste `-hosted.html`, never `-embed.html`. See `medium.md` — the embed variant
@@ -74,6 +123,14 @@ Longest line after unwrapping runs ~650 chars. That is correct, not a problem.
   first save. That id is the draft link.
 - **Importing cannot update an existing draft.** It always creates a new one, so a
   revised article means a new draft and deleting the old one by hand.
+
+## AWS Builder Center: check you are signed in first
+
+There is no API, so a signed-out session blocks **everything** — a draft cannot even
+be read. The sign-in is a Builder ID / Google / GitHub modal, so it is not
+automatable and not something to work around: stop and tell the user the session
+expired, with the draft URL, rather than burning turns on it. Published articles
+stay readable while signed out, so verifying a *published* piece still works.
 
 ## AWS Builder Center
 

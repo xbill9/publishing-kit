@@ -44,7 +44,7 @@ between compared runs. State it once and stop.
 
 ## Closings
 
-- **dev.to:** *"The strategy for using MCP for … was validated with a incremental
+- **dev.to:** *"The strategy for using MCP for … was validated with an incremental
   step by step approach."* The grammar is the author's. Keep it.
 - **AWS Builder Center:** *"Any opinions in this article are those of the individual
   author and may not reflect the opinions of AWS."* Required.

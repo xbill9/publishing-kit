@@ -138,14 +138,25 @@ cover_image: https://raw.githubusercontent.com/<user>/<repo>/main/<dir>/devto-co
 
 ### Post it with the API, never the browser
 
-**dev.to has a REST API and this repo already wraps it.** `publish-devto.sh` exists
-in eight rigs; it is generic and takes any article path:
+**dev.to has a REST API and this repo already wraps it.** `publish-devto.sh` takes
+any article path — but **the copies are not all the same script.** MEASURED
+2026-08-30 in `gemma4-dev`: of seven copies, only `gpu-vllm-g5g-2b/publish-devto.sh`
+implements the flags; the other six take one positional argument and always POST a
+new draft, so `--update` is read as a filename and dies with `missing --update`.
+Check before reaching for a flag:
 
 ```
-bash <any-rig>/publish-devto.sh <article>.md          # create a NEW draft
-bash <any-rig>/publish-devto.sh --list                # ids + published state
-bash <any-rig>/publish-devto.sh --update <id> <file>  # overwrite in place
+grep -l -- --update */publish-devto.sh          # which copies can update
+
+bash <any-rig>/publish-devto.sh <article>.md          # create a NEW draft (all copies)
+bash <flagged-rig>/publish-devto.sh --list            # ids + published state
+bash <flagged-rig>/publish-devto.sh --update <id> <file>  # overwrite in place
 ```
+
+**A draft will never be byte-identical to its source file.** dev.to labels bare
+` ``` ` fences with a detected language (` ```shell `, ` ```plaintext `) on the way
+in, so diff the two below that substitution rather than concluding the upload
+drifted.
 
 It reads the key from `$DEV_TO_API_KEY` or `~/.devto.key` and never takes it on the
 command line. Front matter is part of `body_markdown`, so title, tags and
@@ -194,6 +205,14 @@ the images will not be served from `<repo>/<article-dir>/medium/img/`.
 
 More importer quirks — the silent killers around figure captions, the URL-keyed
 cache, canonical-link resolution, heading sizes — are in `references/medium.md`.
+
+**Generate with THIS script, never with a per-article fork of it.** MEASURED
+2026-08-30: a `build-gde.py` written beside one article borrowed only the table
+rendering from an older copy of this script, so it never inherited the heading
+demotion — it emitted 19 `<h2>`, and Medium renders `#`/`##` at title size, so the
+story read as 19 titles. A fork does not receive later fixes and nothing warns you;
+the defect is visible only in the published rendering. If a wrapper is genuinely
+needed, have it *call* this script rather than copy pieces out of it.
 
 **Driving any of these editors in a browser: read `references/browser-publishing.md`
 first.** It carries the post-paste verification checklist (images, title, code,
