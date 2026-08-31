@@ -1,14 +1,19 @@
 ---
-title: "One Article, Four Destinations: a Claude Code Skill That Fails the Build"
+title: "Streamline Publishing with a Claude Code Skill"
 published: false
-description: "Step-by-step: packaging a publishing workflow as a Claude Code skill — generating the cover, tracing every number to an artifact, building the Medium version, and posting over the dev.to API, with a pre-flight that exits non-zero."
+description: "A step-by-step publishing pipeline for dev.to, AWS Builder Center, Medium and LinkedIn as a Claude Code skill. Every destination breaks something silently; this is what each one does, and the checks that fail the build instead."
 tags: ai, devtools, writing, opensource
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/cover.d8d95a61.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/cover.b873c938.jpg
 ---
 
 This tutorial walks through **publishing-kit**, a [Claude Code](https://claude.com/claude-code)
 skill that turns one technical article into five publishable artifacts — dev.to, AWS Builder
-Center and Medium — and refuses to ship the ones that are broken.
+Center, Medium and LinkedIn — and fails the build on the things none of those destinations will
+tell you about.
+
+They break things quietly. A published article of mine carried a stray line break in **47 of its
+62 paragraphs**, because dev.to renders markdown with hard breaks on and nothing anywhere said
+so. That is the shape of every failure here, and of every check below.
 
 https://github.com/xbill9/publishing-kit
 
@@ -153,11 +158,11 @@ subtraction.
 
 ```yaml
 ---
-title: "One Article, Four Destinations: a Claude Code Skill That Fails the Build"
+title: "Streamline Publishing with a Claude Code Skill"
 published: false
 description: "Step-by-step: packaging a publishing workflow as a Claude Code skill..."
 tags: ai, devtools, writing, opensource
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/cover.d8d95a61.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/cover.b873c938.jpg
 ---
 ```
 
@@ -178,23 +183,23 @@ dev.to fetches `cover_image:` when it renders the published page.
 ```shell
 BASE=https://raw.githubusercontent.com/<u>/<repo>/main/<dir>
 
-python3 scripts/make-cover.py --out cover.jpg --sizes devto,builder --flow \
+python3 scripts/make-cover.py --out cover.jpg --sizes devto,builder \
   --content-address --url-base "$BASE" \
   --eyebrow "PUBLISHING-KIT - A CLAUDE CODE SKILL" \
-  --headline "One source. Four destinations." \
-  --subhead "Two have a REST API. Two have none." \
-  --source "devto-article.md|the source, dev.to flavour" \
-  --step "check-facts.py" --step "check-article.py" --step "make-medium.py" \
-  --dest "dev.to — Google Developer Experts|REST API, no browser|blue" \
-  --dest "AWS Builder Center|no API — Chrome, no clipboard|orange" \
-  --dest "Medium|no API — paste the hosted build|orange" \
-  --dest "LinkedIn|API cannot draft — a file|muted" \
-  --legend "REST API|blue, browser required|orange, no draft state|muted"
+  --headline "Streamline publishing|with a Claude Code skill." \
+  --subhead "One source, four destinations, and the failures none of them report." \
+  --tile "dev.to|hard-wrapped paragraphs|47 of 62|rendered with a stray break|NO ERROR, NO WARNING|orange" \
+  --tile "Medium|images pasted as data: URIs|0 of 4|survived the paste|NO ERROR, NO WARNING|blue"
 ```
 
 ```plaintext
-wrote cover.d8d95a61.jpg           1376x578   79 KB
-wrote cover-builder.92fa3743.jpg   1200x675   67 KB
+wrote cover.b873c938.jpg           1376x578   90 KB
+wrote cover-builder.3b28a139.jpg   1200x675  106 KB
+  legibility at a 320px feed card:
+    ok    54pt -> 12.6px
+    ok    62pt -> 14.4px
+    WARN 5 of 7 type sizes are unreadable in a card;
+         the cover has to work on the 2 that survive
 ```
 
 **`--content-address` names the file by a hash of its own bytes, and it is not
@@ -497,14 +502,14 @@ fails the run if any appear.
 | `references/linkedin.md` | 148 |
 | `references/medium.md` | 119 |
 | `templates/linkedin-post.txt` | 9 |
-| 12 scripts | 2,493 |
-| **total** | **3,737** |
+| 12 scripts | 2,529 |
+| **total** | **3,773** |
 
 Of which ~190 tokens are resident in every session and ~10.6k load when the skill fires.
 
 #### So, worth it?
 
-For one article, no. The kit is worth its 3,737 lines at the point where the same failure has
+For one article, no. The kit is worth its 3,773 lines at the point where the same failure has
 cost you twice, because every failure in it is one that produced a plausible-looking file and a
 broken published page.
 

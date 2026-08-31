@@ -1,4 +1,4 @@
-# skill footprint, worktree, publishing 0.5.0
+# skill footprint, worktree, publishing 0.6.0
 
 SKILL.md: 578 lines, description 528 chars
 
@@ -17,7 +17,7 @@ scripts (12):
     131  check-facts.py
     149  check-links.py
     109  make-builder.py
-    407  make-cover.py
+    443  make-cover.py
     330  make-linkedin.py
     457  make-medium.py
      84  preflight.py
@@ -25,6 +25,8 @@ scripts (12):
      99  serve-body.py
     136  skill-footprint.py
 
-total: 3,737 lines
+total: 3,773 lines
 
-installed snapshot 770c22c (HEAD is 770c22c): ~190 always-on, ~10.6k on-invoke
+installed snapshot 920fe6c (HEAD is 3530454): ~190 always-on, ~10.6k on-invoke
+  STALE -- that projection measures an older commit. Run:
+  claude plugin marketplace update publishing-kit && claude plugin update publishing
