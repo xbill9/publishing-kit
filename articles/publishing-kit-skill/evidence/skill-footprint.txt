@@ -3,8 +3,8 @@
 SKILL.md: 578 lines, description 528 chars
 
 references (4):
-    294  browser-publishing.md
-     66  house-style.md
+    309  browser-publishing.md
+     81  house-style.md
     148  linkedin.md
     119  medium.md
 
@@ -25,6 +25,8 @@ scripts (12):
      99  serve-body.py
     136  skill-footprint.py
 
-total: 3,511 lines
+total: 3,541 lines
 
-installed snapshot 3f47ab5 (HEAD is 3f47ab5): ~190 always-on, ~10.6k on-invoke
+installed snapshot 3f47ab5 (HEAD is aa29240): ~190 always-on, ~10.6k on-invoke
+  STALE -- that projection measures an older commit. Run:
+  claude plugin marketplace update publishing-kit && claude plugin update publishing

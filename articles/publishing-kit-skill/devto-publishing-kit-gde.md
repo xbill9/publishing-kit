@@ -3,11 +3,11 @@ title: "One Article, Four Destinations: a Claude Code Skill That Fails the Build
 published: false
 description: "Step-by-step: packaging a publishing workflow as a Claude Code skill — generating the cover, tracing every number to an artifact, building the Medium version, and posting over the dev.to API, with a pre-flight that exits non-zero."
 tags: ai, devtools, writing, opensource
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.b7730b47.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.1765feac.jpg
 ---
 
 This tutorial walks through **publishing-kit**, a [Claude Code](https://claude.com/claude-code)
-skill that turns one technical article into four publishable artifacts — dev.to, AWS Builder
+skill that turns one technical article into five publishable artifacts — dev.to, AWS Builder
 Center and Medium — and refuses to ship the ones that are broken.
 
 https://github.com/xbill9/publishing-kit
@@ -157,7 +157,7 @@ title: "One Article, Four Destinations: a Claude Code Skill That Fails the Build
 published: false
 description: "Step-by-step: packaging a publishing workflow as a Claude Code skill..."
 tags: ai, devtools, writing, opensource
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.b7730b47.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.1765feac.jpg
 ---
 ```
 
@@ -178,11 +178,11 @@ dev.to fetches `cover_image:` when it renders the published page.
 ```shell
 python3 scripts/make-cover.py --out devto-cover-gde.jpg --mode devto \
   --eyebrow "CLAUDE CODE SKILLS - PLUGIN MARKETPLACE - PUBLISHING" \
-  --headline "One article, four|destinations, four artifacts." \
+  --headline "Four destinations,|five artifacts, one source." \
   --subhead "A Claude Code skill that fails the build instead of failing silently." \
   --tile "always-on|the skill description|~190|tokens per session|CARRIED EVERY SESSION|blue" \
   --tile "on-invoke|SKILL.md when it fires|~10.6k|tokens per invocation|LOADED ON DEMAND|orange" \
-  --footer "publishing 0.4.0 - 1 skill, 4 references, 12 scripts, 3,511 lines" \
+  --footer "publishing 0.4.0 - 1 skill, 4 references, 12 scripts, 3,541 lines" \
   --content-address --url-base "$BASE"
 
 python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5 \
@@ -190,8 +190,8 @@ python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5
 ```
 
 ```plaintext
-wrote devto-cover-gde.b7730b47.jpg  1376x578   86 KB
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.b7730b47.jpg
+wrote devto-cover-gde.1765feac.jpg  1376x578   86 KB
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.1765feac.jpg
 wrote builder-cover.2b7f0305.jpg    1200x675   15 KB
 ```
 
@@ -250,7 +250,7 @@ It traces prices, measurements, quantities, versions, cloud identifiers, digests
 and capacities. It cannot tell you a number is true. It tells you which numbers you are
 asserting without an artifact.
 
-**Four claims out of a 23 KB article is not a green light.** Fenced code is stripped before
+**Four claims out of a full-length article is not a green light.** Fenced code is stripped before
 extraction, because pasted tool output is itself evidence, and this article keeps most of its
 numbers there. Trace the rest by hand and archive it. The ledger for this article is
 `CLAIMS.md`, and it sorts every claim into measured-on-this-run, read-from-the-source,
@@ -431,7 +431,7 @@ python3 scripts/serve-body.py builder-publishing-kit.md
 ```
 
 ```plaintext
-chars : 23242
+chars : 23234
 lines : 531 before unwrap, 411 after
 ```
 

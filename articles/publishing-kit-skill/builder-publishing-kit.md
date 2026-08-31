@@ -1,4 +1,4 @@
-# Getting 23 KB of Markdown Into AWS Builder Center Without Touching the Clipboard
+# Publishing to AWS Builder Center Without Touching the Clipboard
 
 *Subtitle: A step by step publishing pipeline for AWS Builder Center, dev.to and Medium as a Claude Code skill. Mandatory covers at two geometries, a pre-flight that exits non-zero, and a chunked, checksummed route into the editor that never races the system clipboard.*
 
@@ -113,7 +113,7 @@ hard-wrapping.
 
 ```yaml
 ---
-title: "Getting 23 KB of Markdown Into AWS Builder Center Without Touching the Clipboard"
+title: "Publishing to AWS Builder Center Without Touching the Clipboard"
 published: false
 description: "..."
 tags: aws, ai, writing, devtools
@@ -198,7 +198,7 @@ It traces prices, measurements, quantities, versions, cloud identifiers, digests
 and capacities, and reports which appear in no evidence file. It cannot tell you a number is
 true. It tells you which numbers you are asserting without an artifact.
 
-**Four claims out of a 23 KB article is not a green light.** Fenced code is stripped before
+**Four claims out of a full-length article is not a green light.** Fenced code is stripped before
 extraction, because pasted tool output is itself evidence, and this article keeps most of its
 numbers in exactly that position. The tool covers the shapes it covers. The rest is traced by
 hand and archived beside the article.
@@ -332,7 +332,7 @@ Title and Description are ordinary inputs, 255 and 512 characters. Click and typ
 uploads through a real `<input type=file>`: locate it and drive it with an upload tool. **Never
 click a file input** — that opens a native picker you cannot see.
 
-The body is 22.7 KB of markdown that has to reach a `contenteditable`, and three obvious routes
+The body is over 20 KB of markdown that has to reach a `contenteditable`, and three obvious routes
 are closed:
 
 | Route | What happens |
@@ -407,7 +407,7 @@ python3 scripts/serve-body.py builder-publishing-kit.md
 ```
 
 ```plaintext
-chars : 23242
+chars : 23234
 lines : 531 before unwrap, 411 after
 ```
 
@@ -521,7 +521,7 @@ measured results were:
 - **The pre-flight failed this article twice** before the artifacts were committed, which is
   what it is for.
 
-Scope: one account, one run, on 2026-08-31, producing four artifacts from one source. Token
+Scope: one account, one run, on 2026-08-31, producing five artifacts from one source. Token
 figures are Claude Code's own projections and not measured usage. The Medium importer
 behaviours, the image survival counts, the clipboard incident, the base64 transcription loss,
 the tag limits and the Builder Center field limits are carried from the kit's measurement log

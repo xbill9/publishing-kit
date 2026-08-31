@@ -33,6 +33,21 @@ Then, immediately, the repository link on its own line.
 - Section headings in Title Case, some phrased as questions
   ("Where do I start?", "And Price/Performance?")
 
+## Never put a self-measuring figure in a title
+
+A title containing a number the article's own edits change is a title you have to
+recompute after fixing a typo. "Getting 23 KB of Markdown Into AWS Builder Center"
+was rewritten five times in one session — 19, 17, 20, 22, 23 — and the number told
+a reader nothing, because it measured the writer's file rather than a result.
+
+Numbers belong in titles when they are **findings**: "3.7x the Throughput", "the
+Same Code". Not when they are properties of the document you are still editing.
+
+The same applies to any count the work itself moves — how many scripts the
+toolchain has, how many artifacts a run produces. State those where they are cheap
+to regenerate, or derive them from a script, and keep them out of headlines,
+covers and openers.
+
 ## Summary formula
 
 > The goal of this article was to *X*. The key to the solution was *Y*.
