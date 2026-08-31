@@ -247,7 +247,7 @@
   </style>
 </head>
 <body>
-<figure><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/devto-cover-gde.1765feac.jpg" alt="One Article, Four Destinations: a Claude Code Skill That Fails the Build" /></figure>
+<figure><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/devto-cover-gde.d8d95a61.jpg" alt="One Article, Four Destinations: a Claude Code Skill That Fails the Build" /></figure>
 <header id="title-block-header" hidden>
 <h1 class="title">One Article, Four Destinations: a Claude Code Skill
 That Fails the Build</h1>
@@ -352,7 +352,7 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb7-1"><a href="
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">published</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span></span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">description</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;Step-by-step: packaging a publishing workflow as a Claude Code skill...&quot;</span></span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tags</span><span class="kw">:</span><span class="at"> ai, devtools, writing, opensource</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cover_image</span><span class="kw">:</span><span class="at"> https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.1765feac.jpg</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cover_image</span><span class="kw">:</span><span class="at"> https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.d8d95a61.jpg</span></span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="pp">---</span></span></code></pre></div>
 <p><code>published: false</code>, always, and let the pre-flight enforce
 it. dev.to keeps the first four tags and drops the rest, measured
@@ -363,19 +363,25 @@ locally when you skip it. dev.to fetches <code>cover_image:</code> when
 it renders the published page.</p>
 <p><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/devto-publishing-kit-gde-table-4.png"
 alt="table" /></p>
-<pre class="shell"><code>python3 scripts/make-cover.py --out devto-cover-gde.jpg --mode devto \
-  --eyebrow &quot;CLAUDE CODE SKILLS - PLUGIN MARKETPLACE - PUBLISHING&quot; \
-  --headline &quot;Four destinations,|five artifacts, one source.&quot; \
-  --subhead &quot;A Claude Code skill that fails the build instead of failing silently.&quot; \
-  --tile &quot;always-on|the skill description|~190|tokens per session|CARRIED EVERY SESSION|blue&quot; \
-  --tile &quot;on-invoke|SKILL.md when it fires|~10.6k|tokens per invocation|LOADED ON DEMAND|orange&quot; \
-  --footer &quot;publishing 0.4.0 - 1 skill, 4 references, 12 scripts, 3,541 lines&quot; \
-  --content-address --url-base &quot;$BASE&quot;
+<pre class="shell"><code>BASE=https://raw.githubusercontent.com/&lt;u&gt;/&lt;repo&gt;/main/&lt;dir&gt;
+
+python3 scripts/make-cover.py --out devto-cover-gde.jpg --mode devto --flow \
+  --content-address --url-base &quot;$BASE&quot; \
+  --eyebrow &quot;PUBLISHING-KIT - A CLAUDE CODE SKILL&quot; \
+  --headline &quot;One source. Four destinations.&quot; \
+  --subhead &quot;Two have a REST API. Two have none.&quot; \
+  --source &quot;devto-article.md|the source, dev.to flavour&quot; \
+  --step &quot;check-facts.py&quot; --step &quot;check-article.py&quot; --step &quot;make-medium.py&quot; \
+  --dest &quot;dev.to — Google Developer Experts|REST API, no browser|blue&quot; \
+  --dest &quot;AWS Builder Center|no API — Chrome, no clipboard|orange&quot; \
+  --dest &quot;Medium|no API — paste the hosted build|orange&quot; \
+  --dest &quot;LinkedIn|API cannot draft — a file|muted&quot; \
+  --legend &quot;REST API|blue, browser required|orange, no draft state|muted&quot;
 
 python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5 \
   --content-address</code></pre>
-<pre class="plaintext"><code>wrote devto-cover-gde.1765feac.jpg  1376x578   86 KB
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.1765feac.jpg
+<pre class="plaintext"><code>wrote devto-cover-gde.d8d95a61.jpg  1376x578   79 KB
+cover_image: https://.../devto-cover-gde.d8d95a61.jpg
 wrote builder-cover.2b7f0305.jpg    1200x675   15 KB</code></pre>
 <p><strong><code>--content-address</code> names the file by a hash of
 its own bytes, and it is not optional once an article is
@@ -394,6 +400,14 @@ cache is keyed on URL too, and <code>?v=2</code> does not bust it.</p>
 <p><code>--mode builder</code> defaults to text-free, following AWS's
 own guidance. Then open the file. A palette validator checks colour, not
 layout, and the first pass usually has a label collision.</p>
+<p><strong><code>--flow</code> draws the pipeline instead of stat tiles,
+and that is a deliberate downgrade of the numbers.</strong> The first
+cover for this article showed the skill's token cost on two big tiles —
+accurate, and a detail from the middle of the piece rather than its
+subject. The subject is the shape: one source, a set of checks, and
+destinations that disagree. Colour carries the one thing worth seeing at
+a glance and nothing decorative — <strong>blue reaches over an API,
+orange needs a browser driven for it.</strong></p>
 <h4 id="mag_right-tip-tiles-that-begin-with-a-hyphen">🔎 Tip: tiles that
 begin with a hyphen</h4>
 <p><code>--tile "-embed.html|..."</code> does not reach the script.

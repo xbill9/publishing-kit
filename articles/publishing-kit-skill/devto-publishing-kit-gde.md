@@ -3,7 +3,7 @@ title: "One Article, Four Destinations: a Claude Code Skill That Fails the Build
 published: false
 description: "Step-by-step: packaging a publishing workflow as a Claude Code skill — generating the cover, tracing every number to an artifact, building the Medium version, and posting over the dev.to API, with a pre-flight that exits non-zero."
 tags: ai, devtools, writing, opensource
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.1765feac.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.d8d95a61.jpg
 ---
 
 This tutorial walks through **publishing-kit**, a [Claude Code](https://claude.com/claude-code)
@@ -157,7 +157,7 @@ title: "One Article, Four Destinations: a Claude Code Skill That Fails the Build
 published: false
 description: "Step-by-step: packaging a publishing workflow as a Claude Code skill..."
 tags: ai, devtools, writing, opensource
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.1765feac.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.d8d95a61.jpg
 ---
 ```
 
@@ -176,22 +176,28 @@ dev.to fetches `cover_image:` when it renders the published page.
 | Text in the image | fine | not recommended |
 
 ```shell
-python3 scripts/make-cover.py --out devto-cover-gde.jpg --mode devto \
-  --eyebrow "CLAUDE CODE SKILLS - PLUGIN MARKETPLACE - PUBLISHING" \
-  --headline "Four destinations,|five artifacts, one source." \
-  --subhead "A Claude Code skill that fails the build instead of failing silently." \
-  --tile "always-on|the skill description|~190|tokens per session|CARRIED EVERY SESSION|blue" \
-  --tile "on-invoke|SKILL.md when it fires|~10.6k|tokens per invocation|LOADED ON DEMAND|orange" \
-  --footer "publishing 0.4.0 - 1 skill, 4 references, 12 scripts, 3,541 lines" \
-  --content-address --url-base "$BASE"
+BASE=https://raw.githubusercontent.com/<u>/<repo>/main/<dir>
+
+python3 scripts/make-cover.py --out devto-cover-gde.jpg --mode devto --flow \
+  --content-address --url-base "$BASE" \
+  --eyebrow "PUBLISHING-KIT - A CLAUDE CODE SKILL" \
+  --headline "One source. Four destinations." \
+  --subhead "Two have a REST API. Two have none." \
+  --source "devto-article.md|the source, dev.to flavour" \
+  --step "check-facts.py" --step "check-article.py" --step "make-medium.py" \
+  --dest "dev.to — Google Developer Experts|REST API, no browser|blue" \
+  --dest "AWS Builder Center|no API — Chrome, no clipboard|orange" \
+  --dest "Medium|no API — paste the hosted build|orange" \
+  --dest "LinkedIn|API cannot draft — a file|muted" \
+  --legend "REST API|blue, browser required|orange, no draft state|muted"
 
 python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5 \
   --content-address
 ```
 
 ```plaintext
-wrote devto-cover-gde.1765feac.jpg  1376x578   86 KB
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.1765feac.jpg
+wrote devto-cover-gde.d8d95a61.jpg  1376x578   79 KB
+cover_image: https://.../devto-cover-gde.d8d95a61.jpg
 wrote builder-cover.2b7f0305.jpg    1200x675   15 KB
 ```
 
@@ -214,6 +220,13 @@ that cache is keyed on URL too, and `?v=2` does not bust it.
 
 `--mode builder` defaults to text-free, following AWS's own guidance. Then open the file. A
 palette validator checks colour, not layout, and the first pass usually has a label collision.
+
+**`--flow` draws the pipeline instead of stat tiles, and that is a deliberate downgrade of the
+numbers.** The first cover for this article showed the skill's token cost on two big tiles —
+accurate, and a detail from the middle of the piece rather than its subject. The subject is the
+shape: one source, a set of checks, and destinations that disagree. Colour carries the one thing
+worth seeing at a glance and nothing decorative — **blue reaches over an API, orange needs a
+browser driven for it.**
 
 #### 🔎 Tip: tiles that begin with a hyphen
 
@@ -481,14 +494,14 @@ fails the run if any appear.
 | `references/linkedin.md` | 148 |
 | `references/medium.md` | 119 |
 | `templates/linkedin-post.txt` | 9 |
-| 12 scripts | 2,297 |
-| **total** | **3,541** |
+| 12 scripts | 2,409 |
+| **total** | **3,653** |
 
 Of which ~190 tokens are resident in every session and ~10.6k load when the skill fires.
 
 #### So, worth it?
 
-For one article, no. The kit is worth its 3,541 lines at the point where the same failure has
+For one article, no. The kit is worth its 3,653 lines at the point where the same failure has
 cost you twice, because every failure in it is one that produced a plausible-looking file and a
 broken published page.
 

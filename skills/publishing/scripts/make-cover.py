@@ -130,6 +130,12 @@ def render(a):
 
     # Vertical rhythm for a 578-tall canvas. Every element sits inside it, because
     # at 2.381:1 there is no crop to hide in.
+    if a.flow:
+        render_flow(d, a, W, H, k)
+        img = img.resize((W, H), Image.LANCZOS)
+        img.save(a.out, "JPEG", quality=92, optimize=True)
+        return W, H
+
     pad = 72 * k
     if a.eyebrow:
         draw(d, (pad, 46 * k), a.eyebrow, f(MONO, 18 * k), INK_3)
@@ -203,6 +209,105 @@ def content_address(out):
     return target
 
 
+def render_flow(d, a, W, H, k):
+    """One source, a toolchain, and where the artifacts land.
+
+    A cover earns its place by saying what the article is about. Two stat tiles
+    about token cost say what the SKILL costs, which is a detail inside the piece
+    rather than its subject. The subject is the shape: one source file, a set of
+    checks, and destinations that do not agree with each other -- and the thing
+    worth seeing at a glance is which of them need a browser driven for them.
+
+    Colour encodes exactly that, and never anything decorative:
+        blue    reachable over a REST API
+        orange  no API; a browser has to be driven
+        muted   an API that cannot draft
+    """
+    pad = 72 * k
+    ink3, ink2, ink = INK_3, INK_2, INK
+
+    if a.eyebrow:
+        draw(d, (pad, 38 * k), a.eyebrow, f(MONO, 17 * k), ink3)
+    y = 70 * k
+    for line in (a.headline or "").split("|"):
+        draw(d, (pad, y), line, f(SANS_B, 42 * k), ink)
+        y += 50 * k
+    if a.subhead:
+        draw(d, (pad, y + 4 * k), a.subhead, f(SANS, 24 * k), ink2)
+
+    top, bot = 200 * k, 500 * k
+    mid = (top + bot) / 2
+
+    # ---- source card -------------------------------------------------------
+    sx, sw, sh = pad, 268 * k, 96 * k
+    sy = mid - sh / 2
+    name, _, cap = (a.source or "source").partition("|")
+    d.rounded_rectangle([int(sx) * S, int(sy) * S, int(sx + sw) * S, int(sy + sh) * S],
+                        radius=int(8 * S), fill=TILE_BG, outline=RULE, width=S)
+    d.rectangle([int(sx) * S, int(sy) * S, int(sx + 5 * k) * S, int(sy + sh) * S],
+                fill=COLOURS["blue"])
+    draw(d, (sx + 26 * k, sy + 26 * k), name, f(MONO_B, 22 * k), ink)
+    if cap:
+        draw(d, (sx + 26 * k, sy + 58 * k), cap, f(SANS, 17 * k), ink3)
+
+    # ---- steps -------------------------------------------------------------
+    steps = a.step or []
+    stx, stw = sx + sw + 78 * k, 250 * k
+    sth = max(len(steps) * 34 * k + 34 * k, 96 * k)
+    sty = mid - sth / 2
+    d.rounded_rectangle([int(stx) * S, int(sty) * S, int(stx + stw) * S, int(sty + sth) * S],
+                        radius=int(8 * S), fill=SURFACE, outline=RULE, width=S)
+    for i, st in enumerate(steps):
+        ly = sty + 24 * k + i * 34 * k
+        d.rectangle([int(stx + 22 * k) * S, int(ly + 7 * k) * S,
+                     int(stx + 28 * k) * S, int(ly + 13 * k) * S], fill=RULE)
+        draw(d, (stx + 40 * k, ly), st, f(MONO, 18 * k), ink2)
+
+    # connector: source -> steps
+    d.line([int(sx + sw) * S, int(mid) * S, int(stx) * S, int(mid) * S], fill=RULE, width=S)
+
+    # ---- destinations ------------------------------------------------------
+    dests = a.dest or []
+    dx = stx + stw + 96 * k
+    n = len(dests)
+    gap = (bot - top) / max(n, 1)
+    bus = dx - 46 * k
+    if n:
+        first = top + gap / 2
+        last = top + gap * (n - 0.5)
+        d.line([int(stx + stw) * S, int(mid) * S, int(bus) * S, int(mid) * S],
+               fill=RULE, width=S)
+        d.line([int(bus) * S, int(first) * S, int(bus) * S, int(last) * S],
+               fill=RULE, width=S)
+    for i, spec in enumerate(dests):
+        parts = (spec.split("|") + ["", "", ""])[:3]
+        dname, dnote, dcol = parts
+        cy = top + gap * (i + 0.5)
+        colour = COLOURS.get(dcol, RULE if dcol == "muted" else COLOURS["blue"])
+        d.line([int(bus) * S, int(cy) * S, int(dx - 16 * k) * S, int(cy) * S],
+               fill=RULE, width=S)
+        r = 6 * k
+        d.ellipse([int(dx - 10 * k - r) * S, int(cy - r) * S,
+                   int(dx - 10 * k + r) * S, int(cy + r) * S], fill=colour)
+        draw(d, (dx + 6 * k, cy - 20 * k), dname, f(SANS_B, 22 * k), ink)
+        if dnote:
+            draw(d, (dx + 6 * k, cy + 6 * k), dnote, f(SANS, 16 * k), ink3)
+
+    # ---- legend ------------------------------------------------------------
+    if a.legend:
+        lx = pad
+        ly = 534 * k
+        d.line([int(pad) * S, int(518 * k) * S, int(W - pad) * S, int(518 * k) * S],
+               fill=RULE, width=S)
+        for pair in a.legend.split(","):
+            label, _, col = pair.strip().partition("|")
+            colour = COLOURS.get(col, RULE)
+            d.rectangle([int(lx) * S, int(ly + 4 * k) * S,
+                         int(lx + 10 * k) * S, int(ly + 14 * k) * S], fill=colour)
+            draw(d, (lx + 20 * k, ly), label, f(MONO, 16 * k), ink3)
+            lx += (len(label) * 9.6 + 46) * k
+
+
 def main():
     p = argparse.ArgumentParser(description="Render an article cover image")
     p.add_argument("--out", required=True)
@@ -219,6 +324,13 @@ def main():
                    help="abstract cover, no type (default for --mode builder)")
     p.add_argument("--with-text", action="store_true",
                    help="force type on in builder mode, against AWS guidance")
+    p.add_argument("--flow", action="store_true",
+                   help="render a pipeline diagram instead of stat tiles")
+    p.add_argument("--source", default="", help="--flow: 'file|caption'")
+    p.add_argument("--step", action="append", help="--flow: a build step, repeatable")
+    p.add_argument("--dest", action="append",
+                   help="--flow: 'name|note|blue|orange|muted', repeatable")
+    p.add_argument("--legend", default="", help="--flow: 'label|colour' pairs, comma separated")
     p.add_argument("--content-address", action="store_true",
                    help="name the file by a hash of its bytes, so a regenerated "
                         "cover is a URL no cache has ever seen")

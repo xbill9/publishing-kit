@@ -17,7 +17,7 @@ scripts (12):
     131  check-facts.py
     149  check-links.py
     109  make-builder.py
-    247  make-cover.py
+    359  make-cover.py
     330  make-linkedin.py
     446  make-medium.py
      84  preflight.py
@@ -25,8 +25,8 @@ scripts (12):
      99  serve-body.py
     136  skill-footprint.py
 
-total: 3,541 lines
+total: 3,653 lines
 
-installed snapshot 3f47ab5 (HEAD is cc45d9c): ~190 always-on, ~10.6k on-invoke
+installed snapshot 3f47ab5 (HEAD is 89f6c66): ~190 always-on, ~10.6k on-invoke
   STALE -- that projection measures an older commit. Run:
   claude plugin marketplace update publishing-kit && claude plugin update publishing
