@@ -1,44 +1,27 @@
-# skill footprint, re-captured 2026-08-31T13:01:24-04:00 at 0.2.0
-## claude plugin details publishing
-publishing 0.2.0
-  Description: Publish a technical article to AWS Builder Center, dev.to and Medium without the silent failures: mandatory cover images, table/code-to-image conversion for Medium's importer, a LinkedIn post draft whose links must resolve, a pre-flight check that fails the build, and fact-tracing that reports every claim with no artifact behind it.
-  Source: publishing@publishing-kit
+# skill footprint, worktree, publishing 0.3.0
 
-Component inventory
-  Skills (1)  publishing
-  Agents (0)
-  Hooks (0)
-  MCP servers (0)
-  LSP servers (0)
+SKILL.md: 526 lines, description 528 chars
 
-Projected token cost
-  Always-on:   ~187 tok   added to every session
+references (4):
+    226  browser-publishing.md
+     66  house-style.md
+    148  linkedin.md
+    119  medium.md
 
-Per-component (rounded)
-  component   always-on  on-invoke
-  publishing       ~190        ~8k
+templates (1):
+      9  linkedin-post.txt
 
-  On-invoke cost is paid each time a skill or agent fires.
-  Token counts are estimates and may differ from actual usage.
+scripts (9):
+    114  bodytext.py
+    272  check-article.py
+    131  check-facts.py
+    247  make-cover.py
+    330  make-linkedin.py
+    446  make-medium.py
+    180  publish-devto.py
+     99  serve-body.py
+    136  skill-footprint.py
 
-## wc -l of the skill
-   446 skills/publishing/SKILL.md
-   226 skills/publishing/references/browser-publishing.md
-    66 skills/publishing/references/house-style.md
-   148 skills/publishing/references/linkedin.md
-    86 skills/publishing/references/medium.md
-     9 skills/publishing/templates/linkedin-post.txt
-   163 skills/publishing/scripts/check-article.py
-   131 skills/publishing/scripts/check-facts.py
-   187 skills/publishing/scripts/make-cover.py
-   321 skills/publishing/scripts/make-linkedin.py
-   446 skills/publishing/scripts/make-medium.py
-   141 skills/publishing/scripts/serve-body.py
-  2370 total
+total: 3,049 lines
 
-## description length as loaded at startup
-description chars: 528
-SKILL.md body chars: 22602
-
-## installed version
-{'scope': 'user', 'installPath': '/home/xbill/.claude/plugins/cache/publishing-kit/publishing/0.2.0', 'version': '0.2.0', 'installedAt': '2026-08-31T13:52:37.632Z', 'lastUpdated': '2026-08-31T17:01:16.374Z', 'gitCommitSha': 'f7eaac2e3676cdf2f0052cdc4c199e8fc7c18536'}
+installed snapshot 00b42ca (HEAD is 00b42ca): ~190 always-on, ~9.5k on-invoke
