@@ -247,7 +247,7 @@
   </style>
 </head>
 <body>
-<figure><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/devto-cover-gde.d8d95a61.jpg" alt="One Article, Four Destinations: a Claude Code Skill That Fails the Build" /></figure>
+<figure><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/cover.d8d95a61.jpg" alt="One Article, Four Destinations: a Claude Code Skill That Fails the Build" /></figure>
 <header id="title-block-header" hidden>
 <h1 class="title">One Article, Four Destinations: a Claude Code Skill
 That Fails the Build</h1>
@@ -352,7 +352,7 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb7-1"><a href="
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">published</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span></span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">description</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;Step-by-step: packaging a publishing workflow as a Claude Code skill...&quot;</span></span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tags</span><span class="kw">:</span><span class="at"> ai, devtools, writing, opensource</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cover_image</span><span class="kw">:</span><span class="at"> https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.d8d95a61.jpg</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cover_image</span><span class="kw">:</span><span class="at"> https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/cover.d8d95a61.jpg</span></span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="pp">---</span></span></code></pre></div>
 <p><code>published: false</code>, always, and let the pre-flight enforce
 it. dev.to keeps the first four tags and drops the rest, measured
@@ -365,7 +365,7 @@ it renders the published page.</p>
 alt="table" /></p>
 <pre class="shell"><code>BASE=https://raw.githubusercontent.com/&lt;u&gt;/&lt;repo&gt;/main/&lt;dir&gt;
 
-python3 scripts/make-cover.py --out devto-cover-gde.jpg --mode devto --flow \
+python3 scripts/make-cover.py --out cover.jpg --sizes devto,builder --flow \
   --content-address --url-base &quot;$BASE&quot; \
   --eyebrow &quot;PUBLISHING-KIT - A CLAUDE CODE SKILL&quot; \
   --headline &quot;One source. Four destinations.&quot; \
@@ -376,13 +376,9 @@ python3 scripts/make-cover.py --out devto-cover-gde.jpg --mode devto --flow \
   --dest &quot;AWS Builder Center|no API — Chrome, no clipboard|orange&quot; \
   --dest &quot;Medium|no API — paste the hosted build|orange&quot; \
   --dest &quot;LinkedIn|API cannot draft — a file|muted&quot; \
-  --legend &quot;REST API|blue, browser required|orange, no draft state|muted&quot;
-
-python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5 \
-  --content-address</code></pre>
-<pre class="plaintext"><code>wrote devto-cover-gde.d8d95a61.jpg  1376x578   79 KB
-cover_image: https://.../devto-cover-gde.d8d95a61.jpg
-wrote builder-cover.2b7f0305.jpg    1200x675   15 KB</code></pre>
+  --legend &quot;REST API|blue, browser required|orange, no draft state|muted&quot;</code></pre>
+<pre class="plaintext"><code>wrote cover.d8d95a61.jpg           1376x578   79 KB
+wrote cover-builder.92fa3743.jpg   1200x675   67 KB</code></pre>
 <p><strong><code>--content-address</code> names the file by a hash of
 its own bytes, and it is not optional once an article is
 published.</strong> dev.to does not re-host your cover — it
@@ -400,6 +396,15 @@ cache is keyed on URL too, and <code>?v=2</code> does not bust it.</p>
 <p><code>--mode builder</code> defaults to text-free, following AWS's
 own guidance. Then open the file. A palette validator checks colour, not
 layout, and the first pass usually has a label collision.</p>
+<p><strong><code>--sizes devto,builder</code> renders ONE design at both
+geometries.</strong> An article published to four destinations is one
+piece and wants one cover; giving each destination its own picture is
+three things to keep in step instead of one, and it is exactly what
+leaves a directory holding several <code>*cover*.jpg</code> for the
+alphabetical <code>--cover</code> fallback to pick wrongly from. The
+pre-flight now fails when sibling versions reference different covers,
+which is the check that was missing while this article shipped three of
+them.</p>
 <p><strong><code>--flow</code> draws the pipeline instead of stat tiles,
 and that is a deliberate downgrade of the numbers.</strong> The first
 cover for this article showed the skill's token cost on two big tiles —
@@ -632,7 +637,7 @@ alt="table" /></p>
 <p>Of which ~190 tokens are resident in every session and ~10.6k load
 when the skill fires.</p>
 <h4 id="so-worth-it">So, worth it?</h4>
-<p>For one article, no. The kit is worth its 3,541 lines at the point
+<p>For one article, no. The kit is worth its 3,653 lines at the point
 where the same failure has cost you twice, because every failure in it
 is one that produced a plausible-looking file and a broken published
 page.</p>

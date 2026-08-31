@@ -194,6 +194,31 @@ def main():
     if covers and not m:
         warn(f"found {covers[0].name} on disk but nothing references it")
 
+    # 4c  ONE ARTICLE, ONE COVER ----------------------------------------------
+    # An article published to several destinations is ONE piece and wants one
+    # cover. Giving each destination its own picture is three things to keep in
+    # step instead of one, and it is what leaves a directory holding several
+    # *cover*.jpg for make-medium.py's alphabetical fallback to choose wrongly
+    # from. Nothing here checked it, and this repo shipped three covers for one
+    # article without a single check going red.
+    siblings = sorted(x for x in d.glob("*.md")
+                      if x != src and re.search(r"^cover_image:", x.read_text(), re.M))
+    if siblings and m:
+        mine = m.group(1).rstrip("/").split("/")[-1]
+        others = {}
+        for sib in siblings:
+            sm = re.search(r"^cover_image:\s*(\S+)", front_matter(sib.read_text()), re.M)
+            if sm:
+                others[sib.name] = sm.group(1).rstrip("/").split("/")[-1]
+        differing = {k: v for k, v in others.items() if v != mine}
+        if differing:
+            fail(f"sibling version(s) reference a different cover: "
+                 f"{', '.join(f'{k} -> {v}' for k, v in differing.items())}. "
+                 f"One article, one cover -- render it at each geometry with "
+                 f"make-cover.py --sizes")
+        else:
+            ok(f"all {len(others) + 1} version(s) share one cover")
+
     # 5  PUBLISHED ------------------------------------------------------------
     if re.search(r"^published:\s*true", fm, re.M):
         fail("published: true -- default to false and publish deliberately")

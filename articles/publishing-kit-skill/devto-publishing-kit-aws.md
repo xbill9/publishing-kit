@@ -3,7 +3,7 @@ title: "Publishing to AWS Builder Center Without Touching the Clipboard"
 published: false
 description: "A step by step publishing pipeline for AWS Builder Center, dev.to and Medium as a Claude Code skill. Mandatory covers at two geometries, a pre-flight that exits non-zero, and a chunked, checksummed route into the editor that never races the system clipboard."
 tags: aws, ai, writing, devtools
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-aws.3ca0b7f4.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/cover.d8d95a61.jpg
 ---
 
 This article provides a step by step guide for publishing one technical article to AWS Builder
@@ -122,7 +122,7 @@ title: "Publishing to AWS Builder Center Without Touching the Clipboard"
 published: false
 description: "..."
 tags: aws, ai, writing, devtools
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-aws.3ca0b7f4.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/cover.d8d95a61.jpg
 ---
 ```
 
@@ -142,19 +142,25 @@ broken image on a public post.
 | Text in the image | fine | not recommended |
 
 ```shell
-python3 scripts/make-cover.py --out devto-cover-aws.jpg --mode devto \
-  --eyebrow "AWS BUILDER CENTER - DEV.TO - MEDIUM" \
-  --headline "The paste that drops|every image, silently." \
-  "--tile=-embed.html|base64 data: URIs|0 of 4|images survive the paste|SILENT FAILURE|orange" \
-  "--tile=-hosted.html|real https:// URLs|4 of 4|images survive the paste|USE THIS ONE|blue"
+BASE=https://raw.githubusercontent.com/<u>/<repo>/main/<dir>
 
-python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5 \
-  --content-address
+python3 scripts/make-cover.py --out cover.jpg --sizes devto,builder --flow \
+  --content-address --url-base "$BASE" \
+  --eyebrow "PUBLISHING-KIT - A CLAUDE CODE SKILL" \
+  --headline "One source. Four destinations." \
+  --subhead "Two have a REST API. Two have none." \
+  --source "devto-article.md|the source, dev.to flavour" \
+  --step "check-facts.py" --step "check-article.py" --step "make-medium.py" \
+  --dest "dev.to — Google Developer Experts|REST API, no browser|blue" \
+  --dest "AWS Builder Center|no API — Chrome, no clipboard|orange" \
+  --dest "Medium|no API — paste the hosted build|orange" \
+  --dest "LinkedIn|API cannot draft — a file|muted" \
+  --legend "REST API|blue, browser required|orange, no draft state|muted"
 ```
 
 ```plaintext
-wrote devto-cover-aws.3ca0b7f4.jpg  1376x578   85 KB
-wrote builder-cover.2b7f0305.jpg    1200x675   15 KB
+wrote cover.d8d95a61.jpg           1376x578   79 KB
+wrote cover-builder.92fa3743.jpg   1200x675   67 KB
 ```
 
 **Name the cover by a hash of its bytes.** MEASURED 2026-08-31: dev.to does not

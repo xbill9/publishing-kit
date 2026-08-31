@@ -3,7 +3,7 @@ title: "One Article, Four Destinations: a Claude Code Skill That Fails the Build
 published: false
 description: "Step-by-step: packaging a publishing workflow as a Claude Code skill — generating the cover, tracing every number to an artifact, building the Medium version, and posting over the dev.to API, with a pre-flight that exits non-zero."
 tags: ai, devtools, writing, opensource
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.d8d95a61.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/cover.d8d95a61.jpg
 ---
 
 This tutorial walks through **publishing-kit**, a [Claude Code](https://claude.com/claude-code)
@@ -157,7 +157,7 @@ title: "One Article, Four Destinations: a Claude Code Skill That Fails the Build
 published: false
 description: "Step-by-step: packaging a publishing workflow as a Claude Code skill..."
 tags: ai, devtools, writing, opensource
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.d8d95a61.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/cover.d8d95a61.jpg
 ---
 ```
 
@@ -178,7 +178,7 @@ dev.to fetches `cover_image:` when it renders the published page.
 ```shell
 BASE=https://raw.githubusercontent.com/<u>/<repo>/main/<dir>
 
-python3 scripts/make-cover.py --out devto-cover-gde.jpg --mode devto --flow \
+python3 scripts/make-cover.py --out cover.jpg --sizes devto,builder --flow \
   --content-address --url-base "$BASE" \
   --eyebrow "PUBLISHING-KIT - A CLAUDE CODE SKILL" \
   --headline "One source. Four destinations." \
@@ -190,15 +190,11 @@ python3 scripts/make-cover.py --out devto-cover-gde.jpg --mode devto --flow \
   --dest "Medium|no API — paste the hosted build|orange" \
   --dest "LinkedIn|API cannot draft — a file|muted" \
   --legend "REST API|blue, browser required|orange, no draft state|muted"
-
-python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5 \
-  --content-address
 ```
 
 ```plaintext
-wrote devto-cover-gde.d8d95a61.jpg  1376x578   79 KB
-cover_image: https://.../devto-cover-gde.d8d95a61.jpg
-wrote builder-cover.2b7f0305.jpg    1200x675   15 KB
+wrote cover.d8d95a61.jpg           1376x578   79 KB
+wrote cover-builder.92fa3743.jpg   1200x675   67 KB
 ```
 
 **`--content-address` names the file by a hash of its own bytes, and it is not
@@ -220,6 +216,13 @@ that cache is keyed on URL too, and `?v=2` does not bust it.
 
 `--mode builder` defaults to text-free, following AWS's own guidance. Then open the file. A
 palette validator checks colour, not layout, and the first pass usually has a label collision.
+
+**`--sizes devto,builder` renders ONE design at both geometries.** An article published to
+four destinations is one piece and wants one cover; giving each destination its own picture is
+three things to keep in step instead of one, and it is exactly what leaves a directory holding
+several `*cover*.jpg` for the alphabetical `--cover` fallback to pick wrongly from. The
+pre-flight now fails when sibling versions reference different covers, which is the check that
+was missing while this article shipped three of them.
 
 **`--flow` draws the pipeline instead of stat tiles, and that is a deliberate downgrade of the
 numbers.** The first cover for this article showed the skill's token cost on two big tiles —
@@ -494,14 +497,14 @@ fails the run if any appear.
 | `references/linkedin.md` | 148 |
 | `references/medium.md` | 119 |
 | `templates/linkedin-post.txt` | 9 |
-| 12 scripts | 2,409 |
-| **total** | **3,653** |
+| 12 scripts | 2,493 |
+| **total** | **3,737** |
 
 Of which ~190 tokens are resident in every session and ~10.6k load when the skill fires.
 
 #### So, worth it?
 
-For one article, no. The kit is worth its 3,653 lines at the point where the same failure has
+For one article, no. The kit is worth its 3,737 lines at the point where the same failure has
 cost you twice, because every failure in it is one that produced a plausible-looking file and a
 broken published page.
 

@@ -223,6 +223,24 @@ def render_flow(d, a, W, H, k):
         orange  no API; a browser has to be driven
         muted   an API that cannot draft
     """
+    # MEASURED: scaling this layout off HEIGHT alone clipped every destination
+    # label at the Builder Center size, because 1200x675 is TALLER in ratio but
+    # NARROWER in pixels than 1376x578. A diagram is constrained by whichever
+    # dimension runs out first, so scale by the limiting one and centre what is
+    # left over.
+    k = min(W / 1376.0, H / 578.0)
+    oy = (H - 578 * k) / 2
+
+    def draw(dd, xy, txt, font, fill):          # shadows the module helper: adds oy
+        dd.text((int(xy[0]) * S, int(xy[1] + oy) * S), txt, font=font, fill=fill, anchor="la")
+
+    def box(x0, y0, x1, y1, **kw):
+        dd = d.rounded_rectangle if "radius" in kw else d.rectangle
+        dd([int(x0) * S, int(y0 + oy) * S, int(x1) * S, int(y1 + oy) * S], **kw)
+
+    def seg(x0, y0, x1, y1, **kw):   # NOT `line`: the headline loop binds that name
+        d.line([int(x0) * S, int(y0 + oy) * S, int(x1) * S, int(y1 + oy) * S], **kw)
+
     pad = 72 * k
     ink3, ink2, ink = INK_3, INK_2, INK
 
@@ -242,10 +260,8 @@ def render_flow(d, a, W, H, k):
     sx, sw, sh = pad, 268 * k, 96 * k
     sy = mid - sh / 2
     name, _, cap = (a.source or "source").partition("|")
-    d.rounded_rectangle([int(sx) * S, int(sy) * S, int(sx + sw) * S, int(sy + sh) * S],
-                        radius=int(8 * S), fill=TILE_BG, outline=RULE, width=S)
-    d.rectangle([int(sx) * S, int(sy) * S, int(sx + 5 * k) * S, int(sy + sh) * S],
-                fill=COLOURS["blue"])
+    box(sx, sy, sx + sw, sy + sh, radius=int(8 * S), fill=TILE_BG, outline=RULE, width=S)
+    box(sx, sy, sx + 5 * k, sy + sh, fill=COLOURS["blue"])
     draw(d, (sx + 26 * k, sy + 26 * k), name, f(MONO_B, 22 * k), ink)
     if cap:
         draw(d, (sx + 26 * k, sy + 58 * k), cap, f(SANS, 17 * k), ink3)
@@ -255,16 +271,15 @@ def render_flow(d, a, W, H, k):
     stx, stw = sx + sw + 78 * k, 250 * k
     sth = max(len(steps) * 34 * k + 34 * k, 96 * k)
     sty = mid - sth / 2
-    d.rounded_rectangle([int(stx) * S, int(sty) * S, int(stx + stw) * S, int(sty + sth) * S],
-                        radius=int(8 * S), fill=SURFACE, outline=RULE, width=S)
+    box(stx, sty, stx + stw, sty + sth, radius=int(8 * S), fill=SURFACE,
+        outline=RULE, width=S)
     for i, st in enumerate(steps):
         ly = sty + 24 * k + i * 34 * k
-        d.rectangle([int(stx + 22 * k) * S, int(ly + 7 * k) * S,
-                     int(stx + 28 * k) * S, int(ly + 13 * k) * S], fill=RULE)
+        box(stx + 22 * k, ly + 7 * k, stx + 28 * k, ly + 13 * k, fill=RULE)
         draw(d, (stx + 40 * k, ly), st, f(MONO, 18 * k), ink2)
 
     # connector: source -> steps
-    d.line([int(sx + sw) * S, int(mid) * S, int(stx) * S, int(mid) * S], fill=RULE, width=S)
+    seg(sx + sw, mid, stx, mid, fill=RULE, width=S)
 
     # ---- destinations ------------------------------------------------------
     dests = a.dest or []
@@ -275,20 +290,17 @@ def render_flow(d, a, W, H, k):
     if n:
         first = top + gap / 2
         last = top + gap * (n - 0.5)
-        d.line([int(stx + stw) * S, int(mid) * S, int(bus) * S, int(mid) * S],
-               fill=RULE, width=S)
-        d.line([int(bus) * S, int(first) * S, int(bus) * S, int(last) * S],
-               fill=RULE, width=S)
+        seg(stx + stw, mid, bus, mid, fill=RULE, width=S)
+        seg(bus, first, bus, last, fill=RULE, width=S)
     for i, spec in enumerate(dests):
         parts = (spec.split("|") + ["", "", ""])[:3]
         dname, dnote, dcol = parts
         cy = top + gap * (i + 0.5)
         colour = COLOURS.get(dcol, RULE if dcol == "muted" else COLOURS["blue"])
-        d.line([int(bus) * S, int(cy) * S, int(dx - 16 * k) * S, int(cy) * S],
-               fill=RULE, width=S)
+        seg(bus, cy, dx - 16 * k, cy, fill=RULE, width=S)
         r = 6 * k
-        d.ellipse([int(dx - 10 * k - r) * S, int(cy - r) * S,
-                   int(dx - 10 * k + r) * S, int(cy + r) * S], fill=colour)
+        d.ellipse([int(dx - 10 * k - r) * S, int(cy - r + oy) * S,
+                   int(dx - 10 * k + r) * S, int(cy + r + oy) * S], fill=colour)
         draw(d, (dx + 6 * k, cy - 20 * k), dname, f(SANS_B, 22 * k), ink)
         if dnote:
             draw(d, (dx + 6 * k, cy + 6 * k), dnote, f(SANS, 16 * k), ink3)
@@ -297,13 +309,11 @@ def render_flow(d, a, W, H, k):
     if a.legend:
         lx = pad
         ly = 534 * k
-        d.line([int(pad) * S, int(518 * k) * S, int(W - pad) * S, int(518 * k) * S],
-               fill=RULE, width=S)
+        seg(pad, 518 * k, W - pad, 518 * k, fill=RULE, width=S)
         for pair in a.legend.split(","):
             label, _, col = pair.strip().partition("|")
             colour = COLOURS.get(col, RULE)
-            d.rectangle([int(lx) * S, int(ly + 4 * k) * S,
-                         int(lx + 10 * k) * S, int(ly + 14 * k) * S], fill=colour)
+            box(lx, ly + 4 * k, lx + 10 * k, ly + 14 * k, fill=colour)
             draw(d, (lx + 20 * k, ly), label, f(MONO, 16 * k), ink3)
             lx += (len(label) * 9.6 + 46) * k
 
@@ -324,6 +334,11 @@ def main():
                    help="abstract cover, no type (default for --mode builder)")
     p.add_argument("--with-text", action="store_true",
                    help="force type on in builder mode, against AWS guidance")
+    p.add_argument("--sizes",
+                   help="render ONE design at several geometries, e.g. "
+                        "'devto,builder'. One article has one cover; the two "
+                        "sizes exist because the destinations demand them, not "
+                        "because the picture should differ.")
     p.add_argument("--flow", action="store_true",
                    help="render a pipeline diagram instead of stat tiles")
     p.add_argument("--source", default="", help="--flow: 'file|caption'")
@@ -338,6 +353,39 @@ def main():
                    help="print the cover_image: URL to paste, e.g. "
                         "https://raw.githubusercontent.com/<u>/<repo>/main/<dir>/")
     a = p.parse_args()
+
+    # ONE design, every geometry it is needed at. Rendering each destination its
+    # own picture is how a directory ends up with three covers, which is what
+    # make-medium.py's alphabetical --cover fallback then picks wrongly from.
+    if a.sizes:
+        base = pathlib.Path(a.out)
+        outs = []
+        for mode in [m.strip() for m in a.sizes.split(",") if m.strip()]:
+            if mode not in MODES:
+                sys.exit(f"unknown size '{mode}'; known: {', '.join(sorted(MODES))}")
+            sub = argparse.Namespace(**vars(a))
+            sub.sizes = None
+            sub.mode = mode
+            sub.with_text = True          # one design means text at every size
+            sub.no_text = False
+            sub.out = str(base if mode == "devto"
+                          else base.with_name(f"{base.stem}-{mode}{base.suffix}"))
+            w, h = render(sub)
+            if sub.content_address:
+                sub.out = str(content_address(pathlib.Path(sub.out)))
+            kb = os.path.getsize(sub.out) // 1024
+            print(f"wrote {sub.out}  {w}x{h}  {kb} KB")
+            if mode == "builder" and kb > 2048:
+                sys.exit("FAIL: Builder Center caps cover uploads at 2 MB")
+            outs.append(sub.out)
+        if a.url_base:
+            for o in outs:
+                print(f"  {a.url_base.rstrip('/')}/{pathlib.Path(o).name}")
+        print("\nAWS's editor says text in images is not recommended. This is one "
+              "cover at two sizes\nby choice: a different picture per destination "
+              "is a third thing to keep in step.")
+        return 0
+
     if a.mode == "builder" and not a.with_text:
         a.no_text = True
     w, h = render(a)
