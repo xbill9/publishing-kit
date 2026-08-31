@@ -1,0 +1,24 @@
+# dev.to account routing, captured 2026-08-31T10:06:09-04:00
+## GET /api/organizations/gde
+{
+    "type_of": "organization",
+    "id": 11939,
+    "username": "gde",
+    "name": "Google Developer Experts",
+    "summary": "The official place for discovering GDE-created content and exploring how experts leverage Google technologies.",
+    "twitter_username": "",
+    "github_username": "",
+## GET /api/organizations/aws-builders
+{
+    "type_of": "organization",
+    "id": 2794,
+    "username": "aws-builders",
+    "name": "AWS Community Builders ",
+    "summary": "The AWS Community Builders DEV organization is the unofficially official place for our community members to create and share content for other AWS builders.",
+    "twitter_username": "",
+    "github_username": "",
+## orgs seen across /api/articles/me?per_page=40
+articles listed: 40
+  gde: 24
+  aws-builders: 13
+  None: 3

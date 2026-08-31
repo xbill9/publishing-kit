@@ -1,0 +1,9 @@
+One Article, Four Destinations: a Claude Code Skill That Fails the Build
+
+Step-by-step: packaging a publishing workflow as a Claude Code skill — generating the cover, tracing every number to an artifact, building the Medium version, and posting over the dev.to API, with a pre-flight that exits non-zero.
+
+dev.to (Google Developer Experts): PENDING
+dev.to (AWS Community Builders): PENDING
+AWS Builder Center: PENDING
+Medium: PENDING
+Source: https://github.com/xbill9/publishing-kit

@@ -1,0 +1,38 @@
+# LinkedIn generator, re-captured 2026-08-31T12:12:50-04:00 after templating
+## default shipped template, links still PENDING
+
+devto-publishing-kit-aws.md -> linkedin-devto-publishing-kit-aws.txt
+  FAIL  4 link(s) still PENDING: builder, devto-aws, devto-gde, medium
+  ok    hook fits the fold: 80 chars
+  ok    post is 1269 chars of 3000
+  ok    no markdown left; LinkedIn renders none of it
+  ok    no template scaffolding left
+  ok    no Unicode pseudo-bold
+  ok    little-escaped variant for the Posts API -> linkedin-devto-publishing-kit-aws.little.txt
+
+--- above the fold (140 chars) ---
+Getting 22 KB of Markdown Into AWS Builder Center Without Touching the Clipboard
+
+A step by step publishing pipeline for AWS Builder Center,
+
+1 fail, 0 warn
+
+The file was written so you can read it. It is not postable.
+exit=1
+
+## no Summary section: the [[bullets]] block drops its lead-in
+  WARN  no '## Summary' bullets found; the post carries the description only
+  ok    post is 483 chars of 3000
+  ok    no template scaffolding left
+
+## every check on its failure path
+  FAIL  5 Unicode pseudo-bold character(s); screen readers cannot read them
+  FAIL  hook is 230 chars; truncated on desktop too (~210)
+  FAIL  repo is not an https URL: http://example.com
+  FAIL  template block markers left in the post; check [[key]] ... [[/key]] pairing
+
+## all links resolved: exit 0
+A step by step publishing pipeline for AWS Builder Center,
+
+0 fail, 0 warn
+exit=0

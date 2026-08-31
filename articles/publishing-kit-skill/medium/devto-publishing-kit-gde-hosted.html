@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>One Article, Four Destinations: a Claude Code Skill That Fails the Build</title>
+  <meta name="description" content="Step-by-step: packaging a publishing workflow as a Claude Code skill — generating the cover, tracing every number to an artifact, building the Medium version, and posting over the dev.to API, with a pre-flight that exits non-zero." />
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <style>
+    body{font-family:-apple-system,'Segoe UI',Roboto,'Liberation Sans',Arial,sans-serif;
+         font-size:18px;line-height:1.58;max-width:42em;color:#242424;}
+    h1,h2,h3,h4{font-weight:700;line-height:1.25;margin-top:1.8em;}
+    h4{font-size:1.25em;}
+    img{max-width:100%;height:auto;display:block;margin:1.6em 0;}
+    pre{background:#f7f7f7;border:1px solid #e6e6e6;border-radius:4px;
+        padding:12px 14px;overflow-x:auto;font-size:14px;line-height:1.45;}
+    code{font-family:'Liberation Mono',Menlo,Consolas,monospace;}
+    :not(pre)>code{background:#f2f2f2;padding:1px 5px;border-radius:3px;font-size:.9em;}
+    blockquote{border-left:3px solid #ddd;margin-left:0;padding-left:1em;color:#555;}
+    hr{border:0;border-top:1px solid #e6e6e6;margin:2.4em 0;}
+  </style>
+</head>
+<body>
+<figure><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/devto-cover-gde.jpg" alt="One Article, Four Destinations: a Claude Code Skill That Fails the Build" /></figure>
+<header id="title-block-header" hidden>
+<h1 class="title">One Article, Four Destinations: a Claude Code Skill
+That Fails the Build</h1>
+</header>
+<p>This tutorial walks through <strong>publishing-kit</strong>, a <a
+href="https://claude.com/claude-code">Claude Code</a> skill that turns
+one technical article into four publishable artifacts — dev.to, AWS
+Builder Center and Medium — and refuses to ship the ones that are
+broken.</p>
+<p><a
+href="https://github.com/xbill9/publishing-kit">https://github.com/xbill9/publishing-kit</a></p>
+<p>The example is a real one: this article. Every command below was run
+to produce the four versions, and the numbers come out of that run, on
+2026-08-31.</p>
+<p>Follow along and you'll have a working skill, an article the
+destinations will not mangle, and an evidence directory that says where
+every number came from.</p>
+<hr />
+<h4 id="why-a-skill-and-not-a-checklist">Why a skill and not a
+checklist?</h4>
+<p>Because the failures are silent, and each one costs a re-publish.</p>
+<p>Three claims about publishing that sound reasonable and are wrong, so
+nobody has to find out the hard way:</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/devto-publishing-kit-gde-table-1.png"
+alt="table" /></p>
+<p>That second row is the one that pays for the whole kit. The
+self-contained build inlines every image as base64. Pasted into Medium,
+the cover and every table image disappear, with no error, no placeholder
+and no broken-image icon. Measured 2026-08-30:</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/devto-publishing-kit-gde-table-2.png"
+alt="table" /></p>
+<h4 id="how-does-this-all-fit-together">How does this all fit
+together?</h4>
+<p>One source article, three derived artifacts, two checks between
+them:</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/devto-publishing-kit-gde-diagram-1.png"
+alt="diagram" /></p>
+<p>Six scripts, one skill file, four reference files. The skill decides
+when each one runs.</p>
+<h4 id="one-of-them-has-an-api-two-of-them-do-not">One of them has an
+API. Two of them do not.</h4>
+<p>This is the split that shapes everything else:</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/devto-publishing-kit-gde-table-3.png"
+alt="table" /></p>
+<p>The browser work in Step 9 is not a shortcut taken instead of reading
+API docs. <strong>For Medium and Builder Center there is no API to
+read.</strong> The clipboard races, the duplicate pastes and the
+silently stripped images are all the price of that one row.</p>
+<p>And the rule that falls out of it: <strong>before reaching for the
+browser on any destination, check whether it has an API.</strong>
+dev.to's was sitting unused in eight directories while a whole browser
+flow was built around it.</p>
+<h4 id="what-is-a-claude-code-skill-in-one-paragraph">What is a Claude
+Code skill, in one paragraph?</h4>
+<p>A directory with a <code>SKILL.md</code> in it. The YAML front matter
+carries a name and a description; the body carries the instructions. The
+description is loaded into every session and the body is read only when
+the description matches what you asked for, which makes the description
+the part you tune and the body the part you fill.</p>
+<h4 id="step-1--install-it">Step 1 — Install it</h4>
+<p>The kit ships as a plugin marketplace, so there is no file
+copying:</p>
+<pre class="shell"><code>claude plugin marketplace add /home/xbill/publishing-kit
+claude plugin install publishing@publishing-kit</code></pre>
+<pre class="plaintext"><code>✅ Successfully added marketplace: publishing-kit (declared in user settings)
+✅ Successfully installed plugin: publishing@publishing-kit (scope: user)</code></pre>
+<p>That is a local checkout. <code>xbill9/publishing-kit</code> works
+the same way — main serves the marketplace manifest, verified HTTP 200.
+Restart the session, then read what it costs:</p>
+<pre class="shell"><code>claude plugin details publishing</code></pre>
+<pre class="plaintext"><code>Projected token cost
+  Always-on:   ~150 tok   added to every session
+
+  component   always-on  on-invoke
+  publishing       ~150      ~6.6k</code></pre>
+<p><strong>That split is the design.</strong> The 433 character
+description is the resident cost. The 376 line <code>SKILL.md</code> is
+the on-invoke cost.</p>
+<h4
+id="mag_right-tip-if-you-are-developing-the-skill-do-not-install-it">🔎
+Tip: if you are developing the skill, do not install it</h4>
+<p>Installing from a local path takes a snapshot. It does not link the
+working tree:</p>
+<pre class="shell"><code>stat -c &#39;%d:%i  %n&#39; skills/publishing/SKILL.md \
+  ~/.claude/plugins/cache/publishing-kit/publishing/0.1.0/skills/publishing/SKILL.md</code></pre>
+<pre class="plaintext"><code>21:7587931  /home/xbill/publishing-kit/skills/publishing/SKILL.md
+21:7594413  /home/xbill/.claude/plugins/cache/.../skills/publishing/SKILL.md</code></pre>
+<p>Different inodes. A line appended to the worktree copy does not
+appear in the installed one, and <code>installed_plugins.json</code>
+records the commit it was pinned at. Edits arrive after
+<code>claude plugin marketplace update</code> and
+<code>claude plugin update</code>, and not before. While iterating,
+symlink the skill into <code>~/.claude/skills/</code> instead.</p>
+<h4 id="step-2--write-the-devto-source">Step 2 — Write the dev.to
+source</h4>
+<p>dev.to is the source format, not one of three copies. It is the only
+destination where tables, fenced code and emoji all render natively, so
+the other artifacts are derived from it by subtraction.</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="pp">---</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;One Article, Four Destinations: a Claude Code Skill That Fails the Build&quot;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">published</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">description</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;Step-by-step: packaging a publishing workflow as a Claude Code skill...&quot;</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tags</span><span class="kw">:</span><span class="at"> ai, devtools, writing, opensource</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cover_image</span><span class="kw">:</span><span class="at"> https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.jpg</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="pp">---</span></span></code></pre></div>
+<p><code>published: false</code>, always, and let the pre-flight enforce
+it. dev.to keeps the first four tags and drops the rest, measured
+2026-08-30.</p>
+<h4 id="step-3--make-the-cover">Step 3 — Make the cover</h4>
+<p>There is no path where skipping it is correct, and nothing fails
+locally when you skip it. dev.to fetches <code>cover_image:</code> when
+it renders the published page.</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/devto-publishing-kit-gde-table-4.png"
+alt="table" /></p>
+<pre class="shell"><code>python3 scripts/make-cover.py --out devto-cover-gde.jpg --mode devto \
+  --eyebrow &quot;CLAUDE CODE SKILLS - PLUGIN MARKETPLACE - PUBLISHING&quot; \
+  --headline &quot;One article, four|destinations, four artifacts.&quot; \
+  --subhead &quot;A Claude Code skill that fails the build instead of failing silently.&quot; \
+  --tile &quot;always-on|the skill description|~150|tokens per session|CARRIED EVERY SESSION|blue&quot; \
+  --tile &quot;on-invoke|SKILL.md when it fires|~6.6k|tokens per invocation|LOADED ON DEMAND|orange&quot;
+
+python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5</code></pre>
+<pre class="plaintext"><code>wrote devto-cover-gde.jpg  1376x768  105 KB
+wrote builder-cover.jpg    1200x675   15 KB</code></pre>
+<p><code>--mode builder</code> defaults to text-free, following AWS's
+own guidance. Then open the file. A palette validator checks colour, not
+layout, and the first pass usually has a label collision.</p>
+<h4 id="mag_right-tip-tiles-that-begin-with-a-hyphen">🔎 Tip: tiles that
+begin with a hyphen</h4>
+<p><code>--tile "-embed.html|..."</code> does not reach the script.
+<code>argparse</code> reads the value as an option name:</p>
+<pre class="plaintext"><code>make-cover.py: error: argument --tile: expected one argument</code></pre>
+<p>Use <code>--tile=-embed.html|...</code> with an equals sign.</p>
+<h4 id="step-4--trace-every-number-to-an-artifact">Step 4 — Trace every
+number to an artifact</h4>
+<p>Never restate a figure from prose. Not from another article, not from
+a code comment, not from a chat log. <strong>Prose is not
+evidence.</strong></p>
+<pre class="shell"><code>python3 scripts/check-facts.py devto-publishing-kit-gde.md --evidence evidence/</code></pre>
+<pre class="plaintext"><code>devto-publishing-kit-gde.md: 4 claim(s) against 8 evidence file(s)
+
+  ok    version      0.1.0                        &lt;- install-is-a-snapshot.txt
+  ok    version      12.3.0                       &lt;- environment.txt
+  ok    version      2.1.251                      &lt;- environment.txt
+  ok    version      3.13.14                      &lt;- environment.txt
+
+4 traced, 0 untraced</code></pre>
+<p>It traces prices, measurements, quantities, versions, cloud
+identifiers, digests, arch strings and capacities. It cannot tell you a
+number is true. It tells you which numbers you are asserting without an
+artifact.</p>
+<p><strong>Four claims out of a 21 KB article is not a green
+light.</strong> Fenced code is stripped before extraction, because
+pasted tool output is itself evidence, and this article keeps most of
+its numbers there. Trace the rest by hand and archive it. The ledger for
+this article is <code>CLAIMS.md</code>, and it sorts every claim into
+measured-on-this-run, read-from-the-source, or
+carried-from-the-log-with-a-date.</p>
+<p>Every untraced claim is one of three things:</p>
+<ol type="1">
+<li><strong>Measured, but the artifact was never archived.</strong>
+Archive it. If the machine is gone, save the captured output verbatim
+with a header saying where and when it came from.</li>
+<li><strong>Arithmetic.</strong> Legitimate. Label it as arithmetic and
+record the derivation.</li>
+<li><strong>Asserted from memory.</strong> Go and measure it, or cut
+it.</li>
+</ol>
+<p>Scope <code>--evidence</code> to text files. It compares on digits
+alone, so a directory of compressed traces and protobufs matches claims
+against binary noise.</p>
+<h4 id="step-5--pre-flight">Step 5 — Pre-flight</h4>
+<pre class="shell"><code>python3 scripts/check-article.py devto-publishing-kit-gde.md --repo-root ../..</code></pre>
+<pre class="plaintext"><code>  ok    cover present: devto-cover-gde.jpg
+  FAIL  devto-cover-gde.jpg is not committed -- the URL is fetched at render
+        time, so it must be pushed before publishing
+  ok    geometry 1376x768
+  ok    published: false
+  ok    title present
+  ok    description present
+  ok    tags present
+  ok    devto-publishing-kit-gde-hosted.html image URLs resolve to publishing-kit-skill
+  FAIL  6 medium/img image(s) not committed
+  ok    no empty link targets
+
+2 fail, 0 warn</code></pre>
+<p>Eight checks, ordered by how silently each one fails, and it exits
+non-zero. <strong>A cover that exists on your disk and not in the remote
+is a cover dev.to cannot fetch</strong>, and the post is public by the
+time that shows up.</p>
+<p>One gap. Check 7 compares only the last path segment of the image
+URLs against the article's directory name, so a URL with the right
+directory name in the wrong repository passes.</p>
+<h4 id="step-6--build-the-medium-artifact">Step 6 — Build the Medium
+artifact</h4>
+<p>Medium's importer strips markdown tables entirely and flattens
+<code>&lt;pre&gt;</code> to a single line while dropping
+<code>&lt;br&gt;</code>. <strong>Do not hand-write this
+file.</strong></p>
+<pre class="shell"><code>python3 scripts/make-medium.py devto-publishing-kit-gde.md medium \
+  --cover=devto-cover-gde.jpg \
+  --img-base=https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/</code></pre>
+<pre class="plaintext"><code>devto-publishing-kit-gde.md: 5 tables, 1 diagrams
+   USE THIS   -&gt; medium/devto-publishing-kit-gde-hosted.html
+   not this   -&gt; medium/devto-publishing-kit-gde-embed.html   (485 KB; data: URIs)
+   Medium never fills its Title field from pasted content -- set the title separately.</code></pre>
+<p>Every table and box-drawing diagram becomes a PNG at 2x. Pasting the
+hosted file beats importing it, because the <code>&lt;pre&gt;</code>
+flattening is an importer behaviour and not an editor one, so multi-line
+code survives a paste with its highlighting. The images have to be
+committed and pushed first.</p>
+<p>Both flags are required, and neither failure is visible in the
+output:</p>
+<ul>
+<li><strong><code>--cover=</code>.</strong> Without it the script falls
+back to the first <code>*cover*.{jpg,png}</code> alphabetically,
+skipping builder-named ones. Run against this article with no flag, it
+picked <code>devto-cover-aws.jpg</code> — the AWS cover on the GDE
+story. The first body image becomes Medium's cover, so that is the art
+that ships.</li>
+<li><strong><code>--img-base=</code>.</strong> Without it the script
+derives one from a hardcoded repository and the article directory's last
+path segment, which here resolved to
+<code>.../gemma4-dev/main/publishing-kit-skill/medium/img/</code>. Wrong
+repository, <code>articles/</code> dropped, every
+<code>&lt;img&gt;</code> 404. The embed variant hides it completely,
+because its images are inlined.</li>
+</ul>
+<p>Two more, both measured 2026-08-30. <strong>The title never
+transfers</strong> — type it in by hand. And <strong><code>#</code> and
+<code>##</code> both render at Medium's title size</strong>, so the
+generator demotes headings; this article came out as one
+<code>&lt;h1&gt;</code> and 14 <code>&lt;h4&gt;</code>. A fork of the
+generator that borrowed only the table rendering once shipped a story
+with 19 <code>&lt;h2&gt;</code> in it.</p>
+<h4 id="step-7--post-over-the-devto-api">Step 7 — Post over the dev.to
+API</h4>
+<p>The front matter is part of the payload. Read a published article
+back and it is still there, inside <code>body_markdown</code>:</p>
+<pre class="plaintext"><code>---
+title: &quot;The Cheapest CUDA GPU on AWS Has an Arm CPU — and You Probably Want the Intel One&quot;
+published: true
+tags: aws, vllm, cuda, machinelearning
+cover_image: https://raw.githubusercontent.com/xbill9/gemma4-dev/main/gpu-vllm-g4dn-2b/devto-cover.jpg
+---</code></pre>
+<p>Title, tags and cover transfer with the body, so nothing is retyped
+and no cover is uploaded by hand.</p>
+<pre class="shell"><code>curl -s -X POST https://dev.to/api/articles \
+  -H &quot;api-key: $(cat ~/.devto.key)&quot; -H &quot;Content-Type: application/json&quot; \
+  -d @payload.json</code></pre>
+<p>A <code>PUT</code> to <code>/api/articles/&lt;id&gt;</code>
+overwrites in place and does not change the slug of an already-published
+article, measured 2026-08-30.</p>
+<p><strong>A draft is never byte-identical to its source.</strong>
+dev.to labels bare fences with a detected language on the way in — read
+back, that published article has 23 opening fences and none of them
+bare:</p>
+<pre class="plaintext"><code>opening fences: 23  closing fences: 23
+bare (unlabelled) opening fences: 0
+{&#39;```plaintext&#39;: 14, &#39;```shell&#39;: 6, &#39;```markdown&#39;: 1, &#39;```yaml&#39;: 1, &#39;```diff&#39;: 1}</code></pre>
+<h4 id="step-8--route-it-to-an-organization">Step 8 — Route it to an
+organization</h4>
+<p>The community channel is an API field, not an editor dropdown:</p>
+<pre class="shell"><code>curl -s https://dev.to/api/organizations/gde</code></pre>
+<div class="sourceCode" id="cb21"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;type_of&quot;</span><span class="fu">:</span> <span class="st">&quot;organization&quot;</span><span class="fu">,</span> <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">11939</span><span class="fu">,</span> <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;gde&quot;</span><span class="fu">,</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Google Developer Experts&quot;</span> <span class="fu">}</span></span></code></pre></div>
+<pre class="shell"><code>curl -s -X PUT https://dev.to/api/articles/&lt;id&gt; -H &quot;api-key: $KEY&quot; \
+  -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;article&quot;:{&quot;organization_id&quot;:11939}}&#39;</code></pre>
+<p>There is no endpoint that lists your organizations. Recover them from
+the back catalogue, where every article that has one carries an
+<code>organization</code> object:</p>
+<pre class="plaintext"><code>articles listed: 40
+  gde: 24
+  aws-builders: 13
+  None: 3</code></pre>
+<p><strong>Read article state from the listing, not from the by-id
+endpoint.</strong> <code>GET /api/articles/&lt;id&gt;</code> returned
+<code>{"error":"not found","status":404}</code> for one of three
+published articles fetched by id during this run, with a valid key,
+while the same article sat in <code>/api/articles/me</code> the whole
+time.</p>
+<h4 id="step-9--builder-center-without-the-clipboard">Step 9 — Builder
+Center, without the clipboard</h4>
+<p>Builder Center has no API, so this one is a browser flow.</p>
+<p><strong>The system clipboard is shared with whoever else is at the
+machine.</strong> A synthetic Ctrl+C loses the race silently and Ctrl+V
+pastes their content into your draft, while your Ctrl+C clobbers what
+they had copied. Measured 2026-08-30: another article landed in a draft
+twice, and nothing reported a failed copy.</p>
+<p>The route that works: inject the body in ~1400 character JSON-escaped
+chunks through a JS bridge, checking the cumulative length after each
+one; checksum the payload in the page against the same computed locally,
+numerically, because a hex digest can be redacted in transit; clear the
+editor with a real Ctrl+A and Delete, because
+<code>execCommand("delete")</code> no-ops there and the paste then
+appends the whole article a second time; assert the editor is empty;
+dispatch a <code>paste</code> event with a <code>DataTransfer</code>;
+then count landmarks. <code>dispatchEvent</code> returns
+<code>false</code>, which is <code>preventDefault</code> and not
+refusal.</p>
+<p>Cross-origin <code>fetch</code> is blocked by CSP,
+<code>file://</code> is blocked by the extension, and
+<code>wl-copy</code> and <code>xclip</code> both hang the shell holding
+the selection. Those three are closed.</p>
+<p>One formatting rule that only appears after publishing:
+<strong>Builder Center preserves the source's newlines inside a
+paragraph.</strong> A file hard-wrapped at 95 columns renders with a
+ragged break every 95 characters.</p>
+<pre class="shell"><code>python3 scripts/serve-body.py builder-publishing-kit.md</code></pre>
+<pre class="plaintext"><code>chars : 22544
+lines : 521 before unwrap, 408 after</code></pre>
+<p>Code, tables, lists and headings are left alone.</p>
+<h4 id="step-10--announce-it-on-linkedin">Step 10 — Announce it on
+LinkedIn</h4>
+<p>LinkedIn is the fourth destination and it sits between the other two
+cases. It <strong>does</strong> have an API —
+<code>POST /rest/posts</code>, self-serve via the "Share on LinkedIn"
+product, <code>w_member_social</code>, 150 requests per member per day.
+But <code>lifecycleState</code> accepts only <code>PUBLISHED</code> on
+creation, so posting through it <em>is</em> publishing. There is no
+<code>published: false</code> here.</p>
+<pre class="shell"><code>python3 scripts/make-linkedin.py devto-publishing-kit-aws.md --api</code></pre>
+<pre class="plaintext"><code>  FAIL  4 link(s) still PENDING: builder, devto-aws, devto-gde, medium
+  ok    hook fits the fold: 80 chars
+  ok    post is 1269 chars of 3000
+  ok    no markdown left; LinkedIn renders none of it
+  ok    no Unicode pseudo-bold</code></pre>
+<p>The artifact is a text file for the composer, which does have drafts,
+and the generator never posts. A <code>PENDING</code> link lands in the
+file as a visible placeholder <strong>and</strong> fails the run: an
+announcement whose links do not resolve is worse than no
+announcement.</p>
+<p><strong>LinkedIn renders no markup at all.</strong> Post text is the
+<code>commentary</code> field in LinkedIn's <code>little</code> format,
+and its entire element set is text, mentions and hashtags. No bold, no
+italics, no lists, no link markup. For the API only, every reserved
+character must be backslash-escaped whether or not it is used as markup,
+and an article body is full of them. <code>--api</code> writes that
+variant alongside.</p>
+<p>🔎 <strong>Do not reach for Unicode pseudo-bold.</strong> Having no
+bold, the usual workaround is the Mathematical Alphanumeric Symbols
+block. A screen reader announces those code points one at a time or
+skips them, so the headline becomes the least readable part of the post.
+The generator fails the run if any appear.</p>
+<h4 id="what-it-costs-to-carry">What it costs to carry</h4>
+<p><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/devto-publishing-kit-gde-table-5.png"
+alt="table" /></p>
+<p>Of which ~150 tokens are resident in every session and ~6.6k load
+when the skill fires.</p>
+<h4 id="so-worth-it">So, worth it?</h4>
+<p>For one article, no. The kit is worth its 1,821 lines at the point
+where the same failure has cost you twice, because every failure in it
+is one that produced a plausible-looking file and a broken published
+page.</p>
+<p>The <code>house-style.md</code> split is the part worth copying.
+Voice, section order, the opener and the closing formulas live in that
+one file, and nothing in <code>SKILL.md</code> or the scripts depends on
+it. Swap it and the kit writes as someone else.</p>
+<h4 id="cheat-sheet">Cheat sheet</h4>
+<pre class="shell"><code># install
+claude plugin marketplace add xbill9/publishing-kit
+claude plugin install publishing@publishing-kit
+
+# build
+python3 scripts/make-cover.py  --out devto-cover.jpg --mode devto --headline &quot;a|b&quot;
+python3 scripts/make-cover.py  --out builder-cover.jpg --mode builder --ratio 4:5
+python3 scripts/make-medium.py devto-article.md medium \
+  --cover=devto-cover.jpg --img-base=https://raw.githubusercontent.com/&lt;u&gt;/&lt;repo&gt;/main/&lt;dir&gt;/medium/img/
+
+# refuse to ship
+python3 scripts/check-facts.py   devto-article.md --evidence evidence/
+python3 scripts/check-article.py devto-article.md --repo-root .
+python3 scripts/make-linkedin.py devto-article.md --api
+
+# commit and push BEFORE publishing: the cover and the Medium images are fetched by URL
+git add -A &amp;&amp; git commit -m &quot;article&quot; &amp;&amp; git push</code></pre>
+<p>Five rules to remember: <strong>dev.to is the source</strong> and the
+only one with a real API, <strong>Medium and Builder Center are browser
+work</strong> because they have none, every article has a
+<strong>cover</strong>, Medium gets
+<strong><code>-hosted.html</code></strong> and never the embed, and
+<strong>no number ships without an artifact</strong>.</p>
+<hr />
+<p><em>publishing-kit 0.1.0, Claude Code 2.1.251, Python 3.13.14, Pillow
+12.3.0, on Linux x86_64. Token costs are Claude Code's own projections,
+not measured usage. The Medium importer behaviours, the image survival
+counts, the clipboard incident and the tag limits are carried from the
+kit's measurement log dated 2026-08-23 and 2026-08-30 and were not
+re-measured here. Everything else was captured on the 2026-08-31 run
+that produced these four versions, and is archived claim by claim in
+<code>CLAIMS.md</code>.</em></p>
+<p>The strategy for using a Claude Code skill for multi-destination
+technical publishing was validated with an incremental step by step
+approach.</p>
+</body>
+</html>

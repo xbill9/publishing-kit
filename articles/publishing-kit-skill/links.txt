@@ -1,0 +1,7 @@
+# Destination URLs for the LinkedIn post. PENDING fails the run on purpose:
+# a post whose links do not resolve is worse than no post.
+devto-gde  = PENDING
+devto-aws  = PENDING
+builder    = PENDING
+medium     = PENDING
+repo       = https://github.com/xbill9/publishing-kit

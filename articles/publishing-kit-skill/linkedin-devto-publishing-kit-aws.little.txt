@@ -1,0 +1,15 @@
+Getting 22 KB of Markdown Into AWS Builder Center Without Touching the Clipboard
+
+A step by step publishing pipeline for AWS Builder Center, dev.to and Medium as a Claude Code skill. Mandatory covers at two geometries, a pre-flight that exits non-zero, and a chunked, checksummed route into the editor that never races the system clipboard.
+
+What is in it:
+
+- dev.to needs no browser, because it has a complete REST API. The front matter rides inside body\_markdown, and organization\_id routes the article to a community channel: 2794 for AWS Community Builders, 11939 for Google Developer Experts on this account.
+- Medium and Builder Center have no publishing API, so both are reached by Claude Code driving Chrome. Every browser hazard here follows from that.
+- LinkedIn has an API that cannot draft, so its artifact is a file for the composer.
+- Builder Center needs a browser and never the clipboard. Chunked injection with a running length check, a numeric checksum, a keyboard clear, an emptiness assertion, and a landmark count. Cross-origin fetch, file:// and wl-copy are all closed.
+dev.to \(Google Developer Experts\): PENDING
+dev.to \(AWS Community Builders\): PENDING
+AWS Builder Center: PENDING
+Medium: PENDING
+Source: https://github.com/xbill9/publishing-kit

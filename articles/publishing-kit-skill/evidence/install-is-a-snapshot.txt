@@ -1,0 +1,15 @@
+# is the install a live link or a snapshot? captured 2026-08-31T10:05:58-04:00
+## worktree vs cache: same file, inode + device
+21:7587931  /home/xbill/publishing-kit/skills/publishing/SKILL.md
+21:7594413  /home/xbill/.claude/plugins/cache/publishing-kit/publishing/0.1.0/skills/publishing/SKILL.md
+## write a marker into the worktree copy
+worktree grep:
+1
+cache grep:
+0
+0  (not present in the installed copy)
+## revert the marker
+(empty above = worktree restored)
+## pinned commit recorded at install time
+5da0a03e14dbf8c947c6d39a31fbfd6417bf1f3e
+5da0a03e14dbf8c947c6d39a31fbfd6417bf1f3e

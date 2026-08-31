@@ -1,0 +1,16 @@
+# dev.to round-trip, captured 2026-08-31T11:15:21
+# source: GET /api/articles/4531800 body_markdown, an article published 2026-08-31
+
+## front matter is stored INSIDE body_markdown:
+---
+title: "The Cheapest CUDA GPU on AWS Has an Arm CPU — and You Probably Want the Intel One"
+published: true
+description: "Gemma 4 E2B on the two cheapest whole-GPU CUDA instances AWS sells. Same Turing GPU, different host CPU. One is cheaper per hour, the other is cheaper per token, and the reason is not the CPU."
+tags: aws, vllm, cuda, machinelearning
+cover_image: https://raw.githubusercontent.com/xbill9/gemma4-dev/main/gpu-vllm-g4dn-2b/devto-cover.jpg
+---
+
+## fence labelling in the stored body:
+opening fences: 23  closing fences: 23
+bare (unlabelled) opening fences: 0
+{'```shell': 6, '```plaintext': 14, '```markdown': 1, '```yaml': 1, '```diff': 1}

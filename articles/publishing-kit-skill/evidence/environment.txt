@@ -1,0 +1,5 @@
+# environment, captured 2026-08-31T11:14:56-04:00
+Python 3.13.14 (main, Jun 18 2026, 16:48:49) [GCC 14.2.0]
+Pillow 12.3.0
+Linux 6.6.135-09383-g1140e4f27e24 x86_64
+2.1.251 (Claude Code)

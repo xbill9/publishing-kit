@@ -1,0 +1,38 @@
+# skill footprint, captured 2026-08-31T10:05:41-04:00
+## claude plugin details publishing
+publishing 0.1.0
+  Description: Publish a technical article to AWS Builder Center, dev.to and Medium without the silent failures: mandatory cover images, table/code-to-image conversion for Medium's importer, a pre-flight check that fails the build, and fact-tracing that reports every claim with no artifact behind it.
+  Source: publishing@publishing-kit
+
+Component inventory
+  Skills (1)  publishing
+  Agents (0)
+  Hooks (0)
+  MCP servers (0)
+  LSP servers (0)
+
+Projected token cost
+  Always-on:   ~150 tok   added to every session
+
+Per-component (rounded)
+  component   always-on  on-invoke
+  publishing       ~150      ~6.6k
+
+  On-invoke cost is paid each time a skill or agent fires.
+  Token counts are estimates and may differ from actual usage.
+
+## wc -l of the skill
+  376 /home/xbill/publishing-kit/skills/publishing/SKILL.md
+  226 /home/xbill/publishing-kit/skills/publishing/references/browser-publishing.md
+   65 /home/xbill/publishing-kit/skills/publishing/references/house-style.md
+   86 /home/xbill/publishing-kit/skills/publishing/references/medium.md
+  163 /home/xbill/publishing-kit/skills/publishing/scripts/check-article.py
+  131 /home/xbill/publishing-kit/skills/publishing/scripts/check-facts.py
+  187 /home/xbill/publishing-kit/skills/publishing/scripts/make-cover.py
+  446 /home/xbill/publishing-kit/skills/publishing/scripts/make-medium.py
+  141 /home/xbill/publishing-kit/skills/publishing/scripts/serve-body.py
+ 1821 total
+
+## description length (chars) as loaded at startup
+description chars: 433
+SKILL.md body chars: 18644

@@ -1,0 +1,59 @@
+# plugin install state, captured 2026-08-31T10:05:32-04:00
+## claude --version
+2.1.251 (Claude Code)
+## claude plugin list
+Installed plugins:
+
+  ❯ publishing@publishing-kit
+    Version: 0.1.0
+    Scope: user
+    Status: ✔ enabled
+
+  ❯ skill-creator@claude-plugins-official
+    Version: ed404106fcd8
+    Scope: user
+    Status: ✔ enabled
+
+## installed_plugins.json
+{
+  "version": 2,
+  "plugins": {
+    "skill-creator@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/home/xbill/.claude/plugins/cache/claude-plugins-official/skill-creator/ed404106fcd8",
+        "version": "ed404106fcd8",
+        "installedAt": "2026-08-04T21:57:56.091Z",
+        "lastUpdated": "2026-08-28T19:03:51.430Z"
+      }
+    ],
+    "publishing@publishing-kit": [
+      {
+        "scope": "user",
+        "installPath": "/home/xbill/.claude/plugins/cache/publishing-kit/publishing/0.1.0",
+        "version": "0.1.0",
+        "installedAt": "2026-08-31T13:52:37.632Z",
+        "lastUpdated": "2026-08-31T13:52:37.632Z",
+        "gitCommitSha": "5da0a03e14dbf8c947c6d39a31fbfd6417bf1f3e"
+      }
+    ]
+  }
+}## known_marketplaces.json
+{
+  "claude-plugins-official": {
+    "source": {
+      "source": "github",
+      "repo": "anthropics/claude-plugins-official"
+    },
+    "installLocation": "/home/xbill/.claude/plugins/marketplaces/claude-plugins-official",
+    "lastUpdated": "2026-08-31T13:57:01.253Z"
+  },
+  "publishing-kit": {
+    "source": {
+      "source": "directory",
+      "path": "/home/xbill/publishing-kit"
+    },
+    "installLocation": "/home/xbill/publishing-kit",
+    "lastUpdated": "2026-08-31T13:52:31.348Z"
+  }
+}
