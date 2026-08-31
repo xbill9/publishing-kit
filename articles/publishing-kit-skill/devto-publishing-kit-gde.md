@@ -132,12 +132,12 @@ Installing from a local path takes a snapshot. It does not link the working tree
 
 ```shell
 stat -c '%d:%i  %n' skills/publishing/SKILL.md \
-  ~/.claude/plugins/cache/publishing-kit/publishing/0.4.0/skills/publishing/SKILL.md
+  ~/.claude/plugins/cache/publishing-kit/publishing/0.6.0/skills/publishing/SKILL.md
 ```
 
 ```plaintext
-21:7595247  /home/xbill/publishing-kit/skills/publishing/SKILL.md
-21:7596066  /home/xbill/.claude/plugins/cache/.../skills/publishing/SKILL.md
+21:7596109  /home/xbill/publishing-kit/skills/publishing/SKILL.md
+21:7623871  /home/xbill/.claude/plugins/cache/.../skills/publishing/SKILL.md
 ```
 
 Different inodes. A line appended to the worktree copy does not appear in the installed one, and
@@ -254,7 +254,7 @@ python3 scripts/check-facts.py devto-publishing-kit-gde.md --evidence evidence/
 ```plaintext
 devto-publishing-kit-gde.md: 4 claim(s) against 8 evidence file(s)
 
-  ok    version      0.4.0                        <- install-is-a-snapshot.txt
+  ok    version      0.6.0                        <- install-is-a-snapshot.txt
   ok    version      12.3.0                       <- environment.txt
   ok    version      2.1.251                      <- environment.txt
   ok    version      3.13.14                      <- environment.txt
@@ -540,7 +540,7 @@ gets **`-hosted.html`** and never the embed, and **no number ships without an ar
 
 ---
 
-*publishing-kit 0.4.0, Claude Code 2.1.251, Python 3.13.14, Pillow 12.3.0, on Linux x86_64.
+*publishing-kit 0.6.0, Claude Code 2.1.251, Python 3.13.14, Pillow 12.3.0, on Linux x86_64.
 Token costs are Claude Code's own projections, not measured usage. The Medium importer
 behaviours, the image survival counts, the clipboard incident and the tag limits are carried
 from the kit's measurement log dated 2026-08-23 and 2026-08-30 and were not re-measured here.

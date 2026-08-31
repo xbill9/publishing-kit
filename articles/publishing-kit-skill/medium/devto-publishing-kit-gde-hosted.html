@@ -332,9 +332,9 @@ Tip: if you are developing the skill, do not install it</h4>
 <p>Installing from a local path takes a snapshot. It does not link the
 working tree:</p>
 <pre class="shell"><code>stat -c &#39;%d:%i  %n&#39; skills/publishing/SKILL.md \
-  ~/.claude/plugins/cache/publishing-kit/publishing/0.4.0/skills/publishing/SKILL.md</code></pre>
-<pre class="plaintext"><code>21:7595247  /home/xbill/publishing-kit/skills/publishing/SKILL.md
-21:7596066  /home/xbill/.claude/plugins/cache/.../skills/publishing/SKILL.md</code></pre>
+  ~/.claude/plugins/cache/publishing-kit/publishing/0.6.0/skills/publishing/SKILL.md</code></pre>
+<pre class="plaintext"><code>21:7596109  /home/xbill/publishing-kit/skills/publishing/SKILL.md
+21:7623871  /home/xbill/.claude/plugins/cache/.../skills/publishing/SKILL.md</code></pre>
 <p>Different inodes. A line appended to the worktree copy does not
 appear in the installed one, and <code>installed_plugins.json</code>
 records the commit it was pinned at. Edits arrive after
@@ -427,7 +427,7 @@ evidence.</strong></p>
 <pre class="shell"><code>python3 scripts/check-facts.py devto-publishing-kit-gde.md --evidence evidence/</code></pre>
 <pre class="plaintext"><code>devto-publishing-kit-gde.md: 4 claim(s) against 8 evidence file(s)
 
-  ok    version      0.4.0                        &lt;- install-is-a-snapshot.txt
+  ok    version      0.6.0                        &lt;- install-is-a-snapshot.txt
   ok    version      12.3.0                       &lt;- environment.txt
   ok    version      2.1.251                      &lt;- environment.txt
   ok    version      3.13.14                      &lt;- environment.txt
@@ -637,7 +637,7 @@ alt="table" /></p>
 <p>Of which ~190 tokens are resident in every session and ~10.6k load
 when the skill fires.</p>
 <h4 id="so-worth-it">So, worth it?</h4>
-<p>For one article, no. The kit is worth its 3,653 lines at the point
+<p>For one article, no. The kit is worth its 3,737 lines at the point
 where the same failure has cost you twice, because every failure in it
 is one that produced a plausible-looking file and a broken published
 page.</p>
@@ -670,7 +670,7 @@ work</strong> because they have none, every article has a
 <strong><code>-hosted.html</code></strong> and never the embed, and
 <strong>no number ships without an artifact</strong>.</p>
 <hr />
-<p><em>publishing-kit 0.4.0, Claude Code 2.1.251, Python 3.13.14, Pillow
+<p><em>publishing-kit 0.6.0, Claude Code 2.1.251, Python 3.13.14, Pillow
 12.3.0, on Linux x86_64. Token costs are Claude Code's own projections,
 not measured usage. The Medium importer behaviours, the image survival
 counts, the clipboard incident and the tag limits are carried from the

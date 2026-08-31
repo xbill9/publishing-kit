@@ -1,19 +1,15 @@
-# is the install a live link or a snapshot? re-captured 2026-08-31T14:44:00-04:00 at 0.3.0
+# is the install a live link or a snapshot? re-captured 2026-08-31T16:46:33-04:00 at 0.6.0
 ## worktree vs cache: same file, inode + device
-21:7595247  /home/xbill/publishing-kit/skills/publishing/SKILL.md
-21:7596066  /home/xbill/.claude/plugins/cache/publishing-kit/publishing/0.3.0/skills/publishing/SKILL.md
-## write a marker into the worktree copy
-worktree grep:
+21:7596109  /home/xbill/publishing-kit/skills/publishing/SKILL.md
+21:7623871  /home/xbill/.claude/plugins/cache/publishing-kit/publishing/0.6.0/skills/publishing/SKILL.md
+## marker written to the worktree copy does not reach the installed one
+worktree:
 1
-cache grep:
+cache:
 0
-0  (not present in the installed copy)
-## revert the marker
+0  (not present)
 (empty above = worktree restored)
-## pinned commit recorded at install time
-00b42ca49783e6aea4143b7cfdad1259ec684cac
-00b42ca49783e6aea4143b7cfdad1259ec684cac
-## and note: plugin update is VERSION-keyed
-claude plugin update publishing  ->  'already at the latest version (0.2.0)'
-  even though the marketplace content had moved on six commits.
-  Bumping plugin.json to 0.3.0 is what made the install take the new content.
+## pinned commit vs HEAD
+920fe6c2c54ada449b13a31221dd8f0fdceb3acf
+920fe6c2c54ada449b13a31221dd8f0fdceb3acf
+## plugin update is VERSION-keyed: content changes under one version are never taken
