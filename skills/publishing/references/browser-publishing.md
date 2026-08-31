@@ -124,6 +124,40 @@ Import cannot update a draft, but paste can, and it keeps the id and the link:
 - **Importing cannot update an existing draft.** It always creates a new one, so a
   revised article means a new draft and deleting the old one by hand.
 
+### Medium's publish dialog defaults to Paywall AND Notify
+
+MEASURED 2026-08-30. Both checkboxes come up **checked** once the dialog hydrates —
+the first screenshot after the click shows them unchecked, which is the pre-hydration
+state and a lie. Left alone, publishing paywalls the story and emails every
+subscriber. Read them back with JS and set them deliberately:
+
+```js
+[...document.querySelectorAll('input[type=checkbox]')].map(c => ({
+  label: (c.closest('label') || c.parentElement.parentElement).innerText.split('\n')[0],
+  checked: c.checked }))
+```
+
+The subscriber email cannot be un-sent; the paywall can be changed afterwards.
+
+**Typing when the topic input has lost focus toggles those checkboxes.** The field
+drops focus after each accepted topic, and a stray `type` then lands on the page —
+a space bar toggles whichever checkbox is focused, which is how a story silently
+became paywalled here. Assert `document.activeElement.placeholder` starts with
+`Add` before every `type`, and re-read the checkbox states before clicking Publish.
+
+Topics: type the term, wait, press `Return` — the chip appears and the placeholder
+changes from `Add a topic...` to `Add more topics...`, which is the reliable signal
+it was accepted. Not every term resolves (`Llm` did not); check the chips rather
+than assuming.
+
+### After publishing, the story moves to a subdomain
+
+The published URL is `<user>.medium.com/<slug>-<id>`, a different origin from
+`medium.com` — so the extension's per-domain permissions may not cover it, and
+`screenshot` / `javascript_tool` start failing there while `get_page_text` still
+works. Medium also answers `curl` with **403**, so verify the published article
+with `get_page_text` in the browser, not from the shell.
+
 ## AWS Builder Center: check you are signed in first
 
 There is no API, so a signed-out session blocks **everything** — a draft cannot even
