@@ -72,8 +72,43 @@ MONO = "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf"
 MONO_B = "/usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf"
 
 
+# Every type size the render actually used, so legibility can be arithmetic rather
+# than an opinion. See legibility_report().
+USED_PT = []
+
+
 def f(path, size):
+    USED_PT.append(size)
     return ImageFont.truetype(path, max(8, int(size * S)))
+
+
+# dev.to discovery happens in a feed CARD, not at the size you author. MEASURED
+# 2026-08-31 on a 1376-wide cover: at a 320px card the destination labels of a
+# flow diagram render at 5px, its notes at 4px and its legend at 3.7px. Only the
+# headline survived. Three covers shipped before anyone looked at one small.
+CARD_W = 320
+LEGIBLE_PX = 10
+
+
+def legibility_report(out, W):
+    """What survives at card width. A cover carries about two things; the rest is
+    decoration you paid for and no one can read."""
+    scale = CARD_W / W
+    sizes = sorted(set(round(x) for x in USED_PT))
+    legible = [x for x in sizes if x * scale >= LEGIBLE_PX]
+    lost = [x for x in sizes if x * scale < LEGIBLE_PX]
+    print(f"  legibility at a {CARD_W}px feed card:")
+    for x in sizes:
+        px = x * scale
+        mark = "ok  " if px >= LEGIBLE_PX else "LOST"
+        print(f"    {mark} {x:>3}pt -> {px:4.1f}px")
+    if not legible:
+        print("    FAIL nothing on this cover is readable in a feed card")
+        return 1
+    if lost:
+        print(f"    WARN {len(lost)} of {len(sizes)} type sizes are unreadable in a card;")
+        print(f"         the cover has to work on the {len(legible)} that survive")
+    return 0
 
 
 def draw(d, xy, s, font, fill):
@@ -397,6 +432,7 @@ def main():
 
     kb = os.path.getsize(a.out) // 1024
     print(f"wrote {a.out}  {w}x{h}  {kb} KB")
+    legibility_report(a.out, w)
     if a.url_base:
         print(f"cover_image: {a.url_base.rstrip('/')}/{out.name}")
     if a.mode == "builder" and kb > 2048:
