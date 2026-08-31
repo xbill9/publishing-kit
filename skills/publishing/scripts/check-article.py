@@ -11,7 +11,9 @@ Checks:
   1. COVER EXISTS            every article needs one, no exceptions
   2. COVER REFERENCED        cover_image: front matter present and pointing at it
   3. COVER COMMITTED         the URL is fetched at render time, so an uncommitted
-                             or unpushed file renders as a broken image
+                             file renders as a broken image -- and a tracked file
+                             that was REGENERATED after its commit serves the old
+                             image, so HEAD is compared, not just tracking
   4. COVER GEOMETRY          1376x768 for dev.to; warn otherwise
   5. PUBLISHED FALSE         never ship `published: true` by accident
   6. FRONT MATTER            title, description, tags present
@@ -58,6 +60,21 @@ def tracked(root, path):
         return False
 
 
+def matches_head(root, path):
+    """Tracked is not enough: a REGENERATED cover is tracked and still wrong.
+
+    MEASURED: a cover regenerated after its commit passed `ls-files` while the
+    published URL still served the old image -- the exact failure check 3 exists
+    to prevent, one step further along. Compare against HEAD, not the index.
+    """
+    try:
+        r = subprocess.run(["git", "-C", str(root), "diff", "--quiet", "HEAD", "--", str(path)],
+                           capture_output=True)
+        return r.returncode == 0
+    except Exception:
+        return True
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("article")
@@ -89,8 +106,11 @@ def main():
             if not tracked(root, f):
                 fail(f"{name} is not committed -- the URL is fetched at render "
                      f"time, so it must be pushed before publishing")
+            elif not matches_head(root, f):
+                fail(f"{name} differs from HEAD -- it was regenerated after its "
+                     f"commit, so the published URL still serves the old image")
             else:
-                ok(f"{name} is tracked by git")
+                ok(f"{name} is committed and matches HEAD")
             try:
                 from PIL import Image
                 w, h = Image.open(f).size
@@ -143,10 +163,14 @@ def main():
                 fail(f"{h.name} references {len(missing)} missing image(s): {missing[:3]}")
         if imgs:
             untracked = [i.name for i in imgs if not tracked(root, i)]
+            stale = [i.name for i in imgs if tracked(root, i) and not matches_head(root, i)]
             if untracked:
                 fail(f"{len(untracked)} medium/img image(s) not committed: {untracked[:3]}")
-            else:
-                ok(f"{len(imgs)} medium/img image(s) committed")
+            if stale:
+                fail(f"{len(stale)} medium/img image(s) regenerated since their "
+                     f"commit, so the pushed copies are stale: {stale[:3]}")
+            if not untracked and not stale:
+                ok(f"{len(imgs)} medium/img image(s) committed and matching HEAD")
 
     # 8  DEAD LINKS -----------------------------------------------------------
     dead = re.findall(r"\]\(\s*\)|\]\(#\)", text)

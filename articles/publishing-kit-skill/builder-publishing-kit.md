@@ -72,13 +72,13 @@ Component inventory
   MCP servers (0)
 
 Projected token cost
-  Always-on:   ~150 tok   added to every session
+  Always-on:   ~187 tok   added to every session
 
   component   always-on  on-invoke
-  publishing       ~150      ~6.6k
+  publishing       ~190        ~8k
 ```
 
-The 433 character description is what every session pays. The 376 line `SKILL.md` is read only
+The 528 character description is what every session pays. The 446 line `SKILL.md` is read only
 when what you asked for matches that description. **A skill that puts its knowledge in the
 always-on half is one you uninstall.**
 
@@ -397,7 +397,7 @@ python3 scripts/serve-body.py builder-publishing-kit.md
 ```
 
 ```plaintext
-chars : 22544
+chars : 22542
 lines : 521 before unwrap, 408 after
 ```
 
@@ -436,7 +436,7 @@ python3 scripts/make-medium.py devto-publishing-kit-gde.md medium \
 ```plaintext
 devto-publishing-kit-gde.md: 5 tables, 1 diagrams
    USE THIS   -> medium/devto-publishing-kit-gde-hosted.html
-   not this   -> medium/devto-publishing-kit-gde-embed.html   (485 KB; data: URIs)
+   not this   -> medium/devto-publishing-kit-gde-embed.html   (496 KB; data: URIs)
 ```
 
 Paste the hosted variant, never the embed one. The embed variant inlines its images as base64
@@ -507,7 +507,7 @@ measured results were:
   4 from real URLs.
 - **The covers are mandatory and differently sized**, 1376x768 at 104 KB by URL for dev.to and
   1200x675 at 15 KB uploaded and text-free for Builder Center.
-- **The skill costs ~150 tokens resident** and ~6.6k when it fires, across 1,821 lines.
+- **The skill costs ~187 tokens resident** and ~8k when it fires, across 2,370 lines.
 - **The pre-flight failed this article twice** before the artifacts were committed, which is
   what it is for.
 

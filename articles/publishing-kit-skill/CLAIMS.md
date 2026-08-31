@@ -17,11 +17,11 @@ Anything that could not be put in one of those two categories was cut.
 | Claude Code 2.1.251, Python 3.13.14, Pillow 12.3.0, Linux x86_64 | `environment.txt` |
 | `marketplace add` and `plugin install` succeed; wording of both outputs | `plugin-install.txt` |
 | publishing 0.1.0, user scope, enabled; 1 skill, 0 agents, 0 hooks, 0 MCP servers | `plugin-install.txt`, `skill-footprint.txt` |
-| ~150 tokens always-on, ~6.6k on-invoke | `skill-footprint.txt` |
-| description 433 chars; SKILL.md 376 lines, 18,644 chars | `skill-footprint.txt` |
-| references 226 / 86 / 65 lines; five scripts 1,068 lines; 1,821 total | `skill-footprint.txt` |
+| ~187 tokens always-on, ~8k on-invoke, at 0.2.0 | `skill-footprint.txt` |
+| description 528 chars; SKILL.md 446 lines, 22,602 chars | `skill-footprint.txt` |
+| references 226 / 148 / 86 / 66 lines; six scripts 1,389 lines; 2,370 total | `skill-footprint.txt` |
 | install is a snapshot: different inodes, marker does not propagate | `install-is-a-snapshot.txt` |
-| install pinned at commit 5da0a03, equal to HEAD | `install-is-a-snapshot.txt` |
+| install pinned at commit f7eaac2, equal to HEAD | `install-is-a-snapshot.txt` |
 | gde = 11939, aws-builders = 2794 | `devto-orgs.txt` |
 | 40 articles listed: gde 24, aws-builders 13, none 3 | `devto-orgs.txt` |
 | `GET /api/articles/<id>` 404s while the article lists normally (4531065) | `toolchain-run.txt` header, listing in `devto-orgs.txt` |
@@ -29,11 +29,11 @@ Anything that could not be put in one of those two categories was cut.
 | 23 of 23 opening fences carry a language label in a stored body | `devto-roundtrip.txt` |
 | covers: 1376x768 105 KB / 1376x768 104 KB / 1200x675 15 KB | `toolchain-run.txt` |
 | `--tile "-embed.html\|..."` fails with `expected one argument` | `toolchain-run.txt` |
-| make-medium: 5 tables, 1 diagram, 19 `<h4>` + 1 `<h1>`, embed 485 KB | `toolchain-run.txt` |
+| make-medium: 5 tables, 1 diagram, 19 `<h4>` + 1 `<h1>`, embed 496 KB | `toolchain-run.txt` |
 | no `--cover` picks `devto-cover-aws.jpg` for the GDE article | `toolchain-run.txt` |
 | default `--img-base` resolves to `gemma4-dev/main/publishing-kit-skill/` | `toolchain-run.txt` |
-| Builder payload 22,544 chars / 22.0 KB, 521 lines before unwrap, 408 after | `builder-payload.txt` |
-| LinkedIn post 1,270 chars, hook 80 chars; all five checks fire on their failure paths | `linkedin-run.txt` |
+| Builder payload 22,542 chars / 22.0 KB, 521 lines before unwrap, 408 after | `builder-payload.txt` |
+| LinkedIn post 1,269 chars, hook 80 chars; all six checks fire on their failure paths | `linkedin-run.txt` |
 | article file sizes | `builder-payload.txt` |
 | `sed '1,2d'` leaves the subtitle line behind | `toolchain-run.txt` |
 | check-article exits 1 on uncommitted covers and images | `toolchain-run.txt` |
@@ -115,3 +115,4 @@ publishing, so these come from LinkedIn's own developer documentation.
 | `claims.md` was first written into `evidence/`, and every claim then traced to it — the ledger restates the numbers, so it matches by construction | moved to `CLAIMS.md`, beside the articles and outside `--evidence` |
 | a first read of the published article's fences counted 23 bare ones and looked like counter-evidence to the relabelling claim | they were closing fences; parsed as pairs, 0 of 23 openers are bare, which supports the claim |
 | the quoted `serve-body.py` output kept going stale, because editing the number changes the file it measures | iterated until the digit count stopped changing, so the quoted figure is exact |
+| the covers and every Medium image resolve over HTTPS and match locally byte for byte | verified after the push, sha256 compared |

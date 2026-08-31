@@ -319,12 +319,12 @@ the same way — main serves the marketplace manifest, verified HTTP 200.
 Restart the session, then read what it costs:</p>
 <pre class="shell"><code>claude plugin details publishing</code></pre>
 <pre class="plaintext"><code>Projected token cost
-  Always-on:   ~150 tok   added to every session
+  Always-on:   ~187 tok   added to every session
 
   component   always-on  on-invoke
-  publishing       ~150      ~6.6k</code></pre>
-<p><strong>That split is the design.</strong> The 433 character
-description is the resident cost. The 376 line <code>SKILL.md</code> is
+  publishing       ~190        ~8k</code></pre>
+<p><strong>That split is the design.</strong> The 528 character
+description is the resident cost. The 446 line <code>SKILL.md</code> is
 the on-invoke cost.</p>
 <h4
 id="mag_right-tip-if-you-are-developing-the-skill-do-not-install-it">🔎
@@ -332,9 +332,9 @@ Tip: if you are developing the skill, do not install it</h4>
 <p>Installing from a local path takes a snapshot. It does not link the
 working tree:</p>
 <pre class="shell"><code>stat -c &#39;%d:%i  %n&#39; skills/publishing/SKILL.md \
-  ~/.claude/plugins/cache/publishing-kit/publishing/0.1.0/skills/publishing/SKILL.md</code></pre>
-<pre class="plaintext"><code>21:7587931  /home/xbill/publishing-kit/skills/publishing/SKILL.md
-21:7594413  /home/xbill/.claude/plugins/cache/.../skills/publishing/SKILL.md</code></pre>
+  ~/.claude/plugins/cache/publishing-kit/publishing/0.2.0/skills/publishing/SKILL.md</code></pre>
+<pre class="plaintext"><code>21:7594521  /home/xbill/publishing-kit/skills/publishing/SKILL.md
+21:7595202  /home/xbill/.claude/plugins/cache/.../skills/publishing/SKILL.md</code></pre>
 <p>Different inodes. A line appended to the worktree copy does not
 appear in the installed one, and <code>installed_plugins.json</code>
 records the commit it was pinned at. Edits arrive after
@@ -367,11 +367,12 @@ alt="table" /></p>
   --eyebrow &quot;CLAUDE CODE SKILLS - PLUGIN MARKETPLACE - PUBLISHING&quot; \
   --headline &quot;One article, four|destinations, four artifacts.&quot; \
   --subhead &quot;A Claude Code skill that fails the build instead of failing silently.&quot; \
-  --tile &quot;always-on|the skill description|~150|tokens per session|CARRIED EVERY SESSION|blue&quot; \
-  --tile &quot;on-invoke|SKILL.md when it fires|~6.6k|tokens per invocation|LOADED ON DEMAND|orange&quot;
+  --tile &quot;always-on|the skill description|~187|tokens per session|CARRIED EVERY SESSION|blue&quot; \
+  --tile &quot;on-invoke|SKILL.md when it fires|~8k|tokens per invocation|LOADED ON DEMAND|orange&quot; \
+  --footer &quot;publishing 0.2.0 - 1 skill, 4 references, 6 scripts, 2,370 lines&quot;
 
 python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5</code></pre>
-<pre class="plaintext"><code>wrote devto-cover-gde.jpg  1376x768  105 KB
+<pre class="plaintext"><code>wrote devto-cover-gde.jpg  1376x768  104 KB
 wrote builder-cover.jpg    1200x675   15 KB</code></pre>
 <p><code>--mode builder</code> defaults to text-free, following AWS's
 own guidance. Then open the file. A palette validator checks colour, not
@@ -390,7 +391,7 @@ evidence.</strong></p>
 <pre class="shell"><code>python3 scripts/check-facts.py devto-publishing-kit-gde.md --evidence evidence/</code></pre>
 <pre class="plaintext"><code>devto-publishing-kit-gde.md: 4 claim(s) against 8 evidence file(s)
 
-  ok    version      0.1.0                        &lt;- install-is-a-snapshot.txt
+  ok    version      0.2.0                        &lt;- install-is-a-snapshot.txt
   ok    version      12.3.0                       &lt;- environment.txt
   ok    version      2.1.251                      &lt;- environment.txt
   ok    version      3.13.14                      &lt;- environment.txt
@@ -453,7 +454,7 @@ file.</strong></p>
   --img-base=https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/</code></pre>
 <pre class="plaintext"><code>devto-publishing-kit-gde.md: 5 tables, 1 diagrams
    USE THIS   -&gt; medium/devto-publishing-kit-gde-hosted.html
-   not this   -&gt; medium/devto-publishing-kit-gde-embed.html   (485 KB; data: URIs)
+   not this   -&gt; medium/devto-publishing-kit-gde-embed.html   (496 KB; data: URIs)
    Medium never fills its Title field from pasted content -- set the title separately.</code></pre>
 <p>Every table and box-drawing diagram becomes a PNG at 2x. Pasting the
 hosted file beats importing it, because the <code>&lt;pre&gt;</code>
@@ -559,7 +560,7 @@ the selection. Those three are closed.</p>
 paragraph.</strong> A file hard-wrapped at 95 columns renders with a
 ragged break every 95 characters.</p>
 <pre class="shell"><code>python3 scripts/serve-body.py builder-publishing-kit.md</code></pre>
-<pre class="plaintext"><code>chars : 22544
+<pre class="plaintext"><code>chars : 22542
 lines : 521 before unwrap, 408 after</code></pre>
 <p>Code, tables, lists and headings are left alone.</p>
 <h4 id="step-10--announce-it-on-linkedin">Step 10 — Announce it on
@@ -597,10 +598,10 @@ The generator fails the run if any appear.</p>
 <h4 id="what-it-costs-to-carry">What it costs to carry</h4>
 <p><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/devto-publishing-kit-gde-table-5.png"
 alt="table" /></p>
-<p>Of which ~150 tokens are resident in every session and ~6.6k load
-when the skill fires.</p>
+<p>Of which ~187 tokens are resident in every session and ~8k load when
+the skill fires.</p>
 <h4 id="so-worth-it">So, worth it?</h4>
-<p>For one article, no. The kit is worth its 1,821 lines at the point
+<p>For one article, no. The kit is worth its 2,370 lines at the point
 where the same failure has cost you twice, because every failure in it
 is one that produced a plausible-looking file and a broken published
 page.</p>
@@ -633,7 +634,7 @@ work</strong> because they have none, every article has a
 <strong><code>-hosted.html</code></strong> and never the embed, and
 <strong>no number ships without an artifact</strong>.</p>
 <hr />
-<p><em>publishing-kit 0.1.0, Claude Code 2.1.251, Python 3.13.14, Pillow
+<p><em>publishing-kit 0.2.0, Claude Code 2.1.251, Python 3.13.14, Pillow
 12.3.0, on Linux x86_64. Token costs are Claude Code's own projections,
 not measured usage. The Medium importer behaviours, the image survival
 counts, the clipboard incident and the tag limits are carried from the

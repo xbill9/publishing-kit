@@ -117,13 +117,13 @@ claude plugin details publishing
 
 ```plaintext
 Projected token cost
-  Always-on:   ~150 tok   added to every session
+  Always-on:   ~187 tok   added to every session
 
   component   always-on  on-invoke
-  publishing       ~150      ~6.6k
+  publishing       ~190        ~8k
 ```
 
-**That split is the design.** The 433 character description is the resident cost. The 376 line
+**That split is the design.** The 528 character description is the resident cost. The 446 line
 `SKILL.md` is the on-invoke cost.
 
 #### 🔎 Tip: if you are developing the skill, do not install it
@@ -132,12 +132,12 @@ Installing from a local path takes a snapshot. It does not link the working tree
 
 ```shell
 stat -c '%d:%i  %n' skills/publishing/SKILL.md \
-  ~/.claude/plugins/cache/publishing-kit/publishing/0.1.0/skills/publishing/SKILL.md
+  ~/.claude/plugins/cache/publishing-kit/publishing/0.2.0/skills/publishing/SKILL.md
 ```
 
 ```plaintext
-21:7587931  /home/xbill/publishing-kit/skills/publishing/SKILL.md
-21:7594413  /home/xbill/.claude/plugins/cache/.../skills/publishing/SKILL.md
+21:7594521  /home/xbill/publishing-kit/skills/publishing/SKILL.md
+21:7595202  /home/xbill/.claude/plugins/cache/.../skills/publishing/SKILL.md
 ```
 
 Different inodes. A line appended to the worktree copy does not appear in the installed one, and
@@ -180,14 +180,15 @@ python3 scripts/make-cover.py --out devto-cover-gde.jpg --mode devto \
   --eyebrow "CLAUDE CODE SKILLS - PLUGIN MARKETPLACE - PUBLISHING" \
   --headline "One article, four|destinations, four artifacts." \
   --subhead "A Claude Code skill that fails the build instead of failing silently." \
-  --tile "always-on|the skill description|~150|tokens per session|CARRIED EVERY SESSION|blue" \
-  --tile "on-invoke|SKILL.md when it fires|~6.6k|tokens per invocation|LOADED ON DEMAND|orange"
+  --tile "always-on|the skill description|~187|tokens per session|CARRIED EVERY SESSION|blue" \
+  --tile "on-invoke|SKILL.md when it fires|~8k|tokens per invocation|LOADED ON DEMAND|orange" \
+  --footer "publishing 0.2.0 - 1 skill, 4 references, 6 scripts, 2,370 lines"
 
 python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5
 ```
 
 ```plaintext
-wrote devto-cover-gde.jpg  1376x768  105 KB
+wrote devto-cover-gde.jpg  1376x768  104 KB
 wrote builder-cover.jpg    1200x675   15 KB
 ```
 
@@ -217,7 +218,7 @@ python3 scripts/check-facts.py devto-publishing-kit-gde.md --evidence evidence/
 ```plaintext
 devto-publishing-kit-gde.md: 4 claim(s) against 8 evidence file(s)
 
-  ok    version      0.1.0                        <- install-is-a-snapshot.txt
+  ok    version      0.2.0                        <- install-is-a-snapshot.txt
   ok    version      12.3.0                       <- environment.txt
   ok    version      2.1.251                      <- environment.txt
   ok    version      3.13.14                      <- environment.txt
@@ -288,7 +289,7 @@ python3 scripts/make-medium.py devto-publishing-kit-gde.md medium \
 ```plaintext
 devto-publishing-kit-gde.md: 5 tables, 1 diagrams
    USE THIS   -> medium/devto-publishing-kit-gde-hosted.html
-   not this   -> medium/devto-publishing-kit-gde-embed.html   (485 KB; data: URIs)
+   not this   -> medium/devto-publishing-kit-gde-embed.html   (496 KB; data: URIs)
    Medium never fills its Title field from pasted content -- set the title separately.
 ```
 
@@ -410,7 +411,7 @@ python3 scripts/serve-body.py builder-publishing-kit.md
 ```
 
 ```plaintext
-chars : 22544
+chars : 22542
 lines : 521 before unwrap, 408 after
 ```
 
@@ -454,18 +455,20 @@ fails the run if any appear.
 
 | Component | Lines |
 | --- | --- |
-| `SKILL.md` | 376 |
+| `SKILL.md` | 446 |
 | `references/browser-publishing.md` | 226 |
+| `references/linkedin.md` | 148 |
 | `references/medium.md` | 86 |
-| `references/house-style.md` | 65 |
-| five scripts | 1,068 |
-| **total** | **1,821** |
+| `references/house-style.md` | 66 |
+| `templates/linkedin-post.txt` | 9 |
+| six scripts | 1,389 |
+| **total** | **2,370** |
 
-Of which ~150 tokens are resident in every session and ~6.6k load when the skill fires.
+Of which ~187 tokens are resident in every session and ~8k load when the skill fires.
 
 #### So, worth it?
 
-For one article, no. The kit is worth its 1,821 lines at the point where the same failure has
+For one article, no. The kit is worth its 2,370 lines at the point where the same failure has
 cost you twice, because every failure in it is one that produced a plausible-looking file and a
 broken published page.
 
@@ -501,7 +504,7 @@ gets **`-hosted.html`** and never the embed, and **no number ships without an ar
 
 ---
 
-*publishing-kit 0.1.0, Claude Code 2.1.251, Python 3.13.14, Pillow 12.3.0, on Linux x86_64.
+*publishing-kit 0.2.0, Claude Code 2.1.251, Python 3.13.14, Pillow 12.3.0, on Linux x86_64.
 Token costs are Claude Code's own projections, not measured usage. The Medium importer
 behaviours, the image survival counts, the clipboard incident and the tag limits are carried
 from the kit's measurement log dated 2026-08-23 and 2026-08-30 and were not re-measured here.

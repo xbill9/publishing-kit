@@ -1,52 +1,38 @@
-# toolchain run, captured 2026-08-31T10:15:12-04:00
-## make-medium.py (with --cover and --img-base)
-devto-publishing-kit-gde.md: 4 tables, 1 diagrams
-drwxr-xr-x 1 xbill xbill    148 Aug 31 10:14 ..
--rw-r--r-- 1 xbill xbill 108171 Aug 31 10:14 devto-cover-gde.jpg
--rw-r--r-- 1 xbill xbill  59447 Aug 31 10:14 devto-publishing-kit-gde-diagram-1.png
--rw-r--r-- 1 xbill xbill  24116 Aug 31 10:14 devto-publishing-kit-gde-table-1.png
--rw-r--r-- 1 xbill xbill  32322 Aug 31 10:14 devto-publishing-kit-gde-table-2.png
--rw-r--r-- 1 xbill xbill  31959 Aug 31 10:14 devto-publishing-kit-gde-table-3.png
--rw-r--r-- 1 xbill xbill  32702 Aug 31 10:14 devto-publishing-kit-gde-table-4.png
+# toolchain run, re-captured 2026-08-31T13:03:26-04:00 at 0.2.0
+## make-medium.py
+devto-publishing-kit-gde.md: 5 tables, 1 diagrams
+drwxr-xr-x 1 xbill xbill    148 Aug 31 13:03 ..
+-rw-r--r-- 1 xbill xbill 106731 Aug 31 13:03 devto-cover-gde.jpg
+-rw-r--r-- 1 xbill xbill  59447 Aug 31 13:03 devto-publishing-kit-gde-diagram-1.png
+-rw-r--r-- 1 xbill xbill  33058 Aug 31 13:03 devto-publishing-kit-gde-table-1.png
+-rw-r--r-- 1 xbill xbill  24116 Aug 31 13:03 devto-publishing-kit-gde-table-2.png
+-rw-r--r-- 1 xbill xbill  61805 Aug 31 13:03 devto-publishing-kit-gde-table-3.png
+-rw-r--r-- 1 xbill xbill  28897 Aug 31 13:03 devto-publishing-kit-gde-table-4.png
+-rw-r--r-- 1 xbill xbill  42543 Aug 31 13:03 devto-publishing-kit-gde-table-5.png
 ## heading levels emitted
       1 <h1
-     14 <h4
-## make-medium.py with NO --cover (fallback demonstration)
-first body image chosen: devto-cover-aws.jpg   <- the AWS cover on the GDE article
-default --img-base derived: https://raw.githubusercontent.com/xbill9/gemma4-dev/main/publishing-kit-skill/medium/img/
-  (wrong repo, and the 'articles/' path segment is dropped -- every <img> would 404)
-## check-facts.py
-
-  ok    version      0.1.0                        <- install-is-a-snapshot.txt
-  ok    version      2.1.251                      <- plugin-install.txt
-  ok    measurement  4.35 s                       <- SKILL.md
-
-3 traced, 0 untraced
-devto-publishing-kit-aws.md: 2 claim(s) against 10 evidence file(s)
-
-  ok    quantity     150 tokens                   <- skill-footprint.txt
-  ok    version      2.1.251                      <- plugin-install.txt
-
-2 traced, 0 untraced
-builder-publishing-kit.md: 2 claim(s) against 10 evidence file(s)
-
-  ok    quantity     150 tokens                   <- skill-footprint.txt
-  ok    version      2.1.251                      <- plugin-install.txt
-
-2 traced, 0 untraced
-## check-article.py, before committing
+     19 <h4
+## embed size
+496 KB
+## covers
+devto-cover-gde.jpg  1376x768  104 KB
+devto-cover-aws.jpg  1376x768  104 KB
+builder-cover.jpg  1200x675  15 KB
+## make-cover --tile with a leading hyphen
+make-cover.py: error: argument --tile: expected one argument
+## check-article.py, after committing
 
 devto-publishing-kit-gde.md
   ok    cover present: devto-cover-gde.jpg
-  FAIL  devto-cover-gde.jpg is not committed -- the URL is fetched at render time, so it must be pushed before publishing
+  ok    devto-cover-gde.jpg is tracked by git
   ok    geometry 1376x768
   ok    published: false
   ok    title present
   ok    description present
   ok    tags present
   ok    devto-publishing-kit-gde-hosted.html image URLs resolve to publishing-kit-skill
-  FAIL  6 medium/img image(s) not committed: ['devto-cover-gde.jpg', 'devto-publishing-kit-gde-diagram-1.png', 'devto-publishing-kit-gde-table-1.png']
+  ok    7 medium/img image(s) committed
   ok    no empty link targets
 
-2 fail, 0 warn
-exit=1
+0 fail, 0 warn
+exit=0

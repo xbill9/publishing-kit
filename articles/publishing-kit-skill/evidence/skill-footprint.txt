@@ -1,7 +1,7 @@
-# skill footprint, captured 2026-08-31T10:05:41-04:00
+# skill footprint, re-captured 2026-08-31T13:01:24-04:00 at 0.2.0
 ## claude plugin details publishing
-publishing 0.1.0
-  Description: Publish a technical article to AWS Builder Center, dev.to and Medium without the silent failures: mandatory cover images, table/code-to-image conversion for Medium's importer, a pre-flight check that fails the build, and fact-tracing that reports every claim with no artifact behind it.
+publishing 0.2.0
+  Description: Publish a technical article to AWS Builder Center, dev.to and Medium without the silent failures: mandatory cover images, table/code-to-image conversion for Medium's importer, a LinkedIn post draft whose links must resolve, a pre-flight check that fails the build, and fact-tracing that reports every claim with no artifact behind it.
   Source: publishing@publishing-kit
 
 Component inventory
@@ -12,27 +12,33 @@ Component inventory
   LSP servers (0)
 
 Projected token cost
-  Always-on:   ~150 tok   added to every session
+  Always-on:   ~187 tok   added to every session
 
 Per-component (rounded)
   component   always-on  on-invoke
-  publishing       ~150      ~6.6k
+  publishing       ~190        ~8k
 
   On-invoke cost is paid each time a skill or agent fires.
   Token counts are estimates and may differ from actual usage.
 
 ## wc -l of the skill
-  376 /home/xbill/publishing-kit/skills/publishing/SKILL.md
-  226 /home/xbill/publishing-kit/skills/publishing/references/browser-publishing.md
-   65 /home/xbill/publishing-kit/skills/publishing/references/house-style.md
-   86 /home/xbill/publishing-kit/skills/publishing/references/medium.md
-  163 /home/xbill/publishing-kit/skills/publishing/scripts/check-article.py
-  131 /home/xbill/publishing-kit/skills/publishing/scripts/check-facts.py
-  187 /home/xbill/publishing-kit/skills/publishing/scripts/make-cover.py
-  446 /home/xbill/publishing-kit/skills/publishing/scripts/make-medium.py
-  141 /home/xbill/publishing-kit/skills/publishing/scripts/serve-body.py
- 1821 total
+   446 skills/publishing/SKILL.md
+   226 skills/publishing/references/browser-publishing.md
+    66 skills/publishing/references/house-style.md
+   148 skills/publishing/references/linkedin.md
+    86 skills/publishing/references/medium.md
+     9 skills/publishing/templates/linkedin-post.txt
+   163 skills/publishing/scripts/check-article.py
+   131 skills/publishing/scripts/check-facts.py
+   187 skills/publishing/scripts/make-cover.py
+   321 skills/publishing/scripts/make-linkedin.py
+   446 skills/publishing/scripts/make-medium.py
+   141 skills/publishing/scripts/serve-body.py
+  2370 total
 
-## description length (chars) as loaded at startup
-description chars: 433
-SKILL.md body chars: 18644
+## description length as loaded at startup
+description chars: 528
+SKILL.md body chars: 22602
+
+## installed version
+{'scope': 'user', 'installPath': '/home/xbill/.claude/plugins/cache/publishing-kit/publishing/0.2.0', 'version': '0.2.0', 'installedAt': '2026-08-31T13:52:37.632Z', 'lastUpdated': '2026-08-31T17:01:16.374Z', 'gitCommitSha': 'f7eaac2e3676cdf2f0052cdc4c199e8fc7c18536'}
