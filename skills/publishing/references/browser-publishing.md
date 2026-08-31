@@ -292,3 +292,18 @@ once you type it in. Type the title, then delete the duplicate heading.
 **Deleting that heading with two Backspaces merges it into the next paragraph**,
 which inherits the heading style — the opening paragraph silently became a
 heading. Select that paragraph and toggle the large-`T` button off to restore it.
+Reproduced on a second run, so it is the behaviour and not an accident: expect it,
+and check the opening paragraph's tag afterwards rather than trusting the delete.
+
+## Re-pasting over an existing draft
+
+`Ctrl+A` then `Delete` clears the body — **but only if the caret is in a text
+block.** MEASURED: clicking at a coordinate that landed on the cover figure put
+the caret in the Title field instead, `Ctrl+A` selected the title, and the body
+survived untouched at 19,528 characters. The emptiness assertion caught it and
+refused to paste; without that assertion the article would have been appended to
+itself. Click a **paragraph**, not an image, and never judge the clear by the
+keystrokes having been sent.
+
+`Ctrl+A` also clears the Title field, so the title has to be retyped after a
+re-paste, and the duplicate-heading dance repeats.
