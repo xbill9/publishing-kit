@@ -1,9 +1,9 @@
 ---
-title: "Getting 22 KB of Markdown Into AWS Builder Center Without Touching the Clipboard"
+title: "Getting 23 KB of Markdown Into AWS Builder Center Without Touching the Clipboard"
 published: false
 description: "A step by step publishing pipeline for AWS Builder Center, dev.to and Medium as a Claude Code skill. Mandatory covers at two geometries, a pre-flight that exits non-zero, and a chunked, checksummed route into the editor that never races the system clipboard."
 tags: aws, ai, writing, devtools
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-aws.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-aws.44aee846.jpg
 ---
 
 This article provides a step by step guide for publishing one technical article to AWS Builder
@@ -118,11 +118,11 @@ hard-wrapping.
 
 ```yaml
 ---
-title: "Getting 22 KB of Markdown Into AWS Builder Center Without Touching the Clipboard"
+title: "Getting 23 KB of Markdown Into AWS Builder Center Without Touching the Clipboard"
 published: false
 description: "..."
 tags: aws, ai, writing, devtools
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-aws.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-aws.44aee846.jpg
 ---
 ```
 
@@ -148,13 +148,23 @@ python3 scripts/make-cover.py --out devto-cover-aws.jpg --mode devto \
   "--tile=-embed.html|base64 data: URIs|0 of 4|images survive the paste|SILENT FAILURE|orange" \
   "--tile=-hosted.html|real https:// URLs|4 of 4|images survive the paste|USE THIS ONE|blue"
 
-python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5
+python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5 \
+  --content-address
 ```
 
 ```plaintext
-wrote devto-cover-aws.jpg  1376x768  104 KB
-wrote builder-cover.jpg    1200x675   15 KB
+wrote devto-cover-aws.44aee846.jpg  1376x768  104 KB
+wrote builder-cover.2b7f0305.jpg    1200x675   15 KB
 ```
+
+**Name the cover by a hash of its bytes.** MEASURED 2026-08-31: dev.to does not
+re-host a cover, it proxies it, with your URL embedded in theirs —
+`media2.dev.to/dynamic/image/.../https%3A%2F%2Fraw.githubusercontent.com%2F...`.
+The URL you hand it is load-bearing for the life of the post, and a proxy keyed on
+that URL decides when to look again. Regenerating a cover in place leaves two
+images behind one address; reusing a filename across articles repaints the older
+one. `--content-address` makes every regenerated cover a URL nothing has cached,
+and leaves the old file in place so published articles keep rendering.
 
 `--mode builder` defaults to text-free, following the editor's own guidance, and warns above the
 2 MB cap.
@@ -327,7 +337,7 @@ Title and Description are ordinary inputs, 255 and 512 characters. Click and typ
 uploads through a real `<input type=file>`: locate it and drive it with an upload tool. **Never
 click a file input** — that opens a native picker you cannot see.
 
-The body is 22.0 KB of markdown that has to reach a `contenteditable`, and three obvious routes
+The body is 22.7 KB of markdown that has to reach a `contenteditable`, and three obvious routes
 are closed:
 
 | Route | What happens |
@@ -402,8 +412,8 @@ python3 scripts/serve-body.py builder-publishing-kit.md
 ```
 
 ```plaintext
-chars : 22542
-lines : 521 before unwrap, 408 after
+chars : 23214
+lines : 531 before unwrap, 411 after
 ```
 
 It serves the body on `http://127.0.0.1`, unwrapped, leaving code, tables, lists and headings
@@ -441,7 +451,7 @@ python3 scripts/make-medium.py devto-publishing-kit-gde.md medium \
 ```plaintext
 devto-publishing-kit-gde.md: 5 tables, 1 diagrams
    USE THIS   -> medium/devto-publishing-kit-gde-hosted.html
-   not this   -> medium/devto-publishing-kit-gde-embed.html   (496 KB; data: URIs)
+   not this   -> medium/devto-publishing-kit-gde-embed.html   (497 KB; data: URIs)
 ```
 
 Paste the hosted variant, never the embed one. The embed variant inlines its images as base64

@@ -135,6 +135,37 @@ python3 scripts/make-cover.py --out builder-cover.jpg --mode builder
 
 `--mode builder` defaults to `--no-text` to respect AWS's guidance.
 
+### Name the cover by its bytes
+
+**A cover URL is a mutable name, and dev.to treats it as permanent.** MEASURED
+2026-08-31: dev.to does not re-host a cover, it **proxies** it, with your URL
+embedded in theirs —
+`media2.dev.to/dynamic/image/.../https%3A%2F%2Fraw.githubusercontent.com%2F...`.
+So the URL you hand it is load-bearing for the life of the post, and a proxy keyed
+on that URL decides for itself when to look again.
+
+Two failures follow, both silent. Regenerate a cover in place and the published
+article may keep serving the old image. Reuse a filename across articles and the
+older one silently repaints.
+
+```
+python3 scripts/make-cover.py --out devto-cover.jpg --mode devto \
+  --content-address --url-base "https://raw.githubusercontent.com/<u>/<repo>/main/<dir>"
+```
+
+```
+wrote devto-cover.0d021e90.jpg  1376x768  104 KB
+cover_image: https://.../devto-cover.0d021e90.jpg
+```
+
+A hashed name is a URL nothing has cached, and the old file stays put so published
+articles keep rendering. Same reasoning as Medium's importer cache in
+`references/medium.md`, where `?v=2` does not bust it either. Regenerating
+identical bytes yields the identical name, so the flag is idempotent.
+
+The pre-flight checks that a hashed name still matches its bytes, and **warns on a
+cover without one.** Do not edit a content-addressed file in place.
+
 Rules the generator already follows, worth knowing if you edit it: colour rides on
 chips and swatches, **never on numerals or labels** — text wears ink tokens. The
 two-colour pair is validated with the `dataviz` skill's palette validator rather

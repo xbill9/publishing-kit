@@ -352,7 +352,7 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb7-1"><a href="
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">published</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span></span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">description</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;Step-by-step: packaging a publishing workflow as a Claude Code skill...&quot;</span></span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tags</span><span class="kw">:</span><span class="at"> ai, devtools, writing, opensource</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cover_image</span><span class="kw">:</span><span class="at"> https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.jpg</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cover_image</span><span class="kw">:</span><span class="at"> https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.0d021e90.jpg</span></span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="pp">---</span></span></code></pre></div>
 <p><code>published: false</code>, always, and let the pre-flight enforce
 it. dev.to keeps the first four tags and drops the rest, measured
@@ -369,11 +369,28 @@ alt="table" /></p>
   --subhead &quot;A Claude Code skill that fails the build instead of failing silently.&quot; \
   --tile &quot;always-on|the skill description|~187|tokens per session|CARRIED EVERY SESSION|blue&quot; \
   --tile &quot;on-invoke|SKILL.md when it fires|~8k|tokens per invocation|LOADED ON DEMAND|orange&quot; \
-  --footer &quot;publishing 0.2.0 - 1 skill, 4 references, 6 scripts, 2,370 lines&quot;
+  --footer &quot;publishing 0.2.0 - 1 skill, 4 references, 6 scripts, 2,370 lines&quot; \
+  --content-address --url-base &quot;$BASE&quot;
 
-python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5</code></pre>
-<pre class="plaintext"><code>wrote devto-cover-gde.jpg  1376x768  104 KB
-wrote builder-cover.jpg    1200x675   15 KB</code></pre>
+python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5 \
+  --content-address</code></pre>
+<pre class="plaintext"><code>wrote devto-cover-gde.0d021e90.jpg  1376x768  104 KB
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.0d021e90.jpg
+wrote builder-cover.2b7f0305.jpg    1200x675   15 KB</code></pre>
+<p><strong><code>--content-address</code> names the file by a hash of
+its own bytes, and it is not optional once an article is
+published.</strong> dev.to does not re-host your cover — it
+<em>proxies</em> it, with your URL embedded in theirs:</p>
+<pre class="plaintext"><code>https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,
+  format=auto/https%3A%2F%2Fraw.githubusercontent.com%2F...%2Fdevto-cover.jpg</code></pre>
+<p>So the URL you hand it stays load-bearing for the life of the post,
+and a proxy keyed on that URL decides for itself when to look again.
+Regenerate a cover in place and you get an article whose cover may or
+may not be the one you just made; reuse a filename across articles and
+the older one silently repaints. A hashed name is a URL nothing has
+cached, and the old file stays where it is so published articles keep
+rendering. It is the same reasoning the Medium importer forced — that
+cache is keyed on URL too, and <code>?v=2</code> does not bust it.</p>
 <p><code>--mode builder</code> defaults to text-free, following AWS's
 own guidance. Then open the file. A palette validator checks colour, not
 layout, and the first pass usually has a label collision.</p>
@@ -401,7 +418,7 @@ evidence.</strong></p>
 identifiers, digests, arch strings and capacities. It cannot tell you a
 number is true. It tells you which numbers you are asserting without an
 artifact.</p>
-<p><strong>Four claims out of a 21 KB article is not a green
+<p><strong>Four claims out of a 23 KB article is not a green
 light.</strong> Fenced code is stripped before extraction, because
 pasted tool output is itself evidence, and this article keeps most of
 its numbers there. Trace the rest by hand and archive it. The ledger for
@@ -454,7 +471,7 @@ file.</strong></p>
   --img-base=https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/</code></pre>
 <pre class="plaintext"><code>devto-publishing-kit-gde.md: 5 tables, 1 diagrams
    USE THIS   -&gt; medium/devto-publishing-kit-gde-hosted.html
-   not this   -&gt; medium/devto-publishing-kit-gde-embed.html   (496 KB; data: URIs)
+   not this   -&gt; medium/devto-publishing-kit-gde-embed.html   (497 KB; data: URIs)
    Medium never fills its Title field from pasted content -- set the title separately.</code></pre>
 <p>Every table and box-drawing diagram becomes a PNG at 2x. Pasting the
 hosted file beats importing it, because the <code>&lt;pre&gt;</code>
@@ -514,9 +531,9 @@ bare (unlabelled) opening fences: 0
 organization</h4>
 <p>The community channel is an API field, not an editor dropdown:</p>
 <pre class="shell"><code>curl -s https://dev.to/api/organizations/gde</code></pre>
-<div class="sourceCode" id="cb21"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;type_of&quot;</span><span class="fu">:</span> <span class="st">&quot;organization&quot;</span><span class="fu">,</span> <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">11939</span><span class="fu">,</span> <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;gde&quot;</span><span class="fu">,</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Google Developer Experts&quot;</span> <span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;type_of&quot;</span><span class="fu">:</span> <span class="st">&quot;organization&quot;</span><span class="fu">,</span> <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">11939</span><span class="fu">,</span> <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;gde&quot;</span><span class="fu">,</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Google Developer Experts&quot;</span> <span class="fu">}</span></span></code></pre></div>
 <pre class="shell"><code>curl -s -X PUT https://dev.to/api/articles/&lt;id&gt; -H &quot;api-key: $KEY&quot; \
   -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;article&quot;:{&quot;organization_id&quot;:11939}}&#39;</code></pre>
 <p>There is no endpoint that lists your organizations. Recover them from
@@ -560,8 +577,8 @@ the selection. Those three are closed.</p>
 paragraph.</strong> A file hard-wrapped at 95 columns renders with a
 ragged break every 95 characters.</p>
 <pre class="shell"><code>python3 scripts/serve-body.py builder-publishing-kit.md</code></pre>
-<pre class="plaintext"><code>chars : 22542
-lines : 521 before unwrap, 408 after</code></pre>
+<pre class="plaintext"><code>chars : 23214
+lines : 531 before unwrap, 411 after</code></pre>
 <p>Code, tables, lists and headings are left alone.</p>
 <h4 id="step-10--announce-it-on-linkedin">Step 10 — Announce it on
 LinkedIn</h4>

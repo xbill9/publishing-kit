@@ -1,38 +1,15 @@
-# toolchain run, re-captured 2026-08-31T13:03:26-04:00 at 0.2.0
-## make-medium.py
+# toolchain run, re-captured 2026-08-31T13:17:59-04:00 with content-addressed covers
+## covers
+builder-cover.2b7f0305.jpg 15470 bytes
+devto-cover-aws.44aee846.jpg 106890 bytes
+devto-cover-gde.0d021e90.jpg 106731 bytes
+## --content-address is idempotent (same bytes -> same name)
+wrote builder-cover.2b7f0305.jpg  1200x675  15 KB
+## make-medium
 devto-publishing-kit-gde.md: 5 tables, 1 diagrams
-drwxr-xr-x 1 xbill xbill    148 Aug 31 13:03 ..
--rw-r--r-- 1 xbill xbill 106731 Aug 31 13:03 devto-cover-gde.jpg
--rw-r--r-- 1 xbill xbill  59447 Aug 31 13:03 devto-publishing-kit-gde-diagram-1.png
--rw-r--r-- 1 xbill xbill  33058 Aug 31 13:03 devto-publishing-kit-gde-table-1.png
--rw-r--r-- 1 xbill xbill  24116 Aug 31 13:03 devto-publishing-kit-gde-table-2.png
--rw-r--r-- 1 xbill xbill  61805 Aug 31 13:03 devto-publishing-kit-gde-table-3.png
--rw-r--r-- 1 xbill xbill  28897 Aug 31 13:03 devto-publishing-kit-gde-table-4.png
--rw-r--r-- 1 xbill xbill  42543 Aug 31 13:03 devto-publishing-kit-gde-table-5.png
-## heading levels emitted
       1 <h1
      19 <h4
-## embed size
-496 KB
-## covers
-devto-cover-gde.jpg  1376x768  104 KB
-devto-cover-aws.jpg  1376x768  104 KB
-builder-cover.jpg  1200x675  15 KB
-## make-cover --tile with a leading hyphen
-make-cover.py: error: argument --tile: expected one argument
-## check-article.py, after committing
-
-devto-publishing-kit-gde.md
-  ok    cover present: devto-cover-gde.jpg
-  ok    devto-cover-gde.jpg is tracked by git
-  ok    geometry 1376x768
-  ok    published: false
-  ok    title present
-  ok    description present
-  ok    tags present
-  ok    devto-publishing-kit-gde-hosted.html image URLs resolve to publishing-kit-skill
-  ok    7 medium/img image(s) committed
-  ok    no empty link targets
-
-0 fail, 0 warn
-exit=0
+embed: 497 KB
+## dev.to proxies covers rather than re-hosting
+cover_image : https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fraw.githubusercontent.com%2Fxbill9%2Fgemma4-dev%2Fmain%2Fdocs%2Fdevto-cover-aws.jpg
+  (GET /api/articles/me, 2026-08-31; three of three published articles)

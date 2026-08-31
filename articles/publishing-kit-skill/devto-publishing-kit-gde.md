@@ -3,7 +3,7 @@ title: "One Article, Four Destinations: a Claude Code Skill That Fails the Build
 published: false
 description: "Step-by-step: packaging a publishing workflow as a Claude Code skill — generating the cover, tracing every number to an artifact, building the Medium version, and posting over the dev.to API, with a pre-flight that exits non-zero."
 tags: ai, devtools, writing, opensource
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.0d021e90.jpg
 ---
 
 This tutorial walks through **publishing-kit**, a [Claude Code](https://claude.com/claude-code)
@@ -157,7 +157,7 @@ title: "One Article, Four Destinations: a Claude Code Skill That Fails the Build
 published: false
 description: "Step-by-step: packaging a publishing workflow as a Claude Code skill..."
 tags: ai, devtools, writing, opensource
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.0d021e90.jpg
 ---
 ```
 
@@ -182,15 +182,35 @@ python3 scripts/make-cover.py --out devto-cover-gde.jpg --mode devto \
   --subhead "A Claude Code skill that fails the build instead of failing silently." \
   --tile "always-on|the skill description|~187|tokens per session|CARRIED EVERY SESSION|blue" \
   --tile "on-invoke|SKILL.md when it fires|~8k|tokens per invocation|LOADED ON DEMAND|orange" \
-  --footer "publishing 0.2.0 - 1 skill, 4 references, 6 scripts, 2,370 lines"
+  --footer "publishing 0.2.0 - 1 skill, 4 references, 6 scripts, 2,370 lines" \
+  --content-address --url-base "$BASE"
 
-python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5
+python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5 \
+  --content-address
 ```
 
 ```plaintext
-wrote devto-cover-gde.jpg  1376x768  104 KB
-wrote builder-cover.jpg    1200x675   15 KB
+wrote devto-cover-gde.0d021e90.jpg  1376x768  104 KB
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.0d021e90.jpg
+wrote builder-cover.2b7f0305.jpg    1200x675   15 KB
 ```
+
+**`--content-address` names the file by a hash of its own bytes, and it is not
+optional once an article is published.** dev.to does not re-host your cover — it
+*proxies* it, with your URL embedded in theirs:
+
+```plaintext
+https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,
+  format=auto/https%3A%2F%2Fraw.githubusercontent.com%2F...%2Fdevto-cover.jpg
+```
+
+So the URL you hand it stays load-bearing for the life of the post, and a proxy
+keyed on that URL decides for itself when to look again. Regenerate a cover in
+place and you get an article whose cover may or may not be the one you just made;
+reuse a filename across articles and the older one silently repaints. A hashed
+name is a URL nothing has cached, and the old file stays where it is so published
+articles keep rendering. It is the same reasoning the Medium importer forced —
+that cache is keyed on URL too, and `?v=2` does not bust it.
 
 `--mode builder` defaults to text-free, following AWS's own guidance. Then open the file. A
 palette validator checks colour, not layout, and the first pass usually has a label collision.
@@ -230,7 +250,7 @@ It traces prices, measurements, quantities, versions, cloud identifiers, digests
 and capacities. It cannot tell you a number is true. It tells you which numbers you are
 asserting without an artifact.
 
-**Four claims out of a 21 KB article is not a green light.** Fenced code is stripped before
+**Four claims out of a 23 KB article is not a green light.** Fenced code is stripped before
 extraction, because pasted tool output is itself evidence, and this article keeps most of its
 numbers there. Trace the rest by hand and archive it. The ledger for this article is
 `CLAIMS.md`, and it sorts every claim into measured-on-this-run, read-from-the-source,
@@ -289,7 +309,7 @@ python3 scripts/make-medium.py devto-publishing-kit-gde.md medium \
 ```plaintext
 devto-publishing-kit-gde.md: 5 tables, 1 diagrams
    USE THIS   -> medium/devto-publishing-kit-gde-hosted.html
-   not this   -> medium/devto-publishing-kit-gde-embed.html   (496 KB; data: URIs)
+   not this   -> medium/devto-publishing-kit-gde-embed.html   (497 KB; data: URIs)
    Medium never fills its Title field from pasted content -- set the title separately.
 ```
 
@@ -411,8 +431,8 @@ python3 scripts/serve-body.py builder-publishing-kit.md
 ```
 
 ```plaintext
-chars : 22542
-lines : 521 before unwrap, 408 after
+chars : 23214
+lines : 531 before unwrap, 411 after
 ```
 
 Code, tables, lists and headings are left alone.

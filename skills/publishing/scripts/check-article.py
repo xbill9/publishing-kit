@@ -15,6 +15,10 @@ Checks:
                              that was REGENERATED after its commit serves the old
                              image, so HEAD is compared, not just tracking
   4. COVER GEOMETRY          1376x768 for dev.to; warn otherwise
+  4b. CONTENT ADDRESSING     a hashed filename must still match its bytes, and a
+                             cover without one is warned about: dev.to proxies the
+                             URL rather than re-hosting, so reusing a name puts two
+                             images behind one address
   5. PUBLISHED FALSE         never ship `published: true` by accident
   6. FRONT MATTER            title, description, tags present
   7. MEDIUM ARTIFACTS        if medium/ exists, its images are present and its
@@ -23,6 +27,7 @@ Checks:
 """
 
 import argparse
+import hashlib
 import pathlib
 import re
 import subprocess
@@ -58,6 +63,23 @@ def tracked(root, path):
         return r.returncode == 0
     except Exception:
         return False
+
+
+HASHED = re.compile(r"^(?P<stem>.+)\.(?P<hash>[0-9a-f]{8})(?P<ext>\.[A-Za-z0-9]+)$")
+
+
+def content_address_ok(path):
+    """For a content-addressed cover, does the name still describe the bytes?
+
+    Returns None when the filename carries no hash, so this stays optional. A
+    mismatch means the file was regenerated or edited without renaming, which puts
+    the old bytes and the new bytes behind one URL -- the thing content addressing
+    exists to prevent.
+    """
+    m = HASHED.match(path.name)
+    if not m:
+        return None
+    return hashlib.sha256(path.read_bytes()).hexdigest()[:8] == m.group("hash")
 
 
 def matches_head(root, path):
@@ -111,6 +133,15 @@ def main():
                      f"commit, so the published URL still serves the old image")
             else:
                 ok(f"{name} is committed and matches HEAD")
+            ca = content_address_ok(f)
+            if ca is None:
+                warn(f"{name} is not content-addressed; a regenerated cover reuses "
+                     f"this URL, and dev.to proxies it rather than re-hosting")
+            elif ca:
+                ok(f"{name} hash matches its bytes")
+            else:
+                fail(f"{name} carries a hash that no longer matches its bytes -- "
+                     f"regenerate with --content-address, do not edit in place")
             try:
                 from PIL import Image
                 w, h = Image.open(f).size

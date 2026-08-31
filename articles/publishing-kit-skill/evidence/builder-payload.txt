@@ -1,10 +1,10 @@
-# Builder Center payload, re-captured 2026-08-31T13:03:27
-builder-publishing-kit.md: 22969 chars, 524 lines, 22.4 KB
-devto-publishing-kit-aws.md: 23143 chars, 527 lines, 22.6 KB
-devto-publishing-kit-gde.md: 21836 chars, 515 lines, 21.3 KB
+# Builder Center payload, re-captured 2026-08-31T13:17:59
+builder-publishing-kit.md: 23641 chars, 534 lines, 23.1 KB
+devto-publishing-kit-aws.md: 23824 chars, 537 lines, 23.3 KB
+devto-publishing-kit-gde.md: 22998 chars, 535 lines, 22.5 KB
 
-serve-body.py payload (title and subtitle stripped, paragraphs unwrapped):
-  chars : 22542
-  KB    : 22.0
-  lines : 521 before unwrap, 408 after
-  sha256[:12]: 09741f8248a4
+serve-body.py payload:
+  chars : 23214
+  KB    : 22.7
+  lines : 531 before unwrap, 411 after
+  sha256[:12]: 67f0de71045f

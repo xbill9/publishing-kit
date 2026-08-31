@@ -34,7 +34,10 @@ name|sub|number|unit|claim|colour, colour being `blue` or `orange`.
 """
 
 import argparse
+import hashlib
 import os
+import pathlib
+import re
 import sys
 
 from PIL import Image, ImageDraw, ImageFont
@@ -157,6 +160,36 @@ def render(a):
     return W, H
 
 
+# A cover URL is a MUTABLE NAME, and both destinations that fetch one treat it as
+# permanent. MEASURED 2026-08-31: dev.to does not re-host a cover, it proxies it --
+# `media2.dev.to/dynamic/image/.../<urlencoded source URL>` -- so the source URL is
+# embedded in the published article for its lifetime, and a proxy keyed on that URL
+# decides for itself when to look again. Regenerating a cover in place therefore
+# means an article whose cover may or may not be the one you just made, and a
+# filename reused across articles silently repaints the older one.
+#
+# Same reasoning as `references/medium.md` gives for the importer's URL cache: a
+# content-addressed filename is always a URL nothing has cached, and the old file
+# stays put so already-published articles keep rendering.
+HASHED = re.compile(r"^(?P<stem>.+)\.(?P<hash>[0-9a-f]{8})(?P<ext>\.[A-Za-z0-9]+)$")
+
+
+def content_hash(path):
+    return hashlib.sha256(pathlib.Path(path).read_bytes()).hexdigest()[:8]
+
+
+def content_address(out):
+    """Rename to <stem>.<sha8><ext>, stripping any hash already there."""
+    m = HASHED.match(out.name)
+    stem, ext = (m.group("stem"), m.group("ext")) if m else (out.stem, out.suffix)
+    target = out.with_name(f"{stem}.{content_hash(out)}{ext}")
+    if target != out:
+        if target.exists():
+            target.unlink()
+        out.rename(target)
+    return target
+
+
 def main():
     p = argparse.ArgumentParser(description="Render an article cover image")
     p.add_argument("--out", required=True)
@@ -173,12 +206,26 @@ def main():
                    help="abstract cover, no type (default for --mode builder)")
     p.add_argument("--with-text", action="store_true",
                    help="force type on in builder mode, against AWS guidance")
+    p.add_argument("--content-address", action="store_true",
+                   help="name the file by a hash of its bytes, so a regenerated "
+                        "cover is a URL no cache has ever seen")
+    p.add_argument("--url-base",
+                   help="print the cover_image: URL to paste, e.g. "
+                        "https://raw.githubusercontent.com/<u>/<repo>/main/<dir>/")
     a = p.parse_args()
     if a.mode == "builder" and not a.with_text:
         a.no_text = True
     w, h = render(a)
+    out = pathlib.Path(a.out)
+
+    if a.content_address:
+        out = content_address(out)
+        a.out = str(out)
+
     kb = os.path.getsize(a.out) // 1024
     print(f"wrote {a.out}  {w}x{h}  {kb} KB")
+    if a.url_base:
+        print(f"cover_image: {a.url_base.rstrip('/')}/{out.name}")
     if a.mode == "builder" and kb > 2048:
         sys.exit("FAIL: Builder Center caps cover uploads at 2 MB")
 

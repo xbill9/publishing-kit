@@ -29,7 +29,7 @@ Anything that could not be put in one of those two categories was cut.
 | 23 of 23 opening fences carry a language label in a stored body | `devto-roundtrip.txt` |
 | covers: 1376x768 105 KB / 1376x768 104 KB / 1200x675 15 KB | `toolchain-run.txt` |
 | `--tile "-embed.html\|..."` fails with `expected one argument` | `toolchain-run.txt` |
-| make-medium: 5 tables, 1 diagram, 19 `<h4>` + 1 `<h1>`, embed 496 KB | `toolchain-run.txt` |
+| make-medium: 5 tables, 1 diagram, 19 `<h4>` + 1 `<h1>`, embed 497 KB | `toolchain-run.txt` |
 | no `--cover` picks `devto-cover-aws.jpg` for the GDE article | `toolchain-run.txt` |
 | default `--img-base` resolves to `gemma4-dev/main/publishing-kit-skill/` | `toolchain-run.txt` |
 | Builder payload 22,542 chars / 22.0 KB, 521 lines before unwrap, 408 after | `builder-payload.txt` |
@@ -116,3 +116,6 @@ publishing, so these come from LinkedIn's own developer documentation.
 | a first read of the published article's fences counted 23 bare ones and looked like counter-evidence to the relabelling claim | they were closing fences; parsed as pairs, 0 of 23 openers are bare, which supports the claim |
 | the quoted `serve-body.py` output kept going stale, because editing the number changes the file it measures | iterated until the digit count stopped changing, so the quoted figure is exact |
 | the covers and every Medium image resolve over HTTPS and match locally byte for byte | verified after the push, sha256 compared |
+| dev.to proxies the cover rather than re-hosting it: `media2.dev.to/dynamic/image/.../<urlencoded source URL>` | `GET /api/articles/me`, three published articles |
+| `--content-address` is idempotent: identical bytes give the identical name | `toolchain-run.txt` |
+| Builder payload 23,214 chars / 22.7 KB, 531 lines before unwrap, 411 after | `builder-payload.txt` |
