@@ -1,8 +1,9 @@
 # Destination URLs for the LinkedIn post. PENDING fails the run on purpose:
 # a post whose links do not resolve is worse than no post.
-# dev.to slugs carry a -temp-slug-N suffix while unpublished; they settle on publish.
+# dev.to slugs carry -temp-slug-N while unpublished; they settle on publish, and
+# make-linkedin.py fails on any URL still carrying one.
 devto-gde  = https://dev.to/gde/one-article-four-destinations-a-claude-code-skill-that-fails-the-build-23g3-temp-slug-5267423
 devto-aws  = https://dev.to/aws-builders/getting-23-kb-of-markdown-into-aws-builder-center-without-touching-the-clipboard-4hj4-temp-slug-9846070
-builder    = PENDING
-medium     = PENDING
+builder    = https://builder.aws.com/create/content/3IhAZMOLRPqp4a5USEUtdq6s2d2
+medium     = https://medium.com/p/af03e6658c0b
 repo       = https://github.com/xbill9/publishing-kit

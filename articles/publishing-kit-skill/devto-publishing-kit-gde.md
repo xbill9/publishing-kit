@@ -476,19 +476,19 @@ fails the run if any appear.
 | Component | Lines |
 | --- | --- |
 | `SKILL.md` | 578 |
-| `references/browser-publishing.md` | 294 |
-| `references/house-style.md` | 66 |
+| `references/browser-publishing.md` | 309 |
+| `references/house-style.md` | 81 |
 | `references/linkedin.md` | 148 |
 | `references/medium.md` | 119 |
 | `templates/linkedin-post.txt` | 9 |
 | 12 scripts | 2,297 |
-| **total** | **3,511** |
+| **total** | **3,541** |
 
 Of which ~190 tokens are resident in every session and ~10.6k load when the skill fires.
 
 #### So, worth it?
 
-For one article, no. The kit is worth its 3,511 lines at the point where the same failure has
+For one article, no. The kit is worth its 3,541 lines at the point where the same failure has
 cost you twice, because every failure in it is one that produced a plausible-looking file and a
 broken published page.
 

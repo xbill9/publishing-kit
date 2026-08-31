@@ -27,6 +27,6 @@ scripts (12):
 
 total: 3,541 lines
 
-installed snapshot 3f47ab5 (HEAD is aa29240): ~190 always-on, ~10.6k on-invoke
+installed snapshot 3f47ab5 (HEAD is cc45d9c): ~190 always-on, ~10.6k on-invoke
   STALE -- that projection measures an older commit. Run:
   claude plugin marketplace update publishing-kit && claude plugin update publishing
