@@ -56,7 +56,7 @@ between compared runs. State it once and stop.
 | Emoji | yes, medals in tables | **no** | inherits from dev.to source | renders, but not as status markers |
 | Tables | native | native | images, via `make-medium.py` | **none** |
 | Code | native | native, line-numbered | images if multi-line | **none** |
-| Cover | 1376x768, `cover_image:` URL | 1200x675 upload, no text | first body image becomes cover | link preview card |
+| Cover | 1376x578, `cover_image:` URL | 1200x675 upload, no text | first body image becomes cover | link preview card |
 | Formatting | markdown | markdown | markdown | **none at all** |
 
 ## Where the numbers live

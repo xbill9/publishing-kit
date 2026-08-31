@@ -3,7 +3,7 @@ title: "One Article, Four Destinations: a Claude Code Skill That Fails the Build
 published: false
 description: "Step-by-step: packaging a publishing workflow as a Claude Code skill — generating the cover, tracing every number to an artifact, building the Medium version, and posting over the dev.to API, with a pre-flight that exits non-zero."
 tags: ai, devtools, writing, opensource
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.0d021e90.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.6d805f0f.jpg
 ---
 
 This tutorial walks through **publishing-kit**, a [Claude Code](https://claude.com/claude-code)
@@ -52,7 +52,7 @@ One source article, three derived artifacts, two checks between them:
         ┌─────────────────────┼─────────────────────┐
         │                     │                     │
    make-cover.py        check-facts.py       check-article.py
-   1376×768 dev.to      every claim with     cover, geometry,
+   1376×578 dev.to      every claim with     cover, geometry,
    1200×675 builder     no artifact behind   published:false,
    text-free for AWS    it, listed           dead links
         │                     │                     │
@@ -157,7 +157,7 @@ title: "One Article, Four Destinations: a Claude Code Skill That Fails the Build
 published: false
 description: "Step-by-step: packaging a publishing workflow as a Claude Code skill..."
 tags: ai, devtools, writing, opensource
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.0d021e90.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.6d805f0f.jpg
 ---
 ```
 
@@ -171,7 +171,7 @@ dev.to fetches `cover_image:` when it renders the published page.
 
 | | dev.to | AWS Builder Center |
 | --- | --- | --- |
-| Size | **1376x768** | **1200x675**, 2 MB cap |
+| Size | **1376x578** | **1200x675**, 2 MB cap |
 | Delivery | `cover_image:` URL | uploaded in the editor |
 | Text in the image | fine | not recommended |
 
@@ -190,8 +190,8 @@ python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5
 ```
 
 ```plaintext
-wrote devto-cover-gde.0d021e90.jpg  1376x768  104 KB
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.0d021e90.jpg
+wrote devto-cover-gde.6d805f0f.jpg  1376x578   84 KB
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.6d805f0f.jpg
 wrote builder-cover.2b7f0305.jpg    1200x675   15 KB
 ```
 
@@ -276,7 +276,7 @@ python3 scripts/check-article.py devto-publishing-kit-gde.md --repo-root ../..
   ok    cover present: devto-cover-gde.jpg
   FAIL  devto-cover-gde.jpg is not committed -- the URL is fetched at render
         time, so it must be pushed before publishing
-  ok    geometry 1376x768
+  ok    geometry 1376x578 is dev.to's displayed 2.381:1
   ok    published: false
   ok    title present
   ok    description present
@@ -309,7 +309,7 @@ python3 scripts/make-medium.py devto-publishing-kit-gde.md medium \
 ```plaintext
 devto-publishing-kit-gde.md: 5 tables, 1 diagrams
    USE THIS   -> medium/devto-publishing-kit-gde-hosted.html
-   not this   -> medium/devto-publishing-kit-gde-embed.html   (497 KB; data: URIs)
+   not this   -> medium/devto-publishing-kit-gde-embed.html   (472 KB; data: URIs)
    Medium never fills its Title field from pasted content -- set the title separately.
 ```
 
@@ -431,7 +431,7 @@ python3 scripts/serve-body.py builder-publishing-kit.md
 ```
 
 ```plaintext
-chars : 23214
+chars : 23243
 lines : 531 before unwrap, 411 after
 ```
 

@@ -3,7 +3,7 @@ title: "Getting 23 KB of Markdown Into AWS Builder Center Without Touching the C
 published: false
 description: "A step by step publishing pipeline for AWS Builder Center, dev.to and Medium as a Claude Code skill. Mandatory covers at two geometries, a pre-flight that exits non-zero, and a chunked, checksummed route into the editor that never races the system clipboard."
 tags: aws, ai, writing, devtools
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-aws.44aee846.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-aws.3ca0b7f4.jpg
 ---
 
 This article provides a step by step guide for publishing one technical article to AWS Builder
@@ -28,7 +28,7 @@ first evidence.
 | --- | --- | --- | --- |
 | Tables | 🥇 native | 🥇 native | ❌ stripped entirely |
 | Multi-line code | 🥇 native | 🥇 native, line-numbered | ❌ flattened to one line |
-| Cover | 1376x768 by URL | 1200x675 upload, no text | first body image becomes it |
+| Cover | 1376x578 by URL | 1200x675 upload, no text | first body image becomes it |
 | Emoji | 🥇 yes | ❌ not in house style | inherited from source |
 | Tags | 4 max, free text | 5 max, fixed vocabulary | free |
 | Publishing API | 🥇 **full REST API** | ❌ **none** | ❌ **none** |
@@ -122,7 +122,7 @@ title: "Getting 23 KB of Markdown Into AWS Builder Center Without Touching the C
 published: false
 description: "..."
 tags: aws, ai, writing, devtools
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-aws.44aee846.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-aws.3ca0b7f4.jpg
 ---
 ```
 
@@ -137,7 +137,7 @@ broken image on a public post.
 
 | Property | dev.to | AWS Builder Center |
 | --- | --- | --- |
-| Size | 1376x768 | 1200x675, 2 MB cap |
+| Size | 1376x578 | 1200x675, 2 MB cap |
 | Delivery | `cover_image:` URL | uploaded in the editor |
 | Text in the image | fine | not recommended |
 
@@ -153,7 +153,7 @@ python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5
 ```
 
 ```plaintext
-wrote devto-cover-aws.44aee846.jpg  1376x768  104 KB
+wrote devto-cover-aws.3ca0b7f4.jpg  1376x578   85 KB
 wrote builder-cover.2b7f0305.jpg    1200x675   15 KB
 ```
 
@@ -229,7 +229,7 @@ python3 scripts/check-article.py devto-publishing-kit-aws.md --repo-root ../..
   ok    cover present: devto-cover-aws.jpg
   FAIL  devto-cover-aws.jpg is not committed -- the URL is fetched at render
         time, so it must be pushed before publishing
-  ok    geometry 1376x768
+  ok    geometry 1376x578 is dev.to's displayed 2.381:1
   ok    published: false
   ok    title present
   ok    description present
@@ -412,7 +412,7 @@ python3 scripts/serve-body.py builder-publishing-kit.md
 ```
 
 ```plaintext
-chars : 23214
+chars : 23243
 lines : 531 before unwrap, 411 after
 ```
 
@@ -451,7 +451,7 @@ python3 scripts/make-medium.py devto-publishing-kit-gde.md medium \
 ```plaintext
 devto-publishing-kit-gde.md: 5 tables, 1 diagrams
    USE THIS   -> medium/devto-publishing-kit-gde-hosted.html
-   not this   -> medium/devto-publishing-kit-gde-embed.html   (497 KB; data: URIs)
+   not this   -> medium/devto-publishing-kit-gde-embed.html   (472 KB; data: URIs)
 ```
 
 Paste the hosted variant, never the embed one. The embed variant inlines its images as base64
@@ -520,7 +520,7 @@ measured results were:
   count. Cross-origin `fetch`, `file://` and `wl-copy` are all closed.
 - **Medium needs the hosted build**, 0 of 4 images surviving from the embed variant against 4 of
   4 from real URLs.
-- **The covers are mandatory and differently sized**, 1376x768 at 104 KB by URL for dev.to and
+- **The covers are mandatory and differently sized**, 1376x578 at 84 KB by URL for dev.to and
   1200x675 at 15 KB uploaded and text-free for Builder Center.
 - **The skill costs ~187 tokens resident** and ~8k when it fires, across 2,370 lines.
 - **The pre-flight failed this article twice** before the artifacts were committed, which is

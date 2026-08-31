@@ -14,7 +14,8 @@ Checks:
                              file renders as a broken image -- and a tracked file
                              that was REGENERATED after its commit serves the old
                              image, so HEAD is compared, not just tracking
-  4. COVER GEOMETRY          1376x768 for dev.to; warn otherwise
+  4. COVER GEOMETRY          2.381:1 for dev.to, which is what its proxy shows;
+                             FAILS when ink falls in the band it would crop
   4b. CONTENT ADDRESSING     a hashed filename must still match its bytes, and a
                              cover without one is warned about: dev.to proxies the
                              URL rather than re-hosting, so reusing a name puts two
@@ -84,6 +85,45 @@ def content_address_ok(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()[:8] == m.group("hash")
 
 
+# MEASURED 2026-08-31: dev.to does not show the cover you upload. Its proxy renders
+# `width=1000,height=420,fit=cover` -- a 2.381:1 CENTRE CROP. A 1376x768 cover loses
+# 95px off the top and 95px off the bottom, which sliced the eyebrow through its
+# letterforms and cut the footer entirely, in every article shipped at that size.
+DEVTO_RATIO = 1000 / 420
+
+
+def check_devto_crop(im, w, h):
+    """Would dev.to's crop cut anything that was drawn?"""
+    ratio = w / h
+    if abs(ratio - DEVTO_RATIO) < 0.02:
+        ok(f"geometry {w}x{h} is dev.to's displayed 2.381:1; nothing is cropped")
+        return
+
+    visible_h = w / DEVTO_RATIO
+    if visible_h >= h:
+        warn(f"geometry {w}x{h} ({ratio:.2f}:1) is wider than dev.to's 2.381:1; "
+             f"it will be cropped left and right")
+        return
+
+    cut = int((h - visible_h) / 2)
+    rgb = im.convert("RGB")
+    bg = rgb.getpixel((1, 1))
+
+    def ink(band):
+        return sum(1 for px in band
+                   if max(abs(px[i] - bg[i]) for i in range(3)) > 30)
+
+    top = ink(list(rgb.crop((0, 0, w, cut)).getdata()))
+    bot = ink(list(rgb.crop((0, h - cut, w, h)).getdata()))
+    where = f"{cut}px off the top and bottom"
+    if top or bot:
+        fail(f"geometry {w}x{h}: dev.to crops {where} and there is content there "
+             f"({top} px top, {bot} px bottom). Author at 2.381:1 -- "
+             f"make-cover.py --mode devto now emits 1376x578")
+    else:
+        warn(f"geometry {w}x{h}: dev.to crops {where}, though nothing is drawn there")
+
+
 def matches_head(root, path):
     """Tracked is not enough: a REGENERATED cover is tracked and still wrong.
 
@@ -146,11 +186,9 @@ def main():
                      f"regenerate with --content-address, do not edit in place")
             try:
                 from PIL import Image
-                w, h = Image.open(f).size
-                if (w, h) == (1376, 768):
-                    ok(f"geometry {w}x{h}")
-                else:
-                    warn(f"geometry {w}x{h}; dev.to house size is 1376x768")
+                im = Image.open(f)
+                w, h = im.size
+                check_devto_crop(im, w, h)
             except ImportError:
                 warn("Pillow not installed; skipped geometry check")
     if covers and not m:

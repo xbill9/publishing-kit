@@ -8,7 +8,8 @@ render time, so a missing file surfaces as a broken image on a published post.
 
 The two destinations disagree on geometry, so this ships two modes:
 
-    --mode devto     1376x768   text is fine; this is the house size
+    --mode devto     1376x578   2.381:1, the ratio dev.to actually displays;
+                                text is fine here
     --mode builder   1200x675   AWS Builder Center's recommended size, max 2 MB.
                                 Their editor says "Text in images is not
                                 recommended", so this mode defaults to --no-text.
@@ -44,7 +45,18 @@ from PIL import Image, ImageDraw, ImageFont
 
 S = 2  # supersample, then downsample -- otherwise the type looks soft
 
-MODES = {"devto": (1376, 768), "builder": (1200, 675)}
+# MEASURED 2026-08-31: dev.to does not display a cover at the size you upload. Its
+# proxy renders width=1000,height=420,fit=cover -- a 2.381:1 CENTRE CROP. A
+# 1376x768 cover (1.79:1) therefore loses 95px off the top and 95px off the bottom:
+# the eyebrow was sliced through its letterforms and the footer was cut entirely,
+# in every article shipped at that size.
+#
+# The fix is to author at the ratio that is displayed, not to nudge margins inside
+# a ratio that is not. 1376x578 is 2.381:1, so fit=cover crops nothing.
+MODES = {"devto": (1376, 578), "builder": (1200, 675)}
+
+# what dev.to's proxy renders, for the geometry check and the crop simulation
+DEVTO_DISPLAY = (1000, 420)
 
 SURFACE = (26, 26, 25)      # #1a1a19  validated dark chart surface
 TILE_BG = (32, 32, 31)
@@ -70,7 +82,7 @@ def draw(d, xy, s, font, fill):
 
 def render(a):
     W, H = MODES[a.mode]
-    k = H / 768.0  # scale the whole rhythm off the reference height
+    k = H / 578.0  # scale the whole rhythm off the displayed height
     img = Image.new("RGB", (W * S, H * S), SURFACE)
     d = ImageDraw.Draw(img)
 
@@ -116,23 +128,24 @@ def render(a):
         img.save(a.out, "JPEG", quality=92, optimize=True)
         return W, H
 
-    pad = 88 * k
-    y = 84 * k
+    # Vertical rhythm for a 578-tall canvas. Every element sits inside it, because
+    # at 2.381:1 there is no crop to hide in.
+    pad = 72 * k
     if a.eyebrow:
-        draw(d, (pad, y), a.eyebrow, f(MONO, 19 * k), INK_3)
+        draw(d, (pad, 46 * k), a.eyebrow, f(MONO, 18 * k), INK_3)
 
-    y = 128 * k
+    y = 86 * k
     for line in (a.headline or "").split("|"):
-        draw(d, (pad, y), line, f(SANS_B, 62 * k), INK)
-        y += 72 * k
+        draw(d, (pad, y), line, f(SANS_B, 54 * k), INK)
+        y += 64 * k
 
     if a.subhead:
-        draw(d, (pad, y + 12 * k), a.subhead, f(SANS, 40 * k), INK_2)
+        draw(d, (pad, y + 8 * k), a.subhead, f(SANS, 34 * k), INK_2)
 
     tiles = [t.split("|") for t in (a.tile or [])]
     if tiles:
-        top, bot = 372 * k, 648 * k
-        gap = 76 * k
+        top, bot = 296 * k, 516 * k
+        gap = 68 * k
         tw = (W - 2 * pad - gap) / 2
         for i, t in enumerate(tiles[:2]):
             name, sub, big, unit, claim, colour = (t + [""] * 6)[:6]
@@ -141,19 +154,19 @@ def render(a):
             d.rectangle([int(x) * S, int(top) * S, int(x + tw) * S, int(bot) * S],
                         fill=TILE_BG, outline=RULE, width=S)
             d.rectangle([int(x) * S, int(top) * S, int(x + 6) * S, int(bot) * S], fill=chip)
-            draw(d, (x + 34 * k, top + 26 * k), name, f(MONO_B, 27 * k), INK)
-            draw(d, (x + 34 * k, top + 62 * k), sub, f(SANS, 20 * k), INK_3)
-            draw(d, (x + 34 * k, top + 98 * k), big, f(SANS_B, 72 * k), INK)
-            draw(d, (x + 34 * k, top + 190 * k), unit, f(SANS, 22 * k), INK_2)
+            draw(d, (x + 30 * k, top + 20 * k), name, f(MONO_B, 25 * k), INK)
+            draw(d, (x + 30 * k, top + 52 * k), sub, f(SANS, 19 * k), INK_3)
+            draw(d, (x + 30 * k, top + 82 * k), big, f(SANS_B, 62 * k), INK)
+            draw(d, (x + 30 * k, top + 158 * k), unit, f(SANS, 21 * k), INK_2)
             # swatch carries identity; the words stay in ink
-            d.rectangle([int(x + 34 * k) * S, int(top + 234 * k) * S,
-                         int(x + 46 * k) * S, int(top + 246 * k) * S], fill=chip)
-            draw(d, (x + 58 * k, top + 231 * k), claim, f(MONO_B, 19 * k), INK_2)
+            d.rectangle([int(x + 30 * k) * S, int(top + 194 * k) * S,
+                         int(x + 41 * k) * S, int(top + 205 * k) * S], fill=chip)
+            draw(d, (x + 52 * k, top + 191 * k), claim, f(MONO_B, 18 * k), INK_2)
 
     if a.footer:
-        d.line([int(pad) * S, int(686 * k) * S, int(W - pad) * S, int(686 * k) * S],
+        d.line([int(pad) * S, int(538 * k) * S, int(W - pad) * S, int(538 * k) * S],
                fill=RULE, width=S)
-        draw(d, (pad, 710 * k), a.footer, f(MONO, 20 * k), INK_3)
+        draw(d, (pad, 550 * k), a.footer, f(MONO, 18 * k), INK_3)
 
     img = img.resize((W, H), Image.LANCZOS)
     img.save(a.out, "JPEG", quality=92, optimize=True)

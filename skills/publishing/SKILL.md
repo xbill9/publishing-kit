@@ -115,11 +115,21 @@ you skip it** — dev.to only fetches the `cover_image:` URL at render time, so 
 missing file shows up as a broken image on a published post. The check treats an
 absent or unreferenced cover as a hard failure.
 
+**Author at the ratio that is displayed.** MEASURED 2026-08-31: dev.to does not
+show the cover you upload. Its proxy renders `width=1000,height=420,fit=cover` — a
+**2.381:1 centre crop**. A 1376x768 cover loses **95px off the top and 95px off the
+bottom**, which sliced the eyebrow through its letterforms and cut the footer
+entirely, in every article shipped at that size. `--mode devto` now emits
+**1376x578**, which is 2.381:1, so nothing is cropped.
+
+The pre-flight simulates the crop: it fails when ink falls in the bands dev.to
+would discard, and warns when the ratio is wrong but nothing is drawn there.
+
 The two destinations disagree:
 
 | | dev.to | AWS Builder Center |
 |---|---|---|
-| Size | **1376x768** | **1200x675**, max 2 MB |
+| Size | **1376x578** | **1200x675**, max 2 MB |
 | Delivery | `cover_image:` URL, fetched at render | uploaded in the editor |
 | Text in image | fine | **"Text in images is not recommended"** |
 
@@ -154,7 +164,7 @@ python3 scripts/make-cover.py --out devto-cover.jpg --mode devto \
 ```
 
 ```
-wrote devto-cover.0d021e90.jpg  1376x768  104 KB
+wrote devto-cover.6d805f0f.jpg  1376x578   84 KB
 cover_image: https://.../devto-cover.0d021e90.jpg
 ```
 

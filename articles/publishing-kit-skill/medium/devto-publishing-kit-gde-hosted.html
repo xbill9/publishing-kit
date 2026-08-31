@@ -247,7 +247,7 @@
   </style>
 </head>
 <body>
-<figure><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/devto-cover-gde.0d021e90.jpg" alt="One Article, Four Destinations: a Claude Code Skill That Fails the Build" /></figure>
+<figure><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/devto-cover-gde.6d805f0f.jpg" alt="One Article, Four Destinations: a Claude Code Skill That Fails the Build" /></figure>
 <header id="title-block-header" hidden>
 <h1 class="title">One Article, Four Destinations: a Claude Code Skill
 That Fails the Build</h1>
@@ -352,7 +352,7 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb7-1"><a href="
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">published</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span></span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">description</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;Step-by-step: packaging a publishing workflow as a Claude Code skill...&quot;</span></span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tags</span><span class="kw">:</span><span class="at"> ai, devtools, writing, opensource</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cover_image</span><span class="kw">:</span><span class="at"> https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.0d021e90.jpg</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cover_image</span><span class="kw">:</span><span class="at"> https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.6d805f0f.jpg</span></span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="pp">---</span></span></code></pre></div>
 <p><code>published: false</code>, always, and let the pre-flight enforce
 it. dev.to keeps the first four tags and drops the rest, measured
@@ -374,8 +374,8 @@ alt="table" /></p>
 
 python3 scripts/make-cover.py --out builder-cover.jpg --mode builder --ratio 4:5 \
   --content-address</code></pre>
-<pre class="plaintext"><code>wrote devto-cover-gde.0d021e90.jpg  1376x768  104 KB
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.0d021e90.jpg
+<pre class="plaintext"><code>wrote devto-cover-gde.6d805f0f.jpg  1376x578   84 KB
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/devto-cover-gde.6d805f0f.jpg
 wrote builder-cover.2b7f0305.jpg    1200x675   15 KB</code></pre>
 <p><strong><code>--content-address</code> names the file by a hash of
 its own bytes, and it is not optional once an article is
@@ -443,7 +443,7 @@ against binary noise.</p>
 <pre class="plaintext"><code>  ok    cover present: devto-cover-gde.jpg
   FAIL  devto-cover-gde.jpg is not committed -- the URL is fetched at render
         time, so it must be pushed before publishing
-  ok    geometry 1376x768
+  ok    geometry 1376x578 is dev.to&#39;s displayed 2.381:1
   ok    published: false
   ok    title present
   ok    description present
@@ -471,7 +471,7 @@ file.</strong></p>
   --img-base=https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/</code></pre>
 <pre class="plaintext"><code>devto-publishing-kit-gde.md: 5 tables, 1 diagrams
    USE THIS   -&gt; medium/devto-publishing-kit-gde-hosted.html
-   not this   -&gt; medium/devto-publishing-kit-gde-embed.html   (497 KB; data: URIs)
+   not this   -&gt; medium/devto-publishing-kit-gde-embed.html   (472 KB; data: URIs)
    Medium never fills its Title field from pasted content -- set the title separately.</code></pre>
 <p>Every table and box-drawing diagram becomes a PNG at 2x. Pasting the
 hosted file beats importing it, because the <code>&lt;pre&gt;</code>
@@ -577,7 +577,7 @@ the selection. Those three are closed.</p>
 paragraph.</strong> A file hard-wrapped at 95 columns renders with a
 ragged break every 95 characters.</p>
 <pre class="shell"><code>python3 scripts/serve-body.py builder-publishing-kit.md</code></pre>
-<pre class="plaintext"><code>chars : 23214
+<pre class="plaintext"><code>chars : 23243
 lines : 531 before unwrap, 411 after</code></pre>
 <p>Code, tables, lists and headings are left alone.</p>
 <h4 id="step-10--announce-it-on-linkedin">Step 10 — Announce it on
