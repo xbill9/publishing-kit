@@ -164,6 +164,39 @@ command line. Front matter is part of `body_markdown`, so title, tags and
 `--update` rewrites those too, and does not change the slug of an already-published
 article, so existing links survive.
 
+### Publishing under an organization is an API field, not an editor dropdown
+
+An article's community channel (`dev.to/<org>/<slug>` rather than `dev.to/<user>/<slug>`)
+is set with `organization_id`, so it needs no browser either:
+
+```
+curl -s https://dev.to/api/organizations/<slug>            # the org's numeric id
+curl -s -X PUT https://dev.to/api/articles/<id> -H "api-key: $KEY" \
+  -H "Content-Type: application/json" -d '{"article":{"organization_id":<n>}}'
+```
+
+There is no "list my organizations" endpoint. Recover the ones the account belongs
+to by scanning its own back catalogue — `/api/articles/me` carries an `organization`
+object on every article that has one:
+
+```
+curl -s -H "api-key: $KEY" "https://dev.to/api/articles/me?per_page=40" \
+  | python3 -c "import json,sys;print({(x.get('organization') or {}).get('username') for x in json.load(sys.stdin)})"
+```
+
+MEASURED 2026-08-30: `gde` (11939) and `aws-builders` (2794) for this account, and the
+back catalogue also shows the routing convention — Gemma/JAX pieces to `gde`, EC2/AWS
+pieces to `aws-builders`. Front matter cannot express this, so it is a separate call
+after the article exists. A later `--update` from source does **not** clear it (tested),
+and the old `/<user>/<slug>` URL keeps resolving after the move, so links already handed
+out survive.
+
+**Two odd things about published articles' ids.** `GET /api/articles/<id>` returns
+`{"error":"not found","status":404}` for some published articles even with a valid key,
+while the same article appears normally in `/api/articles/me` — so read state from the
+listing, not the by-id endpoint, before concluding an article is gone. And dev.to
+allows at most **four tags**; adding a fifth silently keeps the first four.
+
 **Do not drive dev.to's editor in a browser.** It is slower, it needs the clipboard
 or a JS bridge, it silently splits front matter across separate title/tag/cover
 widgets depending on which editor version the account has, and it is entirely
