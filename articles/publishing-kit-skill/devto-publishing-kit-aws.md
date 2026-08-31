@@ -7,8 +7,8 @@ cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articl
 ---
 
 This article provides a step by step guide for publishing one technical article to AWS Builder
-Center, dev.to and Medium from a single source file. A Claude Code skill and five Python scripts
-are built to simplify the process, and two of them exit non-zero rather than let a broken
+Center, dev.to and Medium from a single source file. A Claude Code skill and nine Python scripts
+are built to simplify the process, and three of them exit non-zero rather than let a broken
 artifact ship.
 
 https://github.com/xbill9/publishing-kit

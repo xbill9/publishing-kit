@@ -439,6 +439,12 @@ twice, and nothing anywhere reported a failed copy.
    ~1400 characters per chunk. A mismatch means characters were dropped — redo
    that chunk. Never proceed past a mismatch.
 
+   **There is a better route when you can navigate the tab:** `window.name`
+   survives a cross-origin navigation, so load the payload same-origin from
+   localhost, stash it there, then navigate to the editor and read it back. 34,715
+   characters carried into Medium intact with no chunk loop at all. See
+   `references/browser-publishing.md`.
+
 2. **Verify the whole payload before using it.** Checksum it in the page and
    compare against the same computed locally. Use a NUMERIC checksum: a hex or
    base64 SHA can be redacted in transit and tell you nothing.
@@ -448,6 +454,13 @@ twice, and nothing anywhere reported a failed copy.
    for(let i=0;i<window.__p.length;i++){a=(a+window.__p.charCodeAt(i))%65521;b=(b+a)%65521;}
    ({chars:window.__p.length, adler_a:a, adler_b:b})
    ```
+
+   **Compute the local side over UTF-16 code units, not code points.**
+   `charCodeAt` is UTF-16; Python iterates code points; every emoji counts 2
+   against 1. A document with three `🔎` reported 34,715 characters in the browser
+   against 34,712 in Python and the checksums disagreed on data that had
+   transferred perfectly. `references/browser-publishing.md` has the Python that
+   matches.
 
 3. **Clear the editor with the KEYBOARD, not `execCommand`.**
    `document.execCommand("delete")` over a selected range silently does nothing

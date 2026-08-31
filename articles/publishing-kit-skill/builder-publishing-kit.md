@@ -3,8 +3,8 @@
 *Subtitle: A step by step publishing pipeline for AWS Builder Center, dev.to and Medium as a Claude Code skill. Mandatory covers at two geometries, a pre-flight that exits non-zero, and a chunked, checksummed route into the editor that never races the system clipboard.*
 
 This article provides a step by step guide for publishing one technical article to AWS Builder
-Center, dev.to and Medium from a single source file. A Claude Code skill and five Python scripts
-are built to simplify the process, and two of them exit non-zero rather than let a broken
+Center, dev.to and Medium from a single source file. A Claude Code skill and nine Python scripts
+are built to simplify the process, and three of them exit non-zero rather than let a broken
 artifact ship.
 
 https://github.com/xbill9/publishing-kit

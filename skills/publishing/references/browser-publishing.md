@@ -224,3 +224,71 @@ ids before touching either: the published piece and its orphan differ only in id
 
 The user works in these same tabs. Close what you opened as soon as the draft is
 saved; do not sit on a Builder Center tab while they wait for it.
+
+## Getting a payload into an editor: use `window.name`
+
+MEASURED 2026-08-31, and it replaces the chunked injection for any editor whose
+page you can navigate to.
+
+`window.name` **survives a cross-origin navigation in the same tab.** So the
+payload can be loaded same-origin from localhost, stashed, and read back on the
+destination:
+
+```js
+// on http://127.0.0.1:8901/<file>  -- same origin, so fetch is allowed
+window.name = await (await fetch(location.href)).text();
+// then navigate the SAME tab to the editor, and there:
+const html = window.name;      // intact
+```
+
+34,715 characters carried into `medium.com/new-story` with an identical Adler
+checksum on both sides. No chunk loop, no cumulative length check, no system
+clipboard, and no CSP problem — the fetch happens on the origin that allows it.
+
+Cross-origin `fetch` into the editor stays blocked. Confirmed on Medium as well as
+Builder Center: `fetch('http://127.0.0.1:...')` from `medium.com/new-story` fails
+with a bare `TypeError: Failed to fetch`.
+
+## The checksum in SKILL.md is UTF-16, and that is a trap
+
+`charCodeAt` iterates **UTF-16 code units**. Python's `for ch in text` iterates
+**code points**. Any astral character — every emoji, so every article in this
+house style — counts as 2 in JavaScript and 1 in Python, and the two checksums
+disagree on a payload that transferred perfectly.
+
+MEASURED: a 34,712 code-point document containing three `🔎` reported 34,715
+characters in the browser. Adler mismatched on the same bytes. Computing the local
+side over UTF-16 code units reproduced the browser exactly:
+
+```python
+units = text.encode("utf-16-le")
+a = b = 0
+for i in range(0, len(units), 2):
+    a = (a + int.from_bytes(units[i:i+2], "little")) % 65521
+    b = (b + a) % 65521
+```
+
+Comparing raw character counts across the two languages has the same flaw. **A
+checksum that cries corruption on correct data gets switched off**, which is worse
+than not having one.
+
+## Pasting into Medium, measured end to end
+
+Dispatching a `paste` with `text/html` from `window.name`, into an editor asserted
+empty first:
+
+| Checked | Result |
+| --- | --- |
+| images | 7, every `src` under `0*` — Medium re-hosted all of them |
+| code blocks | 39, preserved as real multi-line blocks |
+| headings | 19 `h4` + 1 `h3`, no `h1`/`h2` — the demotion held |
+| landmarks | opening, cheat sheet and closing each exactly once |
+| `dispatchEvent` | returned `false` — `preventDefault`, and the paste worked |
+
+**The title still does not transfer.** The `graf--title` block is left empty and
+the pasted `<h1>` lands as an ordinary body heading, so the title appears twice
+once you type it in. Type the title, then delete the duplicate heading.
+
+**Deleting that heading with two Backspaces merges it into the next paragraph**,
+which inherits the heading style — the opening paragraph silently became a
+heading. Select that paragraph and toggle the large-`T` button off to restore it.
