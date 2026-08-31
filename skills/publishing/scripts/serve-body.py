@@ -36,49 +36,7 @@ import pathlib
 import socketserver
 import sys
 
-
-def unwrap(text: str) -> str:
-    """Join hard-wrapped paragraph lines into one line each.
-
-    MEASURED on AWS Builder Center: its paste handler PRESERVES the source's
-    newlines inside a paragraph, so markdown hard-wrapped at ~95 columns renders
-    with a ragged break every ~95 characters. Markdown itself folds a single
-    newline into a space; this editor does not, and the result looks broken in a
-    way that is invisible until you read the published page.
-
-    Everything whose line structure is load-bearing is left alone: fenced code,
-    tables, lists, headings, block quotes and horizontal rules.
-    """
-    out, buf, fenced = [], [], False
-
-    def flush():
-        if buf:
-            out.append(" ".join(x.strip() for x in buf))
-            buf.clear()
-
-    for line in text.splitlines():
-        stripped = line.strip()
-        if stripped.startswith("```"):
-            flush()
-            fenced = not fenced
-            out.append(line)
-            continue
-        if fenced:
-            out.append(line)
-            continue
-        structural = (
-            not stripped
-            or stripped.startswith(("|", "#", ">", "- ", "* ", "+ ", "---", "==="))
-            or (stripped[:2].rstrip(".").isdigit() and ". " in stripped[:4])
-            or line[:1].isspace()          # indented: code or a continuation
-        )
-        if structural:
-            flush()
-            out.append(line)
-        else:
-            buf.append(line)
-    flush()
-    return "\n".join(out)
+from bodytext import unwrap
 
 
 def strip_front(text: str) -> str:

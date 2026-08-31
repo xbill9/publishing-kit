@@ -43,6 +43,8 @@ import sys
 import urllib.error
 import urllib.request
 
+from bodytext import hard_wrapped, unwrap_article
+
 API = "https://dev.to/api"
 
 
@@ -102,6 +104,9 @@ def main():
     g.add_argument("--org", nargs=2, metavar=("ID", "SLUG"))
     p.add_argument("--org-slug", dest="org_on_create",
                    help="with --create: route to this organization afterwards")
+    p.add_argument("--no-unwrap", action="store_true",
+                   help="post the source's hard wraps as-is; dev.to renders each "
+                        "one as a line break")
     p.add_argument("--force", action="store_true",
                    help="publish even though the pre-flight failed")
     a = p.parse_args()
@@ -135,7 +140,17 @@ def main():
 
     article = pathlib.Path(a.create or a.update[1]).resolve()
     preflight(article, a.force)
-    payload = {"article": {"body_markdown": article.read_text()}}
+
+    # MEASURED 2026-08-31: dev.to renders with hard breaks ON, so a source
+    # wrapped at ~95 columns publishes with a <br> at every wrap. Unwrap on the
+    # way out and keep the repo copy readable.
+    body = article.read_text()
+    if not a.no_unwrap:
+        n = len(hard_wrapped(body))
+        body = unwrap_article(body)
+        if n:
+            print(f"\nunwrapped {n} hard-wrapped paragraph(s) before posting")
+    payload = {"article": {"body_markdown": body}}
 
     if a.create:
         st, r = call("POST", "/articles", payload)

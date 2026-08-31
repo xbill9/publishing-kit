@@ -33,6 +33,8 @@ import re
 import subprocess
 import sys
 
+from bodytext import hard_wrapped
+
 FAILS = []
 WARNS = []
 
@@ -202,6 +204,20 @@ def main():
                      f"commit, so the pushed copies are stale: {stale[:3]}")
             if not untracked and not stale:
                 ok(f"{len(imgs)} medium/img image(s) committed and matching HEAD")
+
+    # 7b  HARD WRAPS ---------------------------------------------------------
+    # MEASURED 2026-08-31: dev.to renders with hard breaks ON -- 47 of 62
+    # paragraphs in a published article carried <br>, from a source with no
+    # explicit line breaks at all. Builder Center does the same on paste. This
+    # was described as a Builder Center quirk for months because that is where
+    # someone happened to look.
+    hw = hard_wrapped(text)
+    if hw:
+        warn(f"{len(hw)} hard-wrapped paragraph(s) render with a line break at "
+             f"every wrap; publish-devto.py unwraps, a manual paste does not "
+             f"(first at line {hw[0][0]})")
+    else:
+        ok("no hard-wrapped paragraphs")
 
     # 8  DEAD LINKS -----------------------------------------------------------
     dead = re.findall(r"\]\(\s*\)|\]\(#\)", text)

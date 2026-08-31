@@ -190,6 +190,10 @@ cover_image: https://raw.githubusercontent.com/<user>/<repo>/main/<dir>/devto-co
 
 `published: false` unless told otherwise.
 
+**Unwrap paragraphs before posting.** dev.to renders with hard breaks on, so a
+hard-wrapped source publishes with a line break at every wrap. `publish-devto.py`
+unwraps on the way out and leaves the repo copy readable; `--no-unwrap` opts out.
+
 ### Post it with the API, never the browser
 
 **This repo ships the wrapper: `scripts/publish-devto.py`.**
@@ -468,13 +472,22 @@ Strip the `# ` title and any `*Subtitle:*` line first — separate fields. Watch
 line numbering: `sed '1,2d'` removes the title and the blank line after it,
 leaving the subtitle behind.
 
-### Hard-wrapped source renders as hard breaks
+### Hard-wrapped source renders as hard breaks — and NOT only here
 
-Builder Center's paste handler **preserves the source's newlines inside a
-paragraph**. Markdown folds a single newline into a space; this editor does not,
+Builder Center's paste handler preserves the source's newlines inside a paragraph,
 so a file hard-wrapped at ~95 columns renders with a ragged break every ~95
-characters — visible only once published. Unwrap paragraphs first;
-`serve-body.py` has the logic and leaves code, tables, lists and headings alone.
+characters. `serve-body.py` unwraps before serving.
+
+**This was written up as a Builder Center quirk and it is not one.** MEASURED
+2026-08-31: **dev.to renders with hard breaks ON too.** A published article had
+`<br>` in **47 of its 62 paragraphs**, from a source with zero lines ending in the
+two spaces that mean an explicit markdown break. The ragged rendering had been
+shipping for months, in every article, unnoticed.
+
+Assume every destination preserves your newlines until you have checked that one.
+The unwrap logic is in `scripts/bodytext.py` — one implementation, imported by
+`serve-body.py`, `publish-devto.py` and `check-article.py`, and the pre-flight
+warns when an article still has hard-wrapped paragraphs.
 
 **Keep tables to about five columns.** Seven get squeezed until cells break
 mid-token — `g4dn.2x/large`, `g6.xlarg/e`. Move what the prose can carry out of
