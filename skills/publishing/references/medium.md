@@ -40,6 +40,39 @@ Images. Medium fetches them, rehosts at 800px, and takes `<figcaption>` as the
 caption. **The first image in the body becomes the story's cover.** Alt text is
 worth writing — it is the accessible equivalent and it survives.
 
+## Hard-wrapped source is safe here, unlike dev.to
+
+MEASURED 2026-08-31 in Medium's own editor, by dispatching a paste with a
+`DataTransfer` carrying two paragraphs and reading the result back out of the DOM:
+
+| Paragraph | Source | In the editor |
+| --- | --- | --- |
+| hard-wrapped at ~95 columns, plain newlines | 3 source lines | **0 `<br>`, 0 newlines in `innerText`** |
+| explicit `<br>` between lines | 3 lines | 2 `<br>`, 2 newlines — **positive control passed** |
+
+The second row is the point: the test could detect breaks, and did, so the first
+row's zero is a real result and not a blind spot.
+
+So the ragged-break problem that afflicts dev.to and Builder Center does NOT reach
+Medium. `make-medium.py` emits the source newlines raw inside `<p>` — no `<br>`
+anywhere in a 66-paragraph document — and both the browser and Medium's paste
+handler collapse them to spaces. Confirmed on the generated file too: 35 of 35
+long paragraphs have newlines in `textContent` and none in `innerText`, and
+`innerText` is what a paste carries.
+
+**Unwrapping before Medium is unnecessary, and unwrapping is not harmful either.**
+Do not add a step here.
+
+## Cross-origin fetch into the editor is blocked here too
+
+MEASURED 2026-08-31: `fetch('http://127.0.0.1:...')` from `medium.com/new-story`
+fails with a bare `TypeError: Failed to fetch`, identical to AWS Builder Center.
+The closed route is a property of both editors, not of one of them. Get content in
+through the JS bridge and a synthetic `paste` event with a `DataTransfer`.
+
+`dispatchEvent` returned `false` on the successful paste — `preventDefault`, not
+refusal, exactly as on Builder Center. Judge by what landed in the DOM.
+
 ## Prefer pasting over importing
 
 Pasting beats importing: **code blocks survive** as real multi-line blocks with

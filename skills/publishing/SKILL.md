@@ -494,6 +494,14 @@ characters. `serve-body.py` unwraps before serving.
 two spaces that mean an explicit markdown break. The ragged rendering had been
 shipping for months, in every article, unnoticed.
 
+Where each destination stands, all measured 2026-08-31:
+
+| Destination | Hard-wrapped source | Unwrap needed |
+| --- | --- | --- |
+| dev.to | **`<br>` at every wrap** — 47 of 62 paragraphs in a published article | **yes**, `publish-devto.py` does it |
+| AWS Builder Center | **preserved on paste** | **yes**, `serve-body.py` does it |
+| Medium | **collapsed to spaces**, 0 `<br>` in the editor, positive control passed | no |
+
 Assume every destination preserves your newlines until you have checked that one.
 The unwrap logic is in `scripts/bodytext.py` — one implementation, imported by
 `serve-body.py`, `publish-devto.py` and `check-article.py`, and the pre-flight
