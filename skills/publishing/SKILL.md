@@ -1,16 +1,39 @@
 ---
 name: publishing
-description: Trigger when writing up or publishing a technical article to AWS Builder Center, dev.to, or Medium — including "write this up", "make an article", "builder center", "dev.to post", "medium version", "cover image", or turning a benchmark or deployment into a paper. Covers the three destination formats and their incompatibilities, the table/code-to-image generator, mandatory cover images, and a pre-flight check that fails the build.
+description: Trigger when writing up or publishing a technical article to AWS Builder Center, dev.to, Medium, or LinkedIn — including "write this up", "make an article", "builder center", "dev.to post", "medium version", "linkedin post", "announce the article", "cover image", or turning a benchmark or deployment into a paper. Covers the four destination formats and their incompatibilities, the table/code-to-image generator, mandatory cover images, the LinkedIn draft whose links must resolve, and a pre-flight check that fails the build.
 ---
 
 # Publishing a technical article
 
-Three destinations, **three different artifacts, not three copies of one.** They
-disagree about tables, about code blocks, and about cover images, and every
-disagreement fails silently — you get a plausible-looking file that the
-destination quietly mangles.
+Four destinations, **four different artifacts, not four copies of one.** They
+disagree about tables, about code blocks and about cover images. LinkedIn renders
+no markup at all. Every disagreement fails silently: you get a plausible-looking
+file that the destination quietly mangles.
 
 Run `scripts/check-article.py` before publishing anything. It exits non-zero.
+
+## How each destination is pushed
+
+**This is the split that decides the whole workflow.** One destination has a real
+API. Two have none and need a browser driven for them. One has an API that cannot
+draft.
+
+| Destination | How the article gets there | Draft state |
+| --- | --- | --- |
+| **dev.to** | **REST API, and it is complete** — create, update in place, list, and set `organization_id`. No browser, ever. | `published: false` |
+| **Medium** | **Claude Code driving Chrome.** Paste `-hosted.html` into the editor. No publishing API exists. | editor draft |
+| **AWS Builder Center** | **Claude Code driving Chrome.** Chunked injection into the `contenteditable`. No publishing API exists. | autosaved draft |
+| **LinkedIn** | API exists, but `PUBLISHED` is the only state accepted on creation, so posting through it *is* publishing. | composer only |
+
+So the browser work is not laziness about reading API docs — for Medium and
+Builder Center **there is no API to read.** Everything in
+`references/browser-publishing.md` exists because those two destinations can only
+be reached by driving their editors, and driving an editor is where the clipboard
+races, the duplicate pastes and the silent `data:` stripping all live.
+
+The corollary is the rule worth remembering: **before reaching for the browser on
+any destination, check whether that destination has an API.** dev.to's was sitting
+unused in eight directories while a browser flow was built around it.
 
 ## Pre-flight
 
@@ -253,6 +276,53 @@ tables, last paragraph — each checked separately, because they fail independen
 why the system clipboard must never be used, the base64 JS-bridge injection, the
 `file://` restriction, and the paragraph-unwrapping that Builder Center's editor
 needs.
+
+## LinkedIn — the post is a file, because the API cannot draft
+
+**LinkedIn's Posts API cannot create a draft.** `lifecycleState` documents `DRAFT`
+as content "accessible only to the author and is not yet published", then states
+that `PUBLISHED` **is the only accepted field during creation**. Anything that
+posts through the API is publishing. So the artifact is a text file for the
+composer, which does have drafts.
+
+```
+python3 scripts/make-linkedin.py devto-<slug>.md --api
+```
+
+It reads `links.txt` beside the article — `key = url`, one per line — and writes
+`linkedin-<slug>.txt`. Five checks, exits non-zero:
+
+1. **Every link resolves.** `PENDING` is written into the file as a visible
+   placeholder *and* fails the run, so a post with an unpublished link cannot go
+   out by accident.
+2. The hook fits the "…see more" fold.
+3. The post fits the character limit.
+4. **No markdown survives.** LinkedIn renders none of it.
+5. **No Unicode pseudo-bold.** Screen readers cannot read U+1D400–U+1D7FF, so the
+   headline becomes the least readable part of the post.
+
+**Post text takes no formatting.** The `commentary` field is LinkedIn's `little`
+format, whose whole element set is text, mentions and hashtags. No bold, no
+italics, no lists, no link markup — `**bold**` and `[label](url)` arrive as their
+own punctuation.
+
+**For the API only, every reserved character must be backslash-escaped, whether or
+not it is used as markup**: `|  {  }  @  [  ]  (  )  <  >  #  \  *  _  ~`. An
+article body is full of them. `--api` writes the escaped variant beside the plain
+one. Text pasted into the composer needs no escaping.
+
+**Label the two dev.to links differently.** Two articles routed to two
+organizations are two different URLs, and "dev.to" twice reads as a duplicate.
+
+**The shape of the post is `templates/linkedin-post.txt`, not code.** An
+announcement is the same few moves every time, and rewriting them per article is
+how they drift. Wrap anything that should vanish when empty in `[[key]] …
+[[/key]]`, so an article with no `## Summary` drops the lead-in line instead of
+stranding it above the links. Swap that one file and every post changes shape —
+the same arrangement `references/house-style.md` has with the articles.
+
+Which figures here are first-party and which are third-party consensus, plus the
+mention-matching rules, are in `references/linkedin.md`.
 
 ## AWS Builder Center
 

@@ -1,7 +1,8 @@
 # publishing-kit
 
 A [Claude Code](https://claude.com/claude-code) skill and toolchain for publishing a
-technical article to **AWS Builder Center**, **dev.to** and **Medium**.
+technical article to **AWS Builder Center**, **dev.to** and **Medium**, and
+announcing it on **LinkedIn**.
 
 Three destinations, three different artifacts — not three copies of one. They
 disagree about tables, about code blocks, and about cover images, and **every
@@ -44,6 +45,7 @@ which numbers you are asserting from memory.
 | `check-facts.py` | Fact-tracing against evidence files. Exits non-zero on untraced claims. `.factsignore` records deliberate exemptions with reasons. |
 | `make-medium.py` | Tables and diagrams to PNG, emits `-embed.html` (paste) and `-hosted.html` (import). |
 | `make-cover.py` | Cover images. `--mode devto` (1376x768) and `--mode builder` (1200x675, text-free per AWS guidance). |
+| `make-linkedin.py` | LinkedIn post draft with links. Exits non-zero on an unresolved link, a hook past the fold, surviving markdown, or Unicode pseudo-bold. `--api` emits the `little`-escaped variant. Post shape lives in `templates/linkedin-post.txt`. |
 | `serve-body.py` | Serves an article body on localhost so a browser can copy it into a rich-text editor. Strips the title and subtitle, prints a checksum. |
 
 ## Typical run
