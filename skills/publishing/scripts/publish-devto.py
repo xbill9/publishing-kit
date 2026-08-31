@@ -22,6 +22,10 @@ Two API behaviours worth knowing, both recorded in SKILL.md:
   * `GET /api/articles/<id>` returns 404 for some published articles even with a
     valid key, while the same article lists normally in /api/articles/me. Read
     state from the listing, which is what --list does.
+  * **/api/articles/me EXCLUDES drafts.** MEASURED 2026-08-31: an article created
+    with `published: false` does not appear there at all, at any page size. Drafts
+    live at /api/articles/me/unpublished, so a --list built on the first endpoint
+    alone is blind to exactly what this script produces. --list reads both.
   * There is no delete endpoint. An article created here can be edited forever
     and never removed.
 
@@ -103,11 +107,16 @@ def main():
     a = p.parse_args()
 
     if a.list:
-        st, arts = call("GET", "/articles/me?per_page=30")
+        st, pub = call("GET", "/articles/me?per_page=30")
         if st != 200:
-            sys.exit(f"list failed: {st} {arts}")
-        print(f"{len(arts)} article(s)")
-        for x in arts:
+            sys.exit(f"list failed: {st} {pub}")
+        st2, dra = call("GET", "/articles/me/unpublished?per_page=30")
+        dra = dra if st2 == 200 else []
+        print(f"{len(dra)} draft(s)")
+        for x in dra:
+            show(x)
+        print(f"\n{len(pub)} published")
+        for x in pub:
             show(x)
         return 0
 

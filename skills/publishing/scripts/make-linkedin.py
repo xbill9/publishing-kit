@@ -270,6 +270,15 @@ def main():
         if v and v.upper() != "PENDING" and not v.startswith("https://"):
             fail(f"{k} is not an https URL: {v}")
 
+    # A dev.to draft URL carries a -temp-slug-<n> suffix that is replaced when the
+    # article is published. Announcing one is announcing a link that will 404.
+    temp = [k for k, v in links.items() if "temp-slug" in (v or "")]
+    if temp:
+        fail(f"{len(temp)} link(s) are unpublished draft URLs whose slug changes on "
+             f"publish: {', '.join(sorted(temp))}")
+    else:
+        ok("no draft URLs; every slug is settled")
+
     # 2  THE FOLD ------------------------------------------------------------
     if len(hook) > FOLD_DESKTOP:
         fail(f"hook is {len(hook)} chars; truncated on desktop too (~{FOLD_DESKTOP})")
