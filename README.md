@@ -41,6 +41,9 @@ which numbers you are asserting from memory.
 
 | Script | Purpose |
 |---|---|
+| `preflight.py` | **Start here.** Runs every check for an article with one exit code. `--live` fetches every published URL and compares bytes. |
+| `make-builder.py` | Derives the Builder Center version from the dev.to source: front matter and emoji out, title/subtitle and the AWS disclaimer in. Checks table width. |
+| `check-links.py` | Fetches every cover and Medium image URL and compares the served bytes to disk. The only check that sees what a reader sees. |
 | `check-article.py` | Pre-flight. Cover exists, is referenced, is **committed**, right geometry; `published: false`; front matter complete; Medium artifacts resolve to this article's directory. Exits non-zero. |
 | `check-facts.py` | Fact-tracing against evidence files. Exits non-zero on untraced claims. `.factsignore` records deliberate exemptions with reasons. |
 | `make-medium.py` | Tables and diagrams to PNG, emits `-embed.html` (paste) and `-hosted.html` (import). |

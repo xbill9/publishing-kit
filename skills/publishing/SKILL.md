@@ -10,7 +10,46 @@ disagree about tables, about code blocks and about cover images. LinkedIn render
 no markup at all. Every disagreement fails silently: you get a plausible-looking
 file that the destination quietly mangles.
 
-Run `scripts/check-article.py` before publishing anything. It exits non-zero.
+Run `scripts/preflight.py <article>.md --live` before publishing anything. It runs
+every check and exits non-zero. Without `--live` nothing fetches a published URL,
+and local state has been wrong before.
+
+## Three ways this kit has been wrong, repeatedly
+
+Every check here exists because something shipped broken. These three are the
+*shapes* those failures keep taking, and each one was hit more than once. Check
+for them before adding a fourth check.
+
+**1. One observation generalised into a rule.** Builder Center preserves newlines
+inside a paragraph — measured, true, and written up as a Builder Center quirk. The
+unstated half was that dev.to therefore folds them, which nobody measured, and 47
+of 62 paragraphs in a published article had been rendering ragged for months. The
+cover was "1376x768, the house size" without anyone asking what dev.to displays;
+it displays a 2.381:1 crop and had been cutting the eyebrow and footer off every
+article. **A property of one destination is evidence about that destination only.**
+
+**2. Identity mistaken for freshness.** Three times, in three places. A cover was
+*tracked by git*, so the check passed, while the published URL served an older
+image because it had been regenerated after its commit. `claude plugin update`
+compares *version strings*, so it answered "already at the latest version" for
+content six commits newer. `skill-footprint.py` shipped that same bug on its first
+day. **"Is it the right thing" and "is it the current thing" are different
+questions, and the second one is the one that breaks silently.**
+
+**3. A measurement with no control.** A first read of a published article counted
+23 "bare" fences and looked like proof that dev.to does not relabel them — they
+were closing fences, and parsed as pairs the article proved the opposite. The
+checksum recommended below cried corruption on a payload that had transferred
+perfectly, because one side counted UTF-16 units and the other counted code
+points. **Before believing a negative result, prove the test can produce a
+positive one.** The Medium wrap test pasted a control paragraph with real `<br>`
+in it for exactly this reason, and that control is why its zero means something.
+
+A corollary that follows from all three: **simulate the destination, do not assert
+about it.** `check-article.py` no longer compares the cover against a remembered
+geometry, it computes the band dev.to would crop and looks for ink in it.
+`check-links.py` does not reason about whether a file was pushed, it fetches the
+URL and compares the bytes.
 
 ## How each destination is pushed
 
