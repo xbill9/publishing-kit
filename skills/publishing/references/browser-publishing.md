@@ -200,6 +200,26 @@ stay readable while signed out, so verifying a *published* piece still works.
   Escape and click elsewhere to dismiss it.
 - It autosaves — "Saved to your drafts", no save button.
 
+### Publishing runs a gate, and the first click is usually swallowed
+
+Publish from the draft's own **preview** page (`/preview/content/<id>?v=<v>`, which the
+drafts list links to) — it carries `Edit` and `Publish` next to each other. Two things
+about that button, MEASURED 2026-08-30:
+
+- **The first click does nothing.** Clicking the element by `ref` had no effect; a
+  coordinate click on the same button opened the dialog. Judge by the dialog, not by
+  the click result.
+- **A "Checking" gate runs for ~10 s** — broken links, malicious links, profanity,
+  title, description — plus SEO advice it will not block on ("title within 60
+  characters", "description within 160"). Publication completes on its own when the
+  checks pass, and the URL changes from `/preview/content/<id>?v=…` to
+  `/content/<id>/<slug>`. That URL change is the confirmation; there is no banner.
+
+**A draft whose title already appears under Published is a duplicate, not a revision.**
+It is what the `/create/content/<id>` trap leaves behind, and it is a full copy of the
+article with its own id, so nothing about it looks broken from the drafts list. Compare
+ids before touching either: the published piece and its orphan differ only in id.
+
 ## Free the browser when you are done
 
 The user works in these same tabs. Close what you opened as soon as the draft is
