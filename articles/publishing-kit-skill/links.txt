@@ -1,9 +1,20 @@
 # Destination URLs for the LinkedIn post. PENDING fails the run on purpose:
 # a post whose links do not resolve is worse than no post.
-# dev.to slugs carry -temp-slug-N while unpublished; they settle on publish, and
-# make-linkedin.py fails on any URL still carrying one.
-devto-gde  = https://dev.to/gde/one-article-four-destinations-a-claude-code-skill-that-fails-the-build-23g3-temp-slug-5267423
-devto-aws  = https://dev.to/aws-builders/getting-23-kb-of-markdown-into-aws-builder-center-without-touching-the-clipboard-4hj4-temp-slug-9846070
-builder    = https://builder.aws.com/create/content/3IhAZMOLRPqp4a5USEUtdq6s2d2
-medium     = https://medium.com/p/af03e6658c0b
+#
+# All four destination links pend on actual publication, for two different reasons:
+#   dev.to    drafts carry a -temp-slug-N that is replaced on publish
+#   Medium    a draft has NO public URL at all: medium.com/p/<id> returns 404
+#             to anyone but the author (measured 2026-08-31)
+#   Builder   the /create/content/<id> URL is the authenticated editor, not a
+#             public address; it resolves only because you are signed in
+#
+# Draft locations, for editing rather than sharing:
+#   dev.to gde     4539333
+#   dev.to aws     4539334
+#   builder        https://builder.aws.com/create/content/3IhAZMOLRPqp4a5USEUtdq6s2d2
+#   medium         https://medium.com/p/af03e6658c0b/edit
+devto-gde  = PENDING
+devto-aws  = PENDING
+builder    = PENDING
+medium     = PENDING
 repo       = https://github.com/xbill9/publishing-kit
