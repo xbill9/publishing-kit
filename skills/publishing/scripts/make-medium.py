@@ -5,17 +5,28 @@ Medium's importer **strips markdown tables entirely** and reflows monospace
 blocks, so anything that depends on alignment has to become an image. This
 script finds both, renders them to PNG at 2x, and emits HTML two ways:
 
-    <slug>-embed.html    every image inlined as a base64 data: URI.
-                         Self-contained. Open in a browser, Select All, Copy,
-                         paste into the Medium editor -- images ride along and
-                         Medium re-hosts them. Nothing to upload first.
+    <slug>-hosted.html   USE THIS ONE, for paste and for import. <img src>
+                         rewritten to absolute public URLs (--img-base), which
+                         Medium fetches and re-hosts. Requires the images be
+                         committed AND pushed first. Measured 2026-08-31 on a
+                         real paste: 7 of 7 images survived and were re-hosted
+                         under Medium's 0* prefix.
 
-    <slug>-hosted.html   <img src> rewritten to absolute public URLs
-                         (--img-base), for medium.com/p/import or any flow
-                         that fetches by URL. Requires the PNGs be pushed.
+    <slug>-embed.html    NEVER PASTE THIS INTO MEDIUM. Every image is inlined as
+                         a base64 data: URI, and Medium silently strips data:
+                         URIs on paste -- 4 of 4 images lost, measured
+                         2026-08-30, with no error, no placeholder and no
+                         broken-image icon. Useful only where a genuinely
+                         self-contained single file is wanted for something
+                         other than Medium.
+
+    THIS DOCSTRING SAID THE OPPOSITE until 2026-08-31, describing the embed
+    variant as the one to paste. The code was already right -- it prints
+    "USE THIS -> hosted" and "not this -> embed" -- so the contradiction lived
+    only here, where someone reading the script would have found it first.
 
 Usage:
-    ./make-medium.py article.md [outdir] [--img-base URL]
+    ./make-medium.py article.md [outdir] [--img-base URL] [--cover FILE]
 
 Also writes <outdir>/img/*.png so the hosted variant has something to point at.
 """
