@@ -46,6 +46,7 @@ which numbers you are asserting from memory.
 | `make-medium.py` | Tables and diagrams to PNG, emits `-embed.html` (paste) and `-hosted.html` (import). |
 | `make-cover.py` | Cover images. `--mode devto` (1376x768) and `--mode builder` (1200x675, text-free per AWS guidance). `--content-address` names the file by a hash of its bytes, because dev.to proxies the cover URL rather than re-hosting it. |
 | `make-linkedin.py` | LinkedIn post draft with links. Exits non-zero on an unresolved link, a hook past the fold, surviving markdown, or Unicode pseudo-bold. `--api` emits the `little`-escaped variant. Post shape lives in `templates/linkedin-post.txt`. |
+| `publish-devto.py` | Create, update, list and route dev.to articles over the REST API. Runs the pre-flight first and refuses on a FAIL. Key from `$DEV_TO_API_KEY` or `~/.devto.key`, never argv. |
 | `serve-body.py` | Serves an article body on localhost so a browser can copy it into a rich-text editor. Strips the title and subtitle, prints a checksum. |
 
 ## Typical run

@@ -192,6 +192,24 @@ cover_image: https://raw.githubusercontent.com/<user>/<repo>/main/<dir>/devto-co
 
 ### Post it with the API, never the browser
 
+**This repo ships the wrapper: `scripts/publish-devto.py`.**
+
+```
+python3 scripts/publish-devto.py --list
+python3 scripts/publish-devto.py --create <article>.md --org-slug gde
+python3 scripts/publish-devto.py --update <id> <article>.md
+python3 scripts/publish-devto.py --org <id> aws-builders
+```
+
+**The pre-flight gates the publish.** `--create` and `--update` run
+`check-article.py` first and refuse on any FAIL, because every check in it
+describes something invisible locally and permanent once published. `--force` is
+deliberate and should be rare.
+
+The key is read from `$DEV_TO_API_KEY` or `~/.devto.key`, never from the command
+line, where it would land in shell history and process listings. `--org-slug` on
+create routes the article in the same run.
+
 **dev.to has a REST API and this repo already wraps it.** `publish-devto.sh` takes
 any article path — but **the copies are not all the same script.** MEASURED
 2026-08-30 in `gemma4-dev`: of seven copies, only `gpu-vllm-g5g-2b/publish-devto.sh`
