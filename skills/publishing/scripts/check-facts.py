@@ -102,8 +102,22 @@ def main():
         print(f"\n{len(claims)} claim(s) to trace")
         return 0
 
+    missing = [e for e in a.evidence if not pathlib.Path(e).exists()]
     blobs = load_evidence(a.evidence)
     print(f"{src.name}: {len(claims)} claim(s) against {len(blobs)} evidence file(s)\n")
+
+    # A green run against an evidence path that is not there is the worst result
+    # this tool can produce: it reads as "every number traces" when nothing was
+    # read at all. A typo'd or cwd-relative path did exactly that.
+    if missing:
+        for e in missing:
+            print(f"  FAIL  evidence path does not exist: {e}")
+        print("\nNothing was read, so nothing was checked. Fix the path.")
+        return 1
+    if not blobs:
+        print("  FAIL  evidence path(s) contain no readable files")
+        print("\nNothing was read, so nothing was checked.")
+        return 1
 
     unverified = []
     for c, kind in sorted(claims.items()):

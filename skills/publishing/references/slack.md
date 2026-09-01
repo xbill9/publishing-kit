@@ -50,3 +50,32 @@ means a labelled link is not available without hand-editing in the composer.
 
 It writes a file. A shared channel had 656 members when this was measured, and
 there is no edit that the ones who already read it will see. Paste it yourself.
+
+## Driving the composer, if you do it in a browser
+
+MEASURED 2026-09-01 in that channel.
+
+Unlike Medium and LinkedIn, **the Slack composer is not in a shadow root**. It is
+a Quill editor reachable directly: `document.querySelector('[data-qa="texty_input"]')`,
+`class="ql-editor"` (plus `ql-blank` while empty). So the usual bridge is not
+needed — click it, assert it is empty, and `document.execCommand("insertText",
+false, text)`.
+
+**Never type into it.** Enter sends. There is no draft state to recover from and
+no undo the other members will not have already seen, so every keystroke into a
+focused Slack composer is one keypress away from posting. `insertText` in one
+call is the only safe way in.
+
+### A trailing `#hashtag` leaves the channel picker open
+
+In Slack `#` opens the channel autocomplete, so the post's final line
+(`#ClaudeCode #DevRel #Publishing #AWS`) left a channel list floating over the
+composer, with `Enter` bound to **insert `#aws-reinvent` as a channel link**
+rather than to send.
+
+**Press Escape before handing the composer back.** Verified it closes the picker
+and leaves the text untouched — 1302 characters before and after, all four links
+still present exactly once.
+
+The hashtags themselves are fine: as long as no suggestion is accepted they post
+as plain text, which is what the author's earlier posts in the channel show.

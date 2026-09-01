@@ -40,21 +40,46 @@ def run(label, argv):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("article")
-    ap.add_argument("--repo-root", default="..")
-    ap.add_argument("--evidence", default="evidence/")
+    ap.add_argument("--repo-root", default=None,
+                    help="default: the git repo containing the article")
+    ap.add_argument("--evidence", default=None,
+                    help="default: <article dir>/evidence")
     ap.add_argument("--live", action="store_true",
                     help="also fetch every published URL and compare bytes")
     ap.add_argument("--pinned", action="store_true",
                     help="with --live, resolve at HEAD's sha to bypass the CDN cache")
     a = ap.parse_args()
 
+    art_path = pathlib.Path(a.article).resolve()
     art = str(pathlib.Path(a.article))
     results = {}
 
+    # Both defaults used to be relative to the *current directory* ("..",
+    # "evidence/"), so they were correct only when run from the scripts
+    # directory. From anywhere else check-article.py reported a committed cover
+    # as uncommitted, and check-facts.py read an evidence directory that was not
+    # there and printed a clean "0 untraced". Anchor them to the article.
+    repo_root = a.repo_root
+    if repo_root is None:
+        r = subprocess.run(["git", "-C", str(art_path.parent),
+                            "rev-parse", "--show-toplevel"],
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            sys.exit(f"{art}: not inside a git repo; pass --repo-root")
+        repo_root = r.stdout.strip()
+
+    evidence = a.evidence
+    if evidence is None:
+        evidence = str(art_path.parent / "evidence")
+
+    print(f"article:   {art_path}")
+    print(f"repo-root: {repo_root}")
+    print(f"evidence:  {evidence}")
+
     results["facts"] = run("check-facts.py — every number traces to an artifact",
-                           [str(HERE / "check-facts.py"), art, "--evidence", a.evidence])
+                           [str(HERE / "check-facts.py"), art, "--evidence", evidence])
     results["article"] = run("check-article.py — cover, crop, committed, wraps, links",
-                             [str(HERE / "check-article.py"), art, "--repo-root", a.repo_root])
+                             [str(HERE / "check-article.py"), art, "--repo-root", repo_root])
     if a.live:
         argv = [str(HERE / "check-links.py"), art]
         if a.pinned:

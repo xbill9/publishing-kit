@@ -123,6 +123,17 @@ So: a green result from a directory full of binaries is not evidence of anything
 Feed it text, and sanity-check *which file* each claim traced to — the tool reports
 the first match, not the best one.
 
+**And a green result from a path that does not exist is worse.** `preflight.py`
+defaulted `--evidence evidence/` and `--repo-root ..` *relative to the current
+directory*, so they were right only when run from the scripts directory. Run from
+the repo root, check-facts read an evidence directory that was not there and
+printed `0 claim(s) against 0 evidence file(s)` / `0 untraced` — a clean pass over
+nothing — while check-article called a committed cover uncommitted. Both defaults
+now anchor to the article (`git rev-parse --show-toplevel` from its directory, and
+`<article dir>/evidence`), preflight prints all three resolved paths before it
+runs anything, and **check-facts now exits 1 if an evidence path is missing or
+holds no readable file** rather than reporting success for having read nothing.
+
 Every untraced claim is exactly one of three things:
 
 1. **Measured, but you did not archive the artifact.** Fix by archiving it. If the
@@ -625,7 +636,14 @@ asterisks, `<url|label>` for links — so the script strips markdown rather than
 translating it, matching what the existing posts do.
 
 **It does not post.** It writes a file. The channel had 656 members, and nobody
-who has read a message unreads it. `references/slack.md` has the rest.
+who has read a message unreads it.
+
+If you do stage it in the browser: the composer is a plain Quill editor at
+`[data-qa="texty_input"]` — no shadow root — so `execCommand("insertText")` puts
+the whole message in at once. Do that rather than typing, because **Enter sends
+in Slack**. Then **press Escape**: the trailing hashtags leave Slack's channel
+picker open, and Enter would insert a channel link instead of sending.
+`references/slack.md` has the rest.
 
 ## Optional: recording the activity in Advocu (GDE only)
 
