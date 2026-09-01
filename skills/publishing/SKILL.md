@@ -278,6 +278,12 @@ bash <flagged-rig>/publish-devto.sh --list            # ids + published state
 bash <flagged-rig>/publish-devto.sh --update <id> <file>  # overwrite in place
 ```
 
+**A slug is fixed at creation and a rename does not move it.** A draft made under
+a working title keeps that title's URL after you retitle it, so create it with the
+title you mean to publish under. Replacing the draft is the only fix, and the two
+creates need five minutes between them: the same title twice inside that window is
+refused with 422 `Title has already been used in the last five minutes`.
+
 **A draft will never be byte-identical to its source file.** dev.to labels bare
 ` ``` ` fences with a detected language (` ```shell `, ` ```plaintext `) on the way
 in, so diff the two below that substitution rather than concluding the upload

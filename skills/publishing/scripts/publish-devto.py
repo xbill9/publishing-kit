@@ -28,6 +28,16 @@ Two API behaviours worth knowing, both recorded in SKILL.md:
     alone is blind to exactly what this script produces. --list reads both.
   * There is no delete endpoint. An article created here can be edited forever
     and never removed.
+  * **A slug is fixed at creation.** Renaming the article later does not move it,
+    so a draft created under a working title keeps that title's URL for good.
+    Create the draft with the title you mean to publish under, or replace it.
+  * MEASURED 2026-08-31: creating two articles with the SAME title inside five
+    minutes returns 422 `Title has already been used in the last five minutes`.
+    Posting one piece to two organizations therefore needs a pause between the
+    two creates.
+  * MEASURED 2026-08-31: a request without a `User-Agent` header is answered
+    403 `Forbidden Bots`. This script always sends one; hand-rolled curl or
+    urllib calls need it too.
 
 `organization_id` is a separate call after the article exists -- front matter
 cannot express it. There is no "list my organizations" endpoint either, so the
