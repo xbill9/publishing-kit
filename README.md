@@ -54,7 +54,7 @@ which numbers you are asserting from memory.
 | `bodytext.py` | Paragraph unwrapping, in one place. dev.to and Builder Center both render a hard-wrapped source with a break at every wrap. |
 | `make-slack.py` | **Optional.** AWS Community Builders Slack announcement, in the author's own channel format. Fails on a PENDING or draft link, and on sending the GDE dev.to copy to an AWS channel. Does not post. |
 | `make-gchat.py` | **Optional.** GDE Americas (Google Chat) announcement, the same shape as the Slack one. Leads with the `dev.to/gde` copy and fails on sending the aws-builders one to the Google community. Does not post. |
-| `make-advocu.py` | **Optional, GDE only.** Prepares an Advocu activity sheet from a published article. Refuses a placeholder or draft URL, and will not invent the reach figure. |
+| `make-advocu.py` | **Optional, GDE only.** Prepares an Advocu activity sheet from a published article. Refuses a placeholder or draft URL. Reads the publication date from dev.to, and writes reach as a labelled standing estimate rather than a counter reading that would cover one destination of five. |
 | `serve-body.py` | Serves an article body on localhost so a browser can copy it into a rich-text editor. Strips the title and subtitle, prints a checksum. |
 
 ## Typical run

@@ -701,10 +701,19 @@ prose alone. So Advocu inverts this kit's usual order, where publishing is last.
 `make-advocu.py` fails rather than emitting a sheet with a placeholder, and
 rejects a dev.to `-temp-slug-` URL because that link changes on publish.
 
-**It will not invent the reach figure.** "How many people read your content?" is
-read from dev.to's `page_views_count` when it can be, and otherwise left blank
-with a warning. That number goes into program statistics, where nobody can check
-it against the artifact.
+**Reach is written as a labelled estimate, not as a counter reading.** "How many
+people read your content?" cannot be measured for an article that ran in five
+places: only dev.to exposes a count, it reads 0 for hours after publishing, and
+the copies are separate URLs that cannot be summed. So the sheet says
+`3000 (standing estimate, not a counter reading)` — the author's standing figure,
+marked as what it is — and reports dev.to's `page_views_count` beside it without
+substituting it. `--reach N` overrides. **Date published** still comes from that
+same response's `published_at`, because that one is a measurement.
+
+The distinction is worth holding on to: the rule against invented figures is
+about passing an estimate off as a measurement. Silently copying a count that
+covers one destination of five would break it *harder* than a labelled estimate,
+because it looks sourced.
 
 The form has **Save as draft**, so an activity parks like everything else here.
 Field list and the two other activity types are in `references/advocu.md`.

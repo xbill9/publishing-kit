@@ -86,43 +86,28 @@ comes first and Advocu is the tail.
 it rejects a dev.to draft URL outright, because a `-temp-slug-` link changes the
 moment the article is published.
 
-## Reach is a measurement
+## Reach is an estimate, and it says so
 
-"How many people read your content?" goes into someone's program statistics.
-`make-advocu.py` will read it from dev.to's own `page_views_count` when the link
-is a dev.to article, and otherwise leaves it blank with a warning. It will not
-guess. It reads **Date published** from the same response's `published_at`, for
-the same reason: the API knows it exactly, so remembering it is a made-up figure
-waiting to happen.
+"How many people read your content?" cannot be measured for an article that ran
+in five places. Only dev.to exposes a count over an API, it reads 0 for hours
+after publishing, and the copies cannot be summed — the GDE and aws-builders
+copies are different URLs with different counters, and Medium and Builder Center
+have no API at all.
 
-A counter reading **0** gets its own warning rather than being passed along
-quietly. Zero is what the counter says an hour after publishing, and it means
-"too early to tell", not "nobody read it" — park the draft and put a real number
-in before submitting. A number invented here is worse than an untraced figure in an article,
-because an article's readers can check it and a program's statistics cannot.
+So `make-advocu.py` writes the author's standing estimate, **3000**, and labels
+it in the sheet: `3000 (standing estimate, not a counter reading)`. It reports
+dev.to's `page_views_count` alongside it and never substitutes it.
 
-## Driving the form: Ant Design, and focus does not follow a click
+The labelling is what keeps this consistent with the kit's rule against invented
+figures. That rule exists because a number *presented as a measurement* invites
+a reader to trust it as one. An estimate the author owns, marked as an estimate,
+is not that — and a `page_views_count` copied silently into the field would be
+the worse of the two, because it looks sourced while understating the activity
+by four destinations.
 
-The form is Ant Design. Two things cost time:
-
-- **Associate a label with its control through `.ant-form-item`, not by walking
-  up parents.** Walking up from the label's parent until an `<input>` turned up
-  returned a *different, wider* field — focusing that and typing would have
-  written the reach figure into another box.
-- **A click on the reach input did not move focus out of the rich-text
-  description above it.** The typed character landed mid-word in the description
-  (`versi0ons`) — the same race as clicking into Medium's editor and landing in
-  the Title. Focus the element in JS, assert `document.activeElement` is it, and
-  only then type.
-
-Setting the value with the native setter plus an `input` event did **not** stick:
-the field cleared. Ant's controlled inputs want real keystrokes.
-
-Step 2 holds an optional rich-text "Additional information", an image upload
-(JPG/PNG/GIF/WEBP), and a *"Do you want to make this activity private?"* toggle,
-with **Submit** and **Save as draft**. Note that Submit sits at almost exactly
-the coordinates Next occupied on step 1 — do not click that position twice
-without re-reading the page.
+`--reach N` overrides it when a real number exists. **Date published** is still
+read from the same response's `published_at`, because that one genuinely is a
+measurement and the API knows it exactly.
 
 ## Two other activity types exist
 

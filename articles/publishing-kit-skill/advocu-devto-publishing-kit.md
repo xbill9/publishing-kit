@@ -17,7 +17,7 @@ A Claude Code skill that turns one markdown file into dev.to, AWS Builder Center
 claudecode, writing, devtools, ai
 
 ## How many people read your content?
-0
+3000 (standing estimate, not a counter reading)
 
 ## Date published
 2026-09-01

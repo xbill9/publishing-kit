@@ -36,13 +36,22 @@ THE FORM, STEP 1 "Content details"
 Step 2 is "Additional information". There is a **Save as draft**, so an activity
 can be parked exactly like every other destination in this kit.
 
-REACH IS A MEASUREMENT AND THIS SCRIPT WILL NOT INVENT ONE
-----------------------------------------------------------
-"How many people read your content?" is a number that goes into someone's
-program statistics. Pass it with --reach from a real source -- dev.to's own
-`page_views_count`, a Medium stats page -- or leave it out and fill it in by
-hand. Guessing here is the same failure as any untraced figure in the article,
-with the difference that this one is reported to a program.
+REACH: A LABELLED ESTIMATE, NOT A COUNTER READING
+-------------------------------------------------
+"How many people read your content?" cannot be measured for an article that ran
+in five places. Only dev.to exposes a view count over an API, it reads 0 for
+hours after publishing, and the copies cannot be summed. So this defaults to the
+author's standing estimate, DEFAULT_REACH, and **labels it an estimate in the
+sheet.**
+
+The labelling is the whole point, and it is what keeps this consistent with the
+kit's rule against invented figures. That rule exists because a number presented
+as a measurement invites a reader to trust it as one. An estimate the author
+owns, marked as an estimate, is not that. A `page_views_count` copied silently
+into this field would actually be the worse of the two -- it looks sourced and
+understates the activity by four destinations.
+
+Pass --reach N when a real, sourced number exists for a piece.
 
 Date published is in the same dev.to response as the views, so it is read from
 `published_at` rather than remembered. Override with --date.
@@ -61,6 +70,11 @@ import urllib.request
 
 TYPES = ["Articles", "Books", "Code contribution", "Demos",
          "Newsletters", "Podcasts", "Videos"]
+
+# The author's standing estimate for a piece that ships to five destinations.
+# See the header: this is an estimate by construction, and is written into the
+# sheet as one.
+DEFAULT_REACH = 3000
 
 FAILS, WARNS = [], []
 
@@ -129,7 +143,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("article")
     ap.add_argument("--reach", type=int,
-                    help="how many people read it, from a real counter")
+                    help=f"override the standing estimate of {DEFAULT_REACH}")
     ap.add_argument("--link", help="published URL; defaults to links.txt devto-gde")
     ap.add_argument("--date", help="YYYY-MM-DD; defaults to dev.to published_at")
     ap.add_argument("--type", default="Articles", choices=TYPES)
@@ -169,26 +183,24 @@ def main():
             warn(f"could not reach the link ({e}): {link}")
 
     # 2  REACH ---------------------------------------------------------------
-    reach, date = a.reach, a.date
-    if link and "temp-slug" not in link and (reach is None or date is None):
+    reach, date, reach_note = a.reach, a.date, ""
+    if link and "temp-slug" not in link and date is None:
         v, pub = devto_stats(link)
-        if reach is None and v is not None:
-            reach = v
-            ok(f"reach {reach} read from dev.to page_views_count")
-        if date is None and pub:
+        if pub:
             date = pub
             ok(f"date published {date} read from dev.to published_at")
-    if reach is not None and reach == 0:
-        warn("reach is 0. That is what the counter says, but a piece published "
-             "minutes ago has not been read yet -- file the draft and update "
-             "the number once it has had a life, rather than reporting a zero "
-             "that only means 'too early to tell'")
+        if v is not None:
+            # Reported, never substituted: it counts one of five destinations.
+            ok(f"dev.to page_views_count for this URL is {v} (one destination "
+               f"of five, and 0 for hours after publishing -- not the reach)")
+    if reach is None:
+        reach = DEFAULT_REACH
+        reach_note = " (standing estimate, not a counter reading)"
+        ok(f"reach {reach}, the standing estimate. Pass --reach to override")
+    else:
+        ok(f"reach {reach}, given on the command line")
     if date is None:
         warn("no publication date. Pass --date YYYY-MM-DD")
-    if reach is None:
-        warn("no reach figure. Pass --reach from a real counter, or fill the "
-             "field by hand -- this script will not invent a number that goes "
-             "into your program statistics")
 
     # 3  FIELDS --------------------------------------------------------------
     for label, value in (("title", title), ("description", desc)):
@@ -213,7 +225,7 @@ Once the article is public you can instead paste the Link to Content into
 {', '.join(tags) if tags else '(none in front matter)'}
 
 ## How many people read your content?
-{reach if reach is not None else '(fill in from a real counter)'}
+{reach}{reach_note}
 
 ## Date published
 {date or '(fill in the date it actually went public)'}
