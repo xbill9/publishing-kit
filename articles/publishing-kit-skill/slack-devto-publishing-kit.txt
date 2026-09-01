@@ -12,6 +12,6 @@ Dev.to is here:
 https://dev.to/aws-builders/streamline-publishing-with-a-claude-code-skill-an4
 
 Linked In is here:
-PENDING
+https://www.linkedin.com/feed/update/urn:li:activity:7500566496419397632/
 
 #ClaudeCode #DevRel #Publishing #AWS
