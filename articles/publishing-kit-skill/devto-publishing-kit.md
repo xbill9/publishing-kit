@@ -9,13 +9,13 @@ cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articl
 > **TL;DR:** [publishing-kit](https://github.com/xbill9/publishing-kit) packages the whole
 > publishing lifecycle as a Claude Code skill. Write one markdown file, and it builds the dev.to,
 > AWS Builder Center, Medium and LinkedIn versions, checks them, and posts the ones that have an
-> API. This article, its cover, and all five of its artifacts were produced by the thing the
+> API. This article, its cover and all four of its artifacts were produced by the thing the
 > article is about — dogfooding all the way down. More on that at the end.
 
 Publishing one technical article to four places involves a surprising amount of ceremony: making
 a cover at whatever size each destination wants, rendering tables to images because Medium's
 importer eats them, stripping emoji for AWS, checking that every number in the piece came from a
-real run, getting 23 KB of markdown into a browser editor that has no API, remembering which
+real run, getting a long markdown file into a browser editor that has no API, remembering which
 organization the article routes to, and writing the announcement post afterwards — by which
 point you have four slightly different files and no idea which one is current.
 
@@ -102,15 +102,18 @@ This is the half that surprised me most, and where most of the skill's value end
 reasoning about what you pushed:
 
 ```shell
-python3 scripts/check-links.py article.md --live
+python3 scripts/check-links.py article.md
 ```
 
 ```plaintext
+devto-publishing-kit.md  (branch URLs)
   ok    cover.77acc7c4.jpg: HTTP 200, bytes match disk
-  FAIL  table-3.png: HTTP 200 but the served bytes differ from disk
+  ok    img/cover.77acc7c4.jpg: HTTP 200, bytes match disk
+  ok    img/devto-publishing-kit-table-1.png: HTTP 200, bytes match disk
 ```
 
-That second line is a regenerated image that was never re-committed. Every other check in the kit
+A `FAIL` there reads "HTTP 200 but the served bytes differ from disk", which is
+usually an image regenerated after its commit. Every other check in the kit
 reasons about local state — is the file there, is it tracked — and each of those can pass while
 the published URL serves something else.
 
@@ -159,8 +162,8 @@ The run also found five faults in the kit itself, which is the point of eating y
 `make-medium.py` had another project's repo hardcoded as its default image base;
 `check-article.py` passed a cover that was tracked but regenerated; `make-cover.py` lost a `--tile`
 value beginning with a hyphen to `argparse`; `check-facts.py` read `127.0.0.1` as a version
-number; and the cost table in this very article drifted three times before it became generated
-output.
+number; and `unwrap()` skipped block quotes, so this article's own TL;DR posted as five separate
+lines — while the check that should have caught it skipped block quotes too, and agreed.
 
 ## Links
 

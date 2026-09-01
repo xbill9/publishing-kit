@@ -77,7 +77,11 @@ def check(url, d, timeout, pinned_sha):
         url = re.sub(r"(raw\.githubusercontent\.com/[^/]+/[^/]+)/main/",
                      rf"\1/{pinned_sha}/", url)
     status, body = fetch(url, timeout)
-    name = shown.rstrip("/").split("/")[-1]
+    # the cover appears at two URLs -- the article directory and medium/img -- so
+    # print enough path to tell them apart. Two identical-looking ok lines for
+    # different URLs is a report that hides a difference.
+    parts = shown.rstrip("/").split("/")
+    name = "/".join(parts[-2:]) if parts[-2] in ("img", "medium") else parts[-1]
     if status != 200:
         fail(f"{name}: HTTP {status}")
         return

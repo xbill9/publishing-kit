@@ -257,7 +257,7 @@ href="https://github.com/xbill9/publishing-kit">publishing-kit</a>
 packages the whole publishing lifecycle as a Claude Code skill. Write
 one markdown file, and it builds the dev.to, AWS Builder Center, Medium
 and LinkedIn versions, checks them, and posts the ones that have an API.
-This article, its cover, and all five of its artifacts were produced by
+This article, its cover and all four of its artifacts were produced by
 the thing the article is about — dogfooding all the way down. More on
 that at the end.</p>
 </blockquote>
@@ -265,7 +265,7 @@ that at the end.</p>
 amount of ceremony: making a cover at whatever size each destination
 wants, rendering tables to images because Medium's importer eats them,
 stripping emoji for AWS, checking that every number in the piece came
-from a real run, getting 23 KB of markdown into a browser editor that
+from a real run, getting a long markdown file into a browser editor that
 has no API, remembering which organization the article routes to, and
 writing the announcement post afterwards — by which point you have four
 slightly different files and no idea which one is current.</p>
@@ -359,10 +359,13 @@ skill's value ended up.</p>
 <p><strong>The page does not look like the file.</strong> Fetch what the
 destination actually serves rather than reasoning about what you
 pushed:</p>
-<pre class="shell"><code>python3 scripts/check-links.py article.md --live</code></pre>
-<pre class="plaintext"><code>  ok    cover.77acc7c4.jpg: HTTP 200, bytes match disk
-  FAIL  table-3.png: HTTP 200 but the served bytes differ from disk</code></pre>
-<p>That second line is a regenerated image that was never re-committed.
+<pre class="shell"><code>python3 scripts/check-links.py article.md</code></pre>
+<pre class="plaintext"><code>devto-publishing-kit.md  (branch URLs)
+  ok    cover.77acc7c4.jpg: HTTP 200, bytes match disk
+  ok    img/cover.77acc7c4.jpg: HTTP 200, bytes match disk
+  ok    img/devto-publishing-kit-table-1.png: HTTP 200, bytes match disk</code></pre>
+<p>A <code>FAIL</code> there reads "HTTP 200 but the served bytes differ
+from disk", which is usually an image regenerated after its commit.
 Every other check in the kit reasons about local state — is the file
 there, is it tracked — and each of those can pass while the published
 URL serves something else.</p>
@@ -413,8 +416,9 @@ project's repo hardcoded as its default image base;
 regenerated; <code>make-cover.py</code> lost a <code>--tile</code> value
 beginning with a hyphen to <code>argparse</code>;
 <code>check-facts.py</code> read <code>127.0.0.1</code> as a version
-number; and the cost table in this very article drifted three times
-before it became generated output.</p>
+number; and <code>unwrap()</code> skipped block quotes, so this
+article's own TL;DR posted as five separate lines — while the check that
+should have caught it skipped block quotes too, and agreed.</p>
 <h4 id="links">Links</h4>
 <ul>
 <li><strong>Repo:</strong> <a
