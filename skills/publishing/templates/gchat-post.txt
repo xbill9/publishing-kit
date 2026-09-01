@@ -1,13 +1,11 @@
+{lede}
+
 {context}
 
-Dev.to is here:
-{devto}
+Dev.to is here: {devto}
 
-Medium is here:
-{medium}
+Medium is here: {medium}
 
-Builder Center Article is here:
-{builder}
+Builder Center article is here: {builder}
 
-Linked In is here:
-{linkedin}
+My LinkedIn post is here: {linkedin}

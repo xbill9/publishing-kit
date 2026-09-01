@@ -19,24 +19,46 @@ AWS community the Google one, in the other direction, and this script fails on
 it exactly the way make-slack.py does. The link order flips for the same reason:
 lead with the copy that belongs to the room you are posting in.
 
-GOOGLE CHAT MARKUP, AND WHAT IS NOT MEASURED HERE
--------------------------------------------------
-Chat's own markup is *bold*, _italic_, ~strike~ and `code` -- close enough to
-Slack's mrkdwn that markdown `**bold**` and `[label](url)` are wrong in both. So
-this strips markdown rather than translating it, and puts a bare URL on its own
-line for Chat to unfurl, which is what the Slack post does.
+THE SHAPE IS THIS ROOM'S, NOT SLACK'S
+-------------------------------------
+MEASURED 2026-09-01 by reading the author's own last post in GDEs - Americas
+rather than porting the Slack template across. The room reads differently:
 
-Everything past that is UNVERIFIED and deliberately not claimed: this kit's rule
-is that a destination's behaviour is measured or it is not written down. Nobody
-has yet checked, in the GDE Americas space, whether a hashtag does anything,
-what the composer is made of, or whether Enter sends. Until someone does, treat
-it like Slack -- assume Enter sends, and paste rather than type.
+    Slack (#boost-ai-engineering)      GDE Americas (Google Chat)
+    ------------------------------     --------------------------------
+    straight into the context          opens with why you are posting
+    label line, then URL alone         "... is here: <url>", inline
+    four links, then hashtags          links inline, no hashtags anywhere
 
-NO HASHTAGS BY DEFAULT
-----------------------
-The Slack post ends in hashtags because the author's posts in that channel do.
-Whether they are idiomatic in the GDE space is not established, so --hashtags
-exists and is empty unless you pass it.
+The author's post there opens "Just posting in case this helps someone out
+with ..." and closes "My renewal post on LinkedIn is here: <url>" on one line.
+So this emits a lede, the context, then one inline labelled link per line. The
+lede is a template field: rewrite it per article, do not ship the default
+because it was there.
+
+NO HASHTAGS, AND THIS ONE IS NOT A STYLE OPINION
+------------------------------------------------
+MEASURED, with a control: typing `@All` opens Chat's People picker, and typing
+`#ClaudeCode` opens **the same picker** -- People and Files, with "all / Notify
+all" as the first entry. `#` is not inert in Google Chat the way it is in a
+document; it is a second mention trigger. Enter with that list open inserts
+whatever is highlighted, and what is highlighted first is a notify-everyone.
+
+The control matters: `@` alone opened nothing, and so did `#` alone, which would
+have read as "hashtags are safe here". Both pickers need a following letter.
+Test the thing that fires before believing the thing that does not.
+
+So --hashtags exists, is empty, and warns when you pass it.
+
+GOOGLE CHAT MARKUP
+------------------
+Chat's markup is *bold*, _italic_, ~strike~ and `code` -- close enough to
+Slack's mrkdwn that markdown `**bold**` and `[label](url)` are wrong in both, so
+this strips markdown rather than translating it.
+
+Still not measured: whether Enter sends. Assume it does, and paste rather than
+type. `execCommand("insertText")` puts the whole message in at once and,
+usefully, does NOT trigger the pickers that real keystrokes do.
 
 THIS SCRIPT DOES NOT POST
 -------------------------
@@ -51,6 +73,9 @@ import re
 import sys
 import urllib.error
 import urllib.request
+
+DEFAULT_LEDE = ("Just posting in case this helps anyone else who puts the same "
+                "article out in more than one place.")
 
 FAILS, WARNS = [], []
 # dev.to first: this is the Google community and dev.to/gde is its copy.
@@ -111,9 +136,10 @@ def load_template():
     p = pathlib.Path(__file__).resolve().parent.parent / "templates" / "gchat-post.txt"
     if p.exists():
         return p.read_text()
-    return ("{context}\n\nDev.to is here:\n{devto}\n\nMedium is here:\n{medium}\n\n"
-            "Builder Center Article is here:\n{builder}\n\n"
-            "Linked In is here:\n{linkedin}\n")
+    return ("{lede}\n\n{context}\n\nDev.to is here: {devto}\n\n"
+            "Medium is here: {medium}\n\n"
+            "Builder Center article is here: {builder}\n\n"
+            "My LinkedIn post is here: {linkedin}\n")
 
 
 def main():
@@ -121,8 +147,9 @@ def main():
     ap.add_argument("article")
     ap.add_argument("--context", help="file with the opening lines; defaults to "
                                       "the article's own first paragraphs")
+    ap.add_argument("--lede", help="the opening 'why I am posting this' line")
     ap.add_argument("--hashtags", default="",
-                    help="empty by default: not established as idiomatic here")
+                    help="empty, and warned about: # opens Chat's mention picker")
     ap.add_argument("--out")
     a = ap.parse_args()
 
@@ -167,13 +194,19 @@ def main():
         ok("the dev.to link is the GDE org's copy")
 
     # 2  BUILD ---------------------------------------------------------------
+    # Blank lines between paragraphs, because that is how the room reads. The
+    # Slack post runs them together; this one does not.
     ctx = (pathlib.Path(a.context).read_text().strip() if a.context
-           else "\n".join(context_lines(text)))
+           else "\n\n".join(context_lines(text)))
+    lede = a.lede or DEFAULT_LEDE
     post = load_template().format(
-        context=ctx, devto=resolved.get("devto-gde", ""),
+        lede=lede, context=ctx, devto=resolved.get("devto-gde", ""),
         medium=resolved.get("medium", ""), builder=resolved.get("builder", ""),
         linkedin=resolved.get("linkedin", "")).strip()
     if a.hashtags:
+        warn("--hashtags: in Google Chat a # opens the People/Files picker, "
+             "with notify-all first in the list. Measured 2026-09-01. Drop them "
+             "or clear the picker with Escape before Enter")
         post += "\n\n" + a.hashtags
     post += "\n"
 

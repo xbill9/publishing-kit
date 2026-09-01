@@ -1,52 +1,76 @@
-# GDE Americas (Google Chat), and what is not yet measured
+# GDEs - Americas (Google Chat), measured
 
 **Optional, and after the fact.** Announcing a published article in the GDE
-Americas space. Nothing else in the kit calls `make-gchat.py`.
+Americas space (`chat.google.com/app/chat/AAAAiyul1_o`). Nothing else in the kit
+calls `make-gchat.py`.
 
-## It is the Slack post with the other community's copy
+Everything below was measured in that space on 2026-09-01.
 
-The shape is deliberately the author's Slack format: a few lines of plain
-context, then one labelled link per destination, each URL on its own line for
-the client to unfurl. A reader in either community sees something familiar.
+## The shape is this room's, not Slack's
 
-The one thing that must differ is which copy of the article they get:
+Read out of the room rather than ported across from the Slack template. The two
+communities write differently:
 
-| Room | dev.to link |
+| | `#boost-ai-engineering` (Slack) | GDEs - Americas (Chat) |
+| --- | --- | --- |
+| opening | straight into the context | a line saying **why** you are posting |
+| links | label on one line, URL on the next | `"... is here: <url>"`, inline |
+| paragraphs | run together | separated by blank lines |
+| hashtags | yes, the author's posts end in them | none, anywhere |
+
+The author's own last post there opens *"Just posting in case this helps someone
+out with…"* and closes *"My renewal post on LinkedIn is here: <url>"* on one
+line. `templates/gchat-post.txt` is that shape. The lede is a template field:
+rewrite it per article rather than shipping the default because it was there.
+
+The dev.to link is the **`/gde/`** copy. Sending a Google community the AWS
+org's copy is the same mistake as the reverse, and `make-gchat.py` fails on it —
+verified by feeding it a swapped `links.txt` rather than trusting the check
+would fire.
+
+**The space is threaded.** Every top-level message becomes a topic with its own
+reply count, so an announcement is a new conversation, not a line in a stream.
+
+## `#` is a second mention trigger, and notify-all is first in the list
+
+This is the one that would have gone wrong.
+
+| typed, as real keystrokes | result |
 | --- | --- |
-| `#boost-ai-engineering` (AWS Builder Community, Slack) | `dev.to/aws-builders` |
-| GDE Americas (Google Chat) | `dev.to/gde` |
+| `@` | nothing |
+| `#` | nothing |
+| `@All` | **People picker opens** — `all / Notify all is limited in this space`, then members |
+| `#ClaudeCode` | **the same picker opens** — People *and* Files |
 
-`make-gchat.py` fails when the GDE link is the aws-builders one — the mirror of
-the check in `make-slack.py`, and verified by feeding it a swapped `links.txt`
-rather than by trusting that it would fire.
+So `#` is not inert in Google Chat the way it is in a document, and Enter with
+that list open inserts whatever is highlighted. What is highlighted first is a
+notify-everyone.
 
-The link **order** flips too, for the same reason: lead with the copy that
-belongs to the room. Slack gets Builder Center first; the GDE space gets dev.to
-first. The shape lives in `templates/gchat-post.txt`.
+**The control is the whole point.** `@` alone opened nothing and `#` alone
+opened nothing, which on its own reads as "hashtags are safe here". Both
+triggers need a following letter. Testing only the thing that does not fire
+would have produced exactly the wrong rule.
 
-## Markup
+`make-gchat.py` therefore emits no hashtags and warns if you pass `--hashtags`.
 
-Chat's markup is `*bold*`, `_italic_`, `~strike~`, `` `code` `` — close enough
-to Slack's mrkdwn that markdown `**bold**` and `[label](url)` are wrong in both.
-The script strips markdown rather than translating it, exactly as the Slack one
-does, and the check for leftovers is the same.
+## The composer
 
-## What is deliberately NOT claimed here
+A single visible `[contenteditable="true"]`, `role="textbox"`, `aria-label`
+"History is on". **No shadow root and no iframe** — unlike Medium and LinkedIn,
+it is reachable straight from the document, like Slack's.
 
-This file is short because nobody has yet driven the GDE Americas space. This
-kit's rule is that a destination's behaviour is measured or it is not written
-down, and the Slack file next door earned every line of itself by being wrong
-first. So the following are **open questions, not documented behaviour**:
-
-- whether a `#hashtag` does anything (in Slack it opens the channel picker and
-  leaves Enter bound to inserting a channel link — see `slack.md`)
-- what the composer is built from, and whether it is reachable in the main
-  document or behind a shadow root
-- whether Enter sends
-
-`--hashtags` is therefore empty unless passed, and the safe assumptions until
-someone measures are the Slack ones: **assume Enter sends, and paste rather than
-type.**
+- **`execCommand("insertText")` puts the whole message in at once** and,
+  usefully, does **not** open the pickers that real keystrokes do. Paste the
+  message; do not type it.
+- **Assume Enter sends.** Not tested, and not worth testing in a live space with
+  a `Notify all` entry one keystroke away.
+- **Escape closes a picker and leaves the text alone** — 1350 characters before
+  and after, all four links intact. It does **not** clear the composer: text
+  typed while probing survived it, and the insert's own emptiness guard is what
+  caught the leftover `#ClaudeCode` before it shipped inside the post.
+- **`innerText` reads back longer than what you inserted** (1350 vs 1343 here):
+  blank-line paragraphs pick up extra newlines. Verify by counting links and
+  reading the first line, not by comparing lengths for equality.
 
 ## The script does not post
 

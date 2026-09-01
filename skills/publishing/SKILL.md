@@ -662,11 +662,21 @@ Slack channel gets `dev.to/aws-builders`, the GDE space gets `dev.to/gde`, and
 direction. The link order flips for the same reason — lead with the copy that
 belongs to the room.
 
-**What this destination has NOT been measured on**, and so is not claimed:
-whether a hashtag does anything there, what the composer is made of, and whether
-Enter sends. `--hashtags` is empty unless passed, and the safe assumptions until
-someone drives it are Slack's — assume Enter sends, paste rather than type.
-`references/gchat.md` says so out loud rather than filling the gap with a guess.
+The shape is that room's, read out of it: a line saying **why** you are posting,
+paragraphs separated by blank lines, and links **inline** (`"Dev.to is here:
+<url>"`) rather than on their own line. The space is threaded, so a post is a new
+conversation rather than a line in a stream.
+
+**No hashtags, and that is measured, not taste.** In Google Chat a `#` opens the
+same People/Files picker `@` does, with `all / Notify all` first in the list —
+Enter with it open inserts a notify-everyone. The control is what makes this
+trustworthy: `@` alone and `#` alone both open nothing, so testing only those
+would have produced the opposite rule. Both need a following letter.
+
+The composer is a plain `contenteditable` with no shadow root, so
+`execCommand("insertText")` puts the message in at once — and it does *not* open
+the pickers that real keystrokes do. Assume Enter sends. `references/gchat.md`
+has the rest.
 
 ## Optional: recording the activity in Advocu (GDE only)
 
