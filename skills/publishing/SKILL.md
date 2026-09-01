@@ -313,6 +313,14 @@ refused with 422 `Title has already been used in the last five minutes`.
 in, so diff the two below that substitution rather than concluding the upload
 drifted.
 
+**`--update` UNPUBLISHES a published article.** MEASURED 2026-09-01, on two live
+ones at once. Front matter is part of `body_markdown`, so the source's
+`published: false` — which the pre-flight *requires* — is pushed with everything
+else and flips the article back to draft. It reports `updated <id>` and says
+nothing about the state change; only `--list` shows it. **After updating anything
+already live, re-run `--publish <id>` and confirm with `--list`.** The slug and
+the id survive, so links keep working once it is back.
+
 It reads the key from `$DEV_TO_API_KEY` or `~/.devto.key` and never takes it on the
 command line. Front matter is part of `body_markdown`, so title, tags and
 `cover_image` all transfer — no field-filling, no cover upload, no title retyping.
