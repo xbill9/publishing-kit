@@ -63,8 +63,11 @@ def main():
 
     linkedin = pathlib.Path(art).parent / "links.txt"
     if linkedin.exists():
+        # --no-write: a check that rebuilds the artifact it is checking will
+        # quietly replace it with whatever the DEFAULT flags produce, which is how
+        # a 1,476-character post became a 468-character one and got committed.
         results["linkedin"] = run("make-linkedin.py — the announcement's links resolve",
-                                  [str(HERE / "make-linkedin.py"), art])
+                                  [str(HERE / "make-linkedin.py"), art, "--no-write"])
 
     print(f"\n{'=' * 62}\nSUMMARY\n{'=' * 62}")
     for k, v in results.items():

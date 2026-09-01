@@ -249,13 +249,30 @@ def main():
     ap.add_argument("--url", action="append", default=[])
     ap.add_argument("--hook")
     ap.add_argument("--template", help="post shape; defaults to templates/linkedin-post.txt")
-    ap.add_argument("--bullets-from", default="Summary",
-                    help="heading to take the post's bullets from (default: Summary)")
+    ap.add_argument("--bullets-from", default=None,
+                    help="heading to take the post's bullets from (default: Summary, "
+                         "or whatever linkedin.args beside the article says)")
+    ap.add_argument("--no-write", action="store_true",
+                    help="run the checks without touching the file. A pre-flight "
+                        "must not mutate the artifact it is checking.")
     ap.add_argument("--api", action="store_true",
                     help="also write the little-escaped variant for the Posts API")
     a = ap.parse_args()
 
     src = pathlib.Path(a.article).resolve()
+
+    # MEASURED: preflight.py regenerated this file with default flags and replaced
+    # a 1,476-character post with a 468-character one, and the damaged version was
+    # committed. Build flags have to outlive the command that first used them, so
+    # they live beside the article.
+    argsfile = src.parent / "linkedin.args"
+    if a.bullets_from is None:
+        a.bullets_from = "Summary"
+        if argsfile.exists():
+            for ln in argsfile.read_text().splitlines():
+                ln = ln.strip()
+                if ln.startswith("bullets-from"):
+                    a.bullets_from = ln.split("=", 1)[1].strip()
     links = read_links(src.parent / a.links if not pathlib.Path(a.links).is_absolute()
                        else a.links, a.url)
     out = pathlib.Path(a.out) if a.out else src.parent / f"linkedin-{src.stem}.txt"
@@ -322,8 +339,11 @@ def main():
     else:
         ok("no Unicode pseudo-bold")
 
-    out.write_text(post)
-    if a.api:
+    if a.no_write:
+        ok(f"checked without writing ({out.name} left alone)")
+    else:
+        out.write_text(post)
+    if a.api and not a.no_write:
         api_out = out.with_suffix(".little.txt")
         api_out.write_text(escape_little(post))
         ok(f"little-escaped variant for the Posts API -> {api_out.name}")
