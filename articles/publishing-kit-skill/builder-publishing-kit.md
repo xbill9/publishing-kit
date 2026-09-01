@@ -16,7 +16,7 @@ organization the article routes to, and writing the announcement post afterwards
 point you have four slightly different files and no idea which one is current.
 
 I packaged all of that into **[publishing-kit](https://github.com/xbill9/publishing-kit)** — a
-Claude Code skill and a dozen small scripts — so you can just ask Claude to publish.
+Claude Code skill and a set of small scripts — so you can just ask Claude to publish.
 
 ## What it does
 
@@ -133,8 +133,8 @@ to be wrong.
 
 ## Under the hood
 
-Twelve scripts, one `SKILL.md`, four reference files. The skill decides when each script runs;
-the scripts are independently runnable and print what they did.
+One `SKILL.md`, a reference file for each destination's quirks, and a script per job. The skill
+decides when each one runs; the scripts are independently runnable and print what they did.
 
 The bit worth stealing for your own skills is `references/house-style.md`. Voice, section order,
 the opener and closing formulas live in that one file, and nothing in `SKILL.md` or the scripts

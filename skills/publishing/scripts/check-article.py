@@ -282,6 +282,43 @@ def main():
     else:
         ok("no hard-wrapped paragraphs")
 
+    # 7c  COUNTS OF THE KIT'S OWN PARTS ---------------------------------------
+    # An article about a toolchain that states how many scripts it has is stating
+    # a figure the toolchain's own growth invalidates. This drifted three times:
+    # "five scripts" became nine, "Twelve scripts, four reference files" became
+    # fourteen and six. house-style.md forbids it; this makes the rule checkable.
+    WORDS = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
+             "seven": 7, "eight": 8, "nine": 9, "ten": 10, "eleven": 11,
+             "twelve": 12, "thirteen": 13, "fourteen": 14, "a dozen": 12}
+    skill_dir = next((p for p in (d, *d.parents)
+                      if (p / "skills" / "publishing" / "scripts").is_dir()), None)
+    if skill_dir:
+        real = {
+            "scripts": len(list((skill_dir / "skills/publishing/scripts").glob("*.py"))),
+            "reference files": len(list((skill_dir / "skills/publishing/references").glob("*.md"))),
+        }
+        bad = []
+        for noun, actual in real.items():
+            # Two bugs found by positive controls, both of which made this check
+            # pass on the thing it exists to catch:
+            #   1. no adjective slot, so "twelve SMALL scripts" was missed
+            #   2. a generic [A-Za-z]+ count slot, which matched "AND twelve
+            #      small scripts" -- the earlier position wins, group is "and",
+            #      and the real number is never examined
+            # Match number words explicitly, and allow adjectives after them.
+            numbers = "|".join(sorted(WORDS, key=len, reverse=True)) + r"|\d+"
+            pat = rf"\b({numbers})\s+(?:\w+\s+){{0,2}}{noun}\b"
+            for m in re.finditer(pat, text, re.I):
+                raw = m.group(1).lower()
+                n = WORDS.get(raw, int(raw) if raw.isdigit() else None)
+                if n is not None and n != actual:
+                    bad.append(f"'{m.group(0)}' but there are {actual}")
+        if bad:
+            fail(f"stale count of the kit's own parts: {'; '.join(bad[:3])}. "
+                 f"Derive it from skill-footprint.py or leave it out of prose")
+        else:
+            ok("no stale counts of the kit's own parts")
+
     # 8  DEAD LINKS -----------------------------------------------------------
     dead = re.findall(r"\]\(\s*\)|\]\(#\)", text)
     if dead:
