@@ -330,8 +330,15 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="
 a dev.to API key in <code>~/.devto.key</code>, and a public repo to hold
 the article directory — both the cover and the Medium images are fetched
 by URL when the page renders, so unpushed means broken.</p>
-<p>One thing worth knowing if you plan to hack on the skill itself:
-installing from the marketplace takes a <strong>snapshot</strong>, and
+<p>Mostly you will not run these scripts yourself — Claude does, and
+<code>SKILL.md</code> tells it where they are. When you do want one by
+hand, the paths differ by install method, so ask rather than remember:
+<code>skill-footprint.py --where</code> prints the skill directory. From
+a clone it is <code>skills/publishing</code>; from a marketplace install
+it sits under a <strong>version-numbered</strong> cache path, which
+means no invocation you write down survives an upgrade.</p>
+<p>That version numbering matters if you plan to hack on the skill
+itself: installing takes a <strong>snapshot</strong>, and
 <code>claude plugin update</code> compares version strings, so edits
 under the same version never reach your session. Symlink while you are
 iterating.</p>
@@ -359,7 +366,7 @@ skill's value ended up.</p>
 <p><strong>The page does not look like the file.</strong> Fetch what the
 destination actually serves rather than reasoning about what you
 pushed:</p>
-<pre class="shell"><code>python3 scripts/check-links.py article.md</code></pre>
+<pre class="shell"><code>python3 ../../skills/publishing/scripts/check-links.py article.md</code></pre>
 <pre class="plaintext"><code>devto-publishing-kit.md  (branch URLs)
   ok    cover.77acc7c4.jpg: HTTP 200, bytes match disk
   ok    img/cover.77acc7c4.jpg: HTTP 200, bytes match disk

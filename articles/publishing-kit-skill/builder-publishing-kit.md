@@ -71,9 +71,15 @@ You will need Python 3 with Pillow for the cover and table rendering, a dev.to A
 `~/.devto.key`, and a public repo to hold the article directory — both the cover and the Medium
 images are fetched by URL when the page renders, so unpushed means broken.
 
-One thing worth knowing if you plan to hack on the skill itself: installing from the marketplace
-takes a **snapshot**, and `claude plugin update` compares version strings, so edits under the
-same version never reach your session. Symlink while you are iterating.
+Mostly you will not run these scripts yourself — Claude does, and `SKILL.md` tells it where they
+are. When you do want one by hand, the paths differ by install method, so ask rather than
+remember: `skill-footprint.py --where` prints the skill directory. From a clone it is
+`skills/publishing`; from a marketplace install it sits under a **version-numbered** cache path,
+which means no invocation you write down survives an upgrade.
+
+That version numbering matters if you plan to hack on the skill itself: installing takes a
+**snapshot**, and `claude plugin update` compares version strings, so edits under the same
+version never reach your session. Symlink while you are iterating.
 
 ## What it looks like in practice
 
@@ -98,7 +104,7 @@ This is the half that surprised me most, and where most of the skill's value end
 reasoning about what you pushed:
 
 ```shell
-python3 scripts/check-links.py article.md
+python3 ../../skills/publishing/scripts/check-links.py article.md
 ```
 
 ```plaintext

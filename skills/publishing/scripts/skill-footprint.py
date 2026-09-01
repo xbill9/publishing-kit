@@ -82,9 +82,20 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--markdown", action="store_true")
     p.add_argument("--footer", action="store_true")
+    p.add_argument("--where", action="store_true",
+                   help="print the skill directory, so the scripts can be invoked "
+                        "from anywhere")
     p.add_argument("--installed", action="store_true",
                    help="also query the INSTALLED plugin's token projection")
     a = p.parse_args()
+    if a.where:
+        # MEASURED: a plugin install buries the scripts under a VERSION-NUMBERED
+        # cache path, so no invocation written down stays correct across an
+        # upgrade, and a clone puts them somewhere else again. There has to be a
+        # command that answers this rather than a path to remember.
+        print(ROOT)
+        return 0
+
     c = counts()
     t = total(c)
     v = version()
