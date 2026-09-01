@@ -591,6 +591,29 @@ draft** instead of editing the existing piece.
 
 **Never click Publish.** Leave it as a draft and hand back the link.
 
+## Optional: announcing in the AWS Community Builders Slack
+
+**Optional, and after the fact.** One message in a community channel with a link
+to each destination.
+
+```
+python3 scripts/make-slack.py <article>.md --hashtags "#A #B"
+```
+
+**The format is the author's own, read out of the channel rather than invented** —
+two or three lines of plain context, then `Builder Center Article is here:`,
+`Medium is here:`, `Dev.to is here:`, `Linked In is here:`, each with a bare URL
+on its own line, then hashtags. That order matters, and so does one detail the
+script enforces: **the dev.to link is the `aws-builders` one, never the GDE
+copy.** It is an AWS channel.
+
+**Slack renders no markdown.** Its markup is mrkdwn — `*bold*` with single
+asterisks, `<url|label>` for links — so the script strips markdown rather than
+translating it, matching what the existing posts do.
+
+**It does not post.** It writes a file. The channel had 656 members, and nobody
+who has read a message unreads it. `references/slack.md` has the rest.
+
 ## Optional: recording the activity in Advocu (GDE only)
 
 **Optional, and unrelated to getting the article out.** `app.advocu.com` is where
