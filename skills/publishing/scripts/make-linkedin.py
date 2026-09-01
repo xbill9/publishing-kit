@@ -221,6 +221,14 @@ def build(article, links, hook_override, template, section="Summary"):
     bullets = summary_bullets(text, section=section)
 
     ordered = [k for k in ("devto-gde", "devto-aws", "builder", "medium", "repo") if k in links]
+    # A key the ordering does not know is silently dropped from {links}, while the
+    # resolver above still counts it as "resolved" -- so a typo like devto_gde for
+    # devto-gde ships a post missing two of its four destinations and reports ok.
+    unknown = [k for k in links if k not in ordered]
+    if unknown:
+        fail(f"link key(s) not in the render order, so they would be dropped: "
+             f"{', '.join(sorted(unknown))}. Known keys: devto-gde, devto-aws, "
+             f"builder, medium, repo.")
 
     values = {
         "hook": hook,
