@@ -74,8 +74,12 @@ import sys
 import urllib.error
 import urllib.request
 
-DEFAULT_LEDE = ("Just posting in case this helps anyone else who puts the same "
-                "article out in more than one place.")
+# Empty on purpose. A manufactured "just posting in case this helps..." line was
+# the default here for exactly one post, and the author cut it before sending:
+# that opening belongs to a help-someone-out post, not to an article
+# announcement, which earns its place with the first line of the article itself.
+# Pass --lede when a particular piece actually needs a why-I-am-posting line.
+DEFAULT_LEDE = ""
 
 FAILS, WARNS = [], []
 # dev.to first: this is the Google community and dev.to/gde is its copy.
@@ -198,11 +202,12 @@ def main():
     # Slack post runs them together; this one does not.
     ctx = (pathlib.Path(a.context).read_text().strip() if a.context
            else "\n\n".join(context_lines(text)))
-    lede = a.lede or DEFAULT_LEDE
+    lede = a.lede if a.lede is not None else DEFAULT_LEDE
     post = load_template().format(
         lede=lede, context=ctx, devto=resolved.get("devto-gde", ""),
         medium=resolved.get("medium", ""), builder=resolved.get("builder", ""),
         linkedin=resolved.get("linkedin", "")).strip()
+    post = re.sub(r"\A\n+", "", post)          # no gap where an empty lede was
     if a.hashtags:
         warn("--hashtags: in Google Chat a # opens the People/Files picker, "
              "with notify-all first in the list. Measured 2026-09-01. Drop them "

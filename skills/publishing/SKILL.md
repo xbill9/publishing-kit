@@ -662,9 +662,12 @@ Slack channel gets `dev.to/aws-builders`, the GDE space gets `dev.to/gde`, and
 direction. The link order flips for the same reason — lead with the copy that
 belongs to the room.
 
-The shape is that room's, read out of it: a line saying **why** you are posting,
-paragraphs separated by blank lines, and links **inline** (`"Dev.to is here:
-<url>"`) rather than on their own line. The space is threaded, so a post is a new
+The shape is that room's, read out of it: paragraphs separated by blank lines and
+links **inline** (`"Dev.to is here: <url>"`) rather than on their own line. **No
+lede** — a manufactured "just posting in case this helps anyone else" opening was
+the default for exactly one post and got cut before sending, because that opening
+belongs to a favour, not to an article announcement. `--lede` is there for the
+piece that needs one. The space is threaded, so a post is a new
 conversation rather than a line in a stream.
 
 **No hashtags, and that is measured, not taste.** In Google Chat a `#` opens the

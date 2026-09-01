@@ -18,10 +18,15 @@ communities write differently:
 | paragraphs | run together | separated by blank lines |
 | hashtags | yes, the author's posts end in them | none, anywhere |
 
-The author's own last post there opens *"Just posting in case this helps someone
-out with…"* and closes *"My renewal post on LinkedIn is here: <url>"* on one
-line. `templates/gchat-post.txt` is that shape. The lede is a template field:
-rewrite it per article rather than shipping the default because it was there.
+The author's own last post there closes *"My renewal post on LinkedIn is here:
+<url>"* on one line. `templates/gchat-post.txt` is that shape.
+
+**There is no lede by default, and that is a correction.** The first version of
+this template opened with a manufactured *"Just posting in case this helps
+anyone else…"* line, modelled on a help-someone-out post in the same room. The
+author cut it before sending. That opening belongs to a post whose point is the
+favour; an article announcement opens on the article. `--lede` exists for the
+piece that genuinely needs one.
 
 The dev.to link is the **`/gde/`** copy. Sending a Google community the AWS
 org's copy is the same mistake as the reverse, and `make-gchat.py` fails on it —

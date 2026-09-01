@@ -1,5 +1,3 @@
-Just posting in case this helps anyone else who puts the same article out in more than one place.
-
 Publishing one technical article to four places involves a surprising amount of ceremony: making a cover at whatever size each destination wants, rendering tables to images because Medium's importer eats them, stripping emoji for AWS, checking that every number in the piece came from a real run, getting a long markdown file into a browser editor that has no API, remembering which organization the article routes to, and writing the announcement post afterwards — by which point you have four slightly different files and no idea which one is current.
 
 I packaged all of that into publishing-kit — a Claude Code skill and a set of small scripts — so you can just ask Claude to publish.
