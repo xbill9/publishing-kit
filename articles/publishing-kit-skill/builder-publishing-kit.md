@@ -144,7 +144,7 @@ depends on it. Swap it and the kit writes as somebody else.
 cover footer for articles like this one — because a figure that changes on every commit does not
 belong in prose you have to remember to update.
 
-## Dogfooding: this article, and its cover 🐕🍖
+## Dogfooding: this article, and its cover
 
 Every artifact here came out of the kit. The cover was rendered by `make-cover.py`, the Builder
 Center version was derived by `make-builder.py`, the Medium build by `make-medium.py`, and the

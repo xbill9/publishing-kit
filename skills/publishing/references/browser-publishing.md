@@ -307,3 +307,37 @@ keystrokes having been sent.
 
 `Ctrl+A` also clears the Title field, so the title has to be retyped after a
 re-paste, and the duplicate-heading dance repeats.
+
+## Do not repair a Medium draft with execCommand deletes
+
+MEASURED 2026-08-31, and it cost the draft.
+
+`document.execCommand("delete")` over a full selection **works** on Medium, unlike
+on Builder Center where it silently no-ops. It cleared 28,690 characters to 1. But
+using it — along with programmatic `Range` deletions of individual blocks — left
+the editor in a state Medium could not persist:
+
+> Something is wrong and we cannot save your story.
+
+The banner cleared briefly after a real keystroke and came straight back. The tab
+then refused to navigate away, because nothing had been saved. Discarding was the
+only exit, and the draft came back half-written at 24,252 characters.
+
+**Repair a draft by replacing it, not by editing it.** Click a body paragraph,
+confirm the caret is there, real `Ctrl+A` then `Delete`, assert empty, dispatch
+the paste. That saved cleanly on the retry and every check passed.
+
+## Verify the caret, because the click races the page
+
+The coordinate is measured, then the page scrolls, then the click lands elsewhere.
+Twice in a row a click aimed at a body paragraph put the caret in the **Title**,
+where `Ctrl+A` selects the title and `Delete` takes it while the body survives.
+
+```js
+const n = getSelection().anchorNode;
+const el = n && (n.nodeType === 3 ? n.parentElement : n);
+el.closest('.graf--title')        // must be null before Ctrl+A
+```
+
+A `Range` avoids the race but does not give the keystrokes the focus they need —
+a synthetic caret did not make `Ctrl+A` clear the body. Click, verify, re-click.
