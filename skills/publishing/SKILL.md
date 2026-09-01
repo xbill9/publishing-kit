@@ -488,9 +488,16 @@ a Google property finds nothing.
   individual author and may not reflect the opinions of AWS."*
 
 Tags are a searchable fixed vocabulary, not free text — you pick from their list.
-`amazon-ec2`, `generative-ai` and `cost-optimization` exist; **`gpu` does not, and
-neither does a usable `inference`** (the matches are `application-inference-profile`
-and `aws-elemental-inference`, both unrelated). Search before assuming a tag exists.
+`amazon-ec2`, `generative-ai`, `cost-optimization`, `graviton` and `python` exist;
+**`gpu` does not, nor `benchmark`/`benchmarking`, nor a usable `inference`** (the
+matches are `application-inference-profile` and `aws-elemental-inference`, both
+unrelated). Search before assuming a tag exists.
+
+The picker is **virtualised**: with nothing typed the DOM holds only the first
+alphabetical page, so reading the options out of the DOM to check whether a term
+exists returns nothing useful. Type the term first, then read. And the field
+collapses — clicking where the search box *was* lands on the AWS global search in
+the masthead, which silently swallows the keystrokes.
 
 The cover uploads through a real `<input type=file>`: locate it with `find`, then
 use the upload tool with its ref. **Never click a file input** — that opens a
