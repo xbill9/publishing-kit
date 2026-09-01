@@ -64,12 +64,54 @@ def widest_table(text):
     return widest
 
 
+
+def drop_emptied_first_column(body):
+    """Delete a leading table column that the emoji strip has just emptied.
+
+    dev.to's house style ranks comparison tables with medals in an unlabelled
+    first column. Removing the emoji leaves that column present but blank, so a
+    five-column table arrives at Builder Center six wide and trips the width
+    check this same script prints -- a failure the script caused itself.
+
+    Only tables whose first cell is empty in EVERY row are narrowed, header and
+    separator included, so a table with real content in column one is untouched.
+    """
+    out, block, fenced = [], [], False
+    def flush():
+        if not block:
+            return
+        rows = [ln for ln in block if ln.lstrip().startswith("|")]
+        def first_cell(ln):
+            return ln.strip().lstrip("|").split("|")[0].strip()
+        # a separator's first cell is dashes, which counts as structural not content
+        empties = all(first_cell(r) in ("", "---", ":---", "---:", ":---:") for r in rows)
+        if rows and empties:
+            for i, ln in enumerate(block):
+                if ln.lstrip().startswith("|"):
+                    nl = ln[len(ln.rstrip("\r\n")):]      # keep the line ending
+                    stripped = ln.strip()
+                    block[i] = "|" + stripped.lstrip("|").split("|", 1)[1] + nl
+        out.extend(block)
+        block.clear()
+    for line in body.splitlines(keepends=True):
+        if line.strip().startswith("```"):
+            fenced = not fenced
+        if not fenced and line.strip().startswith("|"):
+            block.append(line)
+            continue
+        flush()
+        out.append(line)
+    flush()
+    return "".join(out)
+
+
 def convert(src_text, title, subtitle):
     body = strip_front_matter(src_text)
     body = EMOJI_RE.sub("", body)
     body = re.sub(r"[ \t]+$", "", body, flags=re.M)   # trailing space where one was
     # a row that only ever compared emoji support compares nothing without them
     body = re.sub(r"^\| Emoji \|.*\n", "", body, flags=re.M)
+    body = drop_emptied_first_column(body)
     head = f"# {title}\n\n"
     if subtitle:
         head += f"*Subtitle: {subtitle}*\n\n"
