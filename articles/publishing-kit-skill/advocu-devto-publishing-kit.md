@@ -17,13 +17,13 @@ A Claude Code skill that turns one markdown file into dev.to, AWS Builder Center
 claudecode, writing, devtools, ai
 
 ## How many people read your content?
-(fill in from a real counter)
+0
 
 ## Date published
 (the date it actually went public)
 
 ## Link to Content
-PENDING
+https://dev.to/gde/streamline-publishing-with-a-claude-code-skill-1bdn
 
 ---
 Save as draft rather than submitting, and read it back before you do.

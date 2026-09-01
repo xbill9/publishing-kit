@@ -6,10 +6,12 @@ Builder Center Article is here:
 https://builder.aws.com/content/3IhAZMOLRPqp4a5USEUtdq6s2d2/streamline-publishing-with-a-claude-code-skill
 
 Medium is here:
-PENDING
+https://xbill999.medium.com/streamline-publishing-with-a-claude-code-skill-af03e6658c0b
 
 Dev.to is here:
 https://dev.to/aws-builders/streamline-publishing-with-a-claude-code-skill-an4
 
 Linked In is here:
 PENDING
+
+#ClaudeCode #DevRel #Publishing #AWS

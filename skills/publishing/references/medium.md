@@ -117,3 +117,31 @@ virtualises, so DOM counts lie until you scroll the whole document — and **imp
 content is served from `0*` image URLs while Medium's own editor chrome is `1*`**,
 so count only `0*` or you will credit yourself images that are really the
 onboarding overlay.
+
+## The publish dialog defaults against you
+
+MEASURED 2026-09-01 on a real publish:
+
+| Setting | Medium's default | |
+| --- | --- | --- |
+| **Paywall this story** | **checked** | earns under the Partner Program, and locks the story behind Medium membership |
+| **Notify your N subscribers** | **checked** | emails every subscriber the moment you click Publish |
+| Topics | empty | up to five |
+
+The paywall default is the one to think about hardest when the same article is
+free elsewhere. This kit publishes one piece to dev.to and AWS Builder Center as
+well, so paywalling the Medium copy asks readers to pay for something linked free
+two paragraphs into its own text.
+
+The subscriber notification is not undoable. An email that has gone has gone, so
+it is the author's decision and not a default to accept by momentum.
+
+Topics take Enter to commit. Typing a name and clicking the suggestion silently
+dropped it twice; typing and pressing Enter worked every time.
+
+## Medium 403s a request with no User-Agent
+
+`curl` with its default header gets **HTTP 403** on a published story URL, while
+the same URL returns 200 with any ordinary User-Agent set. Same shape as dev.to
+answering `Forbidden Bots`. A link checker that reports a published article as
+dead is checking its own headers, not the article.
