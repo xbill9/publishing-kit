@@ -289,6 +289,19 @@ command line. Front matter is part of `body_markdown`, so title, tags and
 `--update` rewrites those too, and does not change the slug of an already-published
 article, so existing links survive.
 
+### The org versions are the SAME article, not a rewrite
+
+MEASURED 2026-08-31 against this account's own back catalogue: the same piece
+posted to two communities is **byte-identical**. "Build an MCP server in Rust
+with rmcp" is 18,234 characters under `gde` and 18,234 characters under
+`aws-builders`, same title, and `diff` on the bodies returns nothing.
+
+So one source file goes to both, and `organization_id` is the only difference.
+Writing a second, differently-angled version for the other community doubles the
+maintenance and guarantees drift — which is exactly what it did here before
+anyone checked the back catalogue. Rotate the angle only when the *subject*
+differs, the way an ADK piece and a Bedrock piece genuinely do.
+
 ### Publishing under an organization is an API field, not an editor dropdown
 
 An article's community channel (`dev.to/<org>/<slug>` rather than `dev.to/<user>/<slug>`)

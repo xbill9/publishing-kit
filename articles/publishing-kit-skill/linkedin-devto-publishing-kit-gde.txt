@@ -1,9 +1,0 @@
-Streamline Publishing with a Claude Code Skill
-
-A step-by-step publishing pipeline for dev.to, AWS Builder Center, Medium and LinkedIn as a Claude Code skill. Every destination breaks something silently; this is what each one does, and the checks that fail the build instead.
-
-dev.to (Google Developer Experts): PENDING
-dev.to (AWS Community Builders): PENDING
-AWS Builder Center: PENDING
-Medium: PENDING
-Source: https://github.com/xbill9/publishing-kit

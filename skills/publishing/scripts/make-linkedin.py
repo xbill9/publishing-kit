@@ -143,14 +143,20 @@ def strip_markdown(s):
     return re.sub(r"\s+", " ", s).strip()
 
 
-def summary_bullets(text, n=4):
-    """The article's own summary bullets, which are already the conclusions.
+def summary_bullets(text, n=4, section="Summary"):
+    """The article's own bullets from one named section.
+
+    Defaults to Summary, because a lifecycle write-up puts its conclusions
+    there. An announcement has no Summary -- it ends in Links -- and its
+    conclusions live under "What it does", so the section is a parameter rather
+    than a constant. Hardcoding "Summary" produced a 468-character post from a
+    9.5K article and warned about it instead of looking anywhere else.
 
     Source articles are hard-wrapped, so a bullet is its first line plus every
     indented continuation line under it. Taking only the first line truncates
     every bullet mid-sentence, which looks like prose and reads as a bug.
     """
-    m = re.search(r"^#+\s*Summary\s*$(.*?)(?=^#+\s|\Z)", text, re.S | re.M)
+    m = re.search(rf"^#+\s*{re.escape(section)}\s*$(.*?)(?=^#+\s|\Z)", text, re.S | re.M)
     if not m:
         return []
     out, buf = [], None
@@ -205,14 +211,14 @@ def load_template(explicit):
     return DEFAULT_TEMPLATE
 
 
-def build(article, links, hook_override, template):
+def build(article, links, hook_override, template, section="Summary"):
     text = article.read_text()
     fm = front_matter(text)
     title = strip_markdown(field(fm, "title")) or article.stem
     desc = strip_markdown(field(fm, "description"))
 
     hook = hook_override or title
-    bullets = summary_bullets(text)
+    bullets = summary_bullets(text, section=section)
 
     ordered = [k for k in ("devto-gde", "devto-aws", "builder", "medium", "repo") if k in links]
 
@@ -243,6 +249,8 @@ def main():
     ap.add_argument("--url", action="append", default=[])
     ap.add_argument("--hook")
     ap.add_argument("--template", help="post shape; defaults to templates/linkedin-post.txt")
+    ap.add_argument("--bullets-from", default="Summary",
+                    help="heading to take the post's bullets from (default: Summary)")
     ap.add_argument("--api", action="store_true",
                     help="also write the little-escaped variant for the Posts API")
     a = ap.parse_args()
@@ -256,9 +264,10 @@ def main():
 
     if not links:
         fail("no links: LinkedIn is the destination whose whole job is the link")
-    hook, post = build(src, links, a.hook, load_template(a.template))
-    if not summary_bullets(src.read_text()):
-        warn("no '## Summary' bullets found; the post carries the description only")
+    hook, post = build(src, links, a.hook, load_template(a.template), a.bullets_from)
+    if not summary_bullets(src.read_text(), section=a.bullets_from):
+        warn(f"no bullets under '{a.bullets_from}'; the post carries the description "
+             f"only. Try --bullets-from with a heading this article actually has.")
 
     # 1  LINKS RESOLVE -------------------------------------------------------
     pending = [k for k, v in links.items() if not v or v.upper() == "PENDING"]

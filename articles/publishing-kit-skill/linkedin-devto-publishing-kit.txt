@@ -1,0 +1,15 @@
+Streamline Publishing with a Claude Code Skill
+
+A Claude Code skill that turns one markdown file into dev.to, AWS Builder Center, Medium and LinkedIn versions, checks them before they ship, and posts the ones with an API — plus the debugging tools for when a destination mangles something.
+
+What is in it:
+
+- Build the artifacts: one source file becomes the dev.to markdown, the Builder Center version with emoji stripped and the AWS disclaimer appended, Medium HTML with every table rendered to a PNG, and a LinkedIn post. make-builder.py, make-medium.py, make-linkedin.py.
+- Make the cover once: make-cover.py --sizes devto,builder renders one design at every geometry the destinations demand, names it by a hash of its own bytes, and tells you which type sizes survive a feed card. One article, one cover.
+- Trace every number: check-facts.py pulls the prices, measurements and versions out of your prose and reports which ones appear in no evidence file. It cannot tell you a figure is true. It tells you which ones you are asserting from memory.
+- Pre-flight: preflight.py --live runs the lot and exits non-zero — cover committed and matching HEAD, geometry right, front matter complete, no hard-wrapped paragraphs, and every published URL fetched and compared byte for byte against your disk.
+dev.to (Google Developer Experts): PENDING
+dev.to (AWS Community Builders): PENDING
+AWS Builder Center: PENDING
+Medium: PENDING
+Source: https://github.com/xbill9/publishing-kit
