@@ -47,7 +47,7 @@ should not be doing by hand.
 It also encodes the hard-won details you would otherwise learn the day after publishing: that
 dev.to renders markdown with hard breaks **on**, so a source wrapped at 95 columns arrives with a
 stray break in every paragraph; that dev.to does not host your cover but proxies it at 2.381:1,
-so a 16:9 cover loses 95px off the top and bottom; that Medium drops `data:` URI images on paste,
+so a 1376x768 cover loses 95px off the top and bottom; that Medium drops `data:` URI images on paste,
 so the self-contained build arrives with no pictures at all; and that LinkedIn's Posts API cannot
 create a draft, because `PUBLISHED` is the only state it accepts on creation.
 

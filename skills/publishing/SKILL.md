@@ -367,12 +367,13 @@ and since the first body image becomes Medium's cover, that is what ships.
 **Type the title in by hand.** No paste or import route fills Medium's Title field,
 even though the hosted variant carries an `<h1 class="title">`.
 
-**The image base URL is derived from the article's own directory.** This is the
+**The image base URL is derived from git.** This is the
 single most repeated bug in this toolchain: a per-project copy of the script used
 to hardcode its own project path, so a copy taken elsewhere pointed every `<img>`
 at the original project's URLs — all 404 — while the embed variant hid it
-completely because its images are inlined. Override with `--img-base=<url>` when
-the images will not be served from `<repo>/<article-dir>/medium/img/`.
+completely because its images are inlined. `make-medium.py` asks git for the origin remote, the branch and the article's path
+inside the repo, and builds the base from those. Override with `--img-base=<url>`
+only when the images will be served from somewhere other than that repository.
 
 More importer quirks — the silent killers around figure captions, the URL-keyed
 cache, canonical-link resolution, heading sizes — are in `references/medium.md`.

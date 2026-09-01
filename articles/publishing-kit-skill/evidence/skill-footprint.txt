@@ -1,6 +1,6 @@
-# skill footprint, worktree, publishing 0.12.0
+# skill footprint, worktree, publishing 0.13.0
 
-SKILL.md: 591 lines, description 528 chars
+SKILL.md: 592 lines, description 528 chars
 
 references (4):
     309  browser-publishing.md
@@ -19,12 +19,12 @@ scripts (12):
     109  make-builder.py
     437  make-cover.py
     359  make-linkedin.py
-    457  make-medium.py
+    478  make-medium.py
      87  preflight.py
     180  publish-devto.py
      99  serve-body.py
     147  skill-footprint.py
 
-total: 3,869 lines
+total: 3,891 lines
 
-installed snapshot e2b4e1d (HEAD is e2b4e1d): ~190 always-on, ~10.8k on-invoke
+installed snapshot fa7d087 (HEAD is fa7d087): ~190 always-on, ~10.8k on-invoke

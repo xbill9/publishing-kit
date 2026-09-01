@@ -434,11 +434,32 @@ def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = No
 #
 # Override with --img-base=<url> whenever the images will not be served from
 # <repo>/<article-dir>/medium/img/.
-DEFAULT_REPO = "https://raw.githubusercontent.com/xbill9/gemma4-dev/main"
-
-
+# DERIVED, never hardcoded. This constant used to be another project's repository,
+# so every <img> in an article outside that project pointed at URLs that 404 --
+# and the embed variant hid it completely, because its images are inlined. It is
+# the most repeated bug in this toolchain, and it survived being written up in
+# SKILL.md twice, because writing a hazard down does not remove it.
+#
+# The repository, branch and path are all knowable from the article's own
+# location, so ask git rather than remember.
 def default_img_base(src: Path) -> str:
-    return f"{DEFAULT_REPO}/{src.resolve().parent.name}/medium/img/"
+    d = src.resolve().parent
+    try:
+        def g(*args):
+            return subprocess.run(["git", "-C", str(d), *args],
+                                  capture_output=True, text=True).stdout.strip()
+        root, url = g("rev-parse", "--show-toplevel"), g("remote", "get-url", "origin")
+        branch = g("symbolic-ref", "--short", "HEAD") or "main"
+        if not root or not url:
+            raise RuntimeError("not a git checkout with an origin remote")
+        slug = re.sub(r"^git@github\.com:|^https://github\.com/", "", url)
+        slug = re.sub(r"\.git$", "", slug)
+        rel = d.relative_to(Path(root))
+        return f"https://raw.githubusercontent.com/{slug}/{branch}/{rel}/medium/img/"
+    except Exception as e:
+        sys.exit(f"cannot derive --img-base from git ({e}). Pass --img-base "
+                 f"explicitly: a wrong base 404s every image in the hosted "
+                 f"variant, and the embed variant hides it.")
 
 
 if __name__ == "__main__":
