@@ -79,3 +79,24 @@ still present exactly once.
 
 The hashtags themselves are fine: as long as no suggestion is accepted they post
 as plain text, which is what the author's earlier posts in the channel show.
+
+## What the posted message actually looked like
+
+MEASURED 2026-09-01, reading the sent message back out of the channel.
+
+The Escape held: **no channel link was inserted anywhere.** The trailing
+`#ClaudeCode #DevRel #Publishing #AWS` posted as plain text, all four
+destination links appear exactly once, the GDE dev.to copy is absent, and the
+message renders as four labelled blue links under three lines of prose.
+
+Two details worth knowing before writing the next one:
+
+- **The label "Dev.to" is auto-linked too.** Slack linkifies anything that looks
+  like a hostname, so in `Dev.to is here:` the *word* becomes a link to dev.to's
+  homepage, sitting immediately above the real article link. Harmless, and the
+  author's own format has always read that way — but it is why that one line has
+  two links in it and the others have one.
+- **No unfurl cards appeared.** The previous post in the channel had a preview
+  card; this one, several minutes after sending, had none for any of the four
+  URLs. Whether that is the domains, the workspace, or just timing is not
+  established — do not promise an author that their links will preview.
