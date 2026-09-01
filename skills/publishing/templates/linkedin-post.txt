@@ -5,5 +5,5 @@
 [[bullets]]What is in it:
 
 {bullets}
-[[/bullets]]
-{links}
+
+[[/bullets]]{links}

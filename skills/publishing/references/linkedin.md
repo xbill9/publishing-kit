@@ -146,3 +146,45 @@ Five, and it exits non-zero on any of them:
 
 Two dev.to articles routed to two organizations are two different URLs. Label them
 distinctly, or the post shows the same word against two links.
+
+## Driving the composer: everything else in this kit fails here
+
+MEASURED 2026-09-01 filling a real post. LinkedIn breaks all three techniques
+that work on Medium and AWS Builder Center, and none of them fail loudly.
+
+**`window.name` does not survive.** Loading a payload same-origin from localhost
+and navigating to `linkedin.com` arrives with `window.name` empty. That is the
+trick that carries 34 KB into Medium in one step, and it is unavailable here. A
+post is capped at 3,000 characters, so embedding the text directly in the
+injected script is always sufficient instead.
+
+**The editor is inside a SHADOW ROOT.** `document.querySelector('[contenteditable]')`
+returns nothing while the composer is plainly open on screen — a blank result
+that looks exactly like "not loaded yet". Walk the shadow roots:
+
+```js
+function findEditor(root) {
+  for (const el of root.querySelectorAll('*')) {
+    if (el.shadowRoot) {
+      const hit = [...el.shadowRoot.querySelectorAll('[contenteditable="true"],[role="textbox"]')]
+        .find(e => e.offsetParent !== null || e.getClientRects().length);
+      if (hit) return hit;
+      const deeper = findEditor(el.shadowRoot);
+      if (deeper) return deeper;
+    }
+  }
+  return null;
+}
+```
+
+It is a Quill editor: `class="ql-editor ql-blank"`, `aria-placeholder="What do
+you want to talk about?"`.
+
+**A synthetic paste event does nothing.** Dispatching `ClipboardEvent("paste")`
+with a `DataTransfer` — the method that works on both other editors — left the
+composer at **1 character**, with no error. What works is selecting the contents
+and calling `document.execCommand("insertText", false, POST)`. Verify with a
+one-line probe before committing the full payload.
+
+**Stop at the composer.** The Post button goes to a network and there is no draft
+state the API can reach afterwards. Read the post back and let a person press it.

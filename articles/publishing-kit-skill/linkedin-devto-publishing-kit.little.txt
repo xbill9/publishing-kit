@@ -8,8 +8,9 @@ What is in it:
 - Make the cover once: make-cover.py --flow --sizes devto,builder draws the pipeline as an illustration and renders it at every geometry the destinations demand, names the file by a hash of its own bytes, and reports which type sizes survive a 320px feed card — which is the size a cover is actually met at, and where a diagram with small labels turns to mush.
 - Trace every number: check-facts.py pulls the prices, measurements and versions out of your prose and reports which ones appear in no evidence file. It cannot tell you a figure is true. It tells you which ones you are asserting from memory.
 - Pre-flight: preflight.py --live runs the lot and exits non-zero — cover committed and matching HEAD, geometry right, front matter complete, no hard-wrapped paragraphs, and every published URL fetched and compared byte for byte against your disk.
-dev.to \(Google Developer Experts\): PENDING
-dev.to \(AWS Community Builders\): PENDING
-AWS Builder Center: PENDING
-Medium: PENDING
+
+dev.to \(Google Developer Experts\): https://dev.to/gde/streamline-publishing-with-a-claude-code-skill-1bdn
+dev.to \(AWS Community Builders\): https://dev.to/aws-builders/streamline-publishing-with-a-claude-code-skill-an4
+AWS Builder Center: https://builder.aws.com/content/3IhAZMOLRPqp4a5USEUtdq6s2d2/streamline-publishing-with-a-claude-code-skill
+Medium: https://xbill999.medium.com/streamline-publishing-with-a-claude-code-skill-af03e6658c0b
 Source: https://github.com/xbill9/publishing-kit
