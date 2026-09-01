@@ -48,6 +48,7 @@ import argparse
 import json
 import os
 import pathlib
+import re
 import subprocess
 import sys
 import urllib.error
@@ -112,6 +113,14 @@ def main():
     g.add_argument("--create", metavar="ARTICLE")
     g.add_argument("--update", nargs=2, metavar=("ID", "ARTICLE"))
     g.add_argument("--org", nargs=2, metavar=("ID", "SLUG"))
+    g.add_argument("--publish", metavar="ID",
+                   help="flip an existing draft to published. A separate call on "
+                        "purpose: the source file stays `published: false` so the "
+                        "pre-flight keeps meaning something, and going live stays "
+                        "an explicit act rather than a side effect of an update.")
+    g.add_argument("--unpublish", metavar="ID",
+                   help="back to draft. dev.to has no delete, so this is the only "
+                        "way back.")
     p.add_argument("--org-slug", dest="org_on_create",
                    help="with --create: route to this organization afterwards")
     p.add_argument("--no-unwrap", action="store_true",
@@ -146,6 +155,46 @@ def main():
             sys.exit(f"routing failed: {st} {r}")
         print(f"  article {aid} -> {slug} ({org['id']})")
         print(f"  {r.get('url','')}")
+        return 0
+
+    if a.publish or a.unpublish:
+        aid = int(a.publish or a.unpublish)
+        want = bool(a.publish)
+
+        # MEASURED 2026-09-01: `{"article": {"published": true}}` returns 200 and
+        # changes NOTHING. dev.to takes the published flag from the FRONT MATTER
+        # inside body_markdown, not from a field of its own -- so publishing means
+        # resending the body with its front matter flipped. The 200 is the trap:
+        # it reports success for a request that did nothing, and only the listing
+        # shows the article still sitting in /me/unpublished.
+        src_ep = "/articles/me/unpublished" if want else "/articles/me"
+        st, arts = call("GET", f"{src_ep}?per_page=100")
+        if st != 200:
+            sys.exit(f"could not read current body: {st}")
+        cur = next((x for x in arts if x["id"] == aid), None)
+        if cur is None:
+            sys.exit(f"{aid} is not in {src_ep} -- it may already be "
+                     f"{'published' if want else 'a draft'}")
+
+        body = cur["body_markdown"]
+        new = re.sub(r"^published:\s*(true|false)\s*$",
+                     f"published: {'true' if want else 'false'}", body,
+                     count=1, flags=re.M)
+        if new == body:
+            sys.exit("no `published:` line in the front matter to flip")
+
+        st, r = call("PUT", f"/articles/{aid}", {"article": {"body_markdown": new}})
+        if st not in (200, 201):
+            sys.exit(f"{'publish' if want else 'unpublish'} failed: {st} {r}")
+
+        # verify from the listing, because the response body has lied before
+        st, chk = call("GET", f"/articles/{'me' if want else 'me/unpublished'}?per_page=100")
+        landed = next((x for x in chk if x["id"] == aid), None) if st == 200 else None
+        if not landed:
+            sys.exit(f"PUT returned {st} but {aid} is not in the "
+                     f"{'published' if want else 'draft'} listing. Nothing changed.")
+        print(f"{'published' if want else 'unpublished'} {aid}")
+        show(landed)
         return 0
 
     article = pathlib.Path(a.create or a.update[1]).resolve()

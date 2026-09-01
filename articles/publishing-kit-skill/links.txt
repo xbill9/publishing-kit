@@ -8,11 +8,9 @@
 #             public one is /content/<id>/<slug> and exists only once published
 #
 # Draft locations, for editing rather than sharing:
-#   dev.to gde     4541392
-#   dev.to aws     4541410
 #   medium         https://medium.com/p/af03e6658c0b/edit
-devto-gde  = PENDING
-devto-aws  = PENDING
+devto-gde  = https://dev.to/gde/streamline-publishing-with-a-claude-code-skill-1bdn
+devto-aws  = https://dev.to/aws-builders/streamline-publishing-with-a-claude-code-skill-an4
 builder    = https://builder.aws.com/content/3IhAZMOLRPqp4a5USEUtdq6s2d2/streamline-publishing-with-a-claude-code-skill
 medium     = PENDING
 repo       = https://github.com/xbill9/publishing-kit

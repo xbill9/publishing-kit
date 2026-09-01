@@ -9,7 +9,7 @@ Medium is here:
 PENDING
 
 Dev.to is here:
-PENDING
+https://dev.to/aws-builders/streamline-publishing-with-a-claude-code-skill-an4
 
 Linked In is here:
 PENDING

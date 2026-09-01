@@ -278,6 +278,19 @@ bash <flagged-rig>/publish-devto.sh --list            # ids + published state
 bash <flagged-rig>/publish-devto.sh --update <id> <file>  # overwrite in place
 ```
 
+**`published` is not a settable field.** MEASURED 2026-09-01:
+`PUT {"article": {"published": true}}` returns **200 and changes nothing** — the
+article stays in `/articles/me/unpublished`. dev.to reads the flag from the front
+matter inside `body_markdown`, so publishing means resending the body with
+`published:` flipped. The 200 is the trap: it reports success for a request that
+did nothing, and only the listing shows the truth.
+
+`publish-devto.py --publish <id>` does it properly — fetches the current body,
+flips the front matter in the payload only, and then **verifies from the listing**
+rather than trusting the response. The source file stays `published: false` so the
+pre-flight keeps meaning something. `--unpublish` goes back, and is the only way
+back, since there is no delete.
+
 **A slug is fixed at creation and a rename does not move it.** A draft made under
 a working title keeps that title's URL after you retitle it, so create it with the
 title you mean to publish under. Replacing the draft is the only fix, and the two
