@@ -3,7 +3,7 @@ I packaged all of that into publishing-kit — a Claude Code skill and a set of 
 The skill teaches Claude the publishing lifecycle; the scripts do the parts a language model should not be doing by hand.
 
 Builder Center Article is here:
-PENDING
+https://builder.aws.com/content/3IhAZMOLRPqp4a5USEUtdq6s2d2/streamline-publishing-with-a-claude-code-skill
 
 Medium is here:
 PENDING
@@ -13,5 +13,3 @@ PENDING
 
 Linked In is here:
 PENDING
-
-#ClaudeCode #DevRel #Publishing #AWS

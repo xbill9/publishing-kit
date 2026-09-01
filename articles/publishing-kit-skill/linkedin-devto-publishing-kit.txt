@@ -10,6 +10,6 @@ What is in it:
 - Pre-flight: preflight.py --live runs the lot and exits non-zero — cover committed and matching HEAD, geometry right, front matter complete, no hard-wrapped paragraphs, and every published URL fetched and compared byte for byte against your disk.
 dev.to (Google Developer Experts): PENDING
 dev.to (AWS Community Builders): PENDING
-AWS Builder Center: PENDING
+AWS Builder Center: https://builder.aws.com/content/3IhAZMOLRPqp4a5USEUtdq6s2d2/streamline-publishing-with-a-claude-code-skill
 Medium: PENDING
 Source: https://github.com/xbill9/publishing-kit
