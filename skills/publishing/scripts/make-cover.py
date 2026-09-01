@@ -244,113 +244,107 @@ def content_address(out):
     return target
 
 
-def render_flow(d, a, W, H, k):
-    """One source, a toolchain, and where the artifacts land.
+def render_flow(d, a, W, H, k_unused):
+    """One document fanning into four, drawn as an illustration rather than a wireframe.
 
-    A cover earns its place by saying what the article is about. Two stat tiles
-    about token cost say what the SKILL costs, which is a detail inside the piece
-    rather than its subject. The subject is the shape: one source file, a set of
-    checks, and destinations that do not agree with each other -- and the thing
-    worth seeing at a glance is which of them need a browser driven for them.
+    The first attempt at this was a three-column pipeline with eleven labels. It
+    was unreadable in a feed card -- destination names at 5px -- because a cover
+    is met at roughly 320px wide and type below about 40pt disappears there.
 
-    Colour encodes exactly that, and never anything decorative:
-        blue    reachable over a REST API
-        orange  no API; a browser has to be driven
-        muted   an API that cannot draft
+    So the flow is carried by SHAPE and COLOUR, and type is rationed: a headline,
+    four destination names, nothing else load-bearing. A page glyph with ruled
+    lines reads as "a document" at any size; four of them in a row read as "four
+    documents" without anyone parsing a word.
     """
-    # MEASURED: scaling this layout off HEIGHT alone clipped every destination
-    # label at the Builder Center size, because 1200x675 is TALLER in ratio but
-    # NARROWER in pixels than 1376x578. A diagram is constrained by whichever
-    # dimension runs out first, so scale by the limiting one and centre what is
-    # left over.
     k = min(W / 1376.0, H / 578.0)
     oy = (H - 578 * k) / 2
 
-    def draw(dd, xy, txt, font, fill):          # shadows the module helper: adds oy
-        dd.text((int(xy[0]) * S, int(xy[1] + oy) * S), txt, font=font, fill=fill, anchor="la")
+    def T(xy, txt, font, fill):
+        d.text((int(xy[0]) * S, int(xy[1] + oy) * S), txt, font=font, fill=fill, anchor="la")
 
-    def box(x0, y0, x1, y1, **kw):
-        dd = d.rounded_rectangle if "radius" in kw else d.rectangle
-        dd([int(x0) * S, int(y0 + oy) * S, int(x1) * S, int(y1 + oy) * S], **kw)
+    def rr(x0, y0, x1, y1, r, **kw):
+        d.rounded_rectangle([int(x0) * S, int(y0 + oy) * S, int(x1) * S, int(y1 + oy) * S],
+                            radius=int(r * S), **kw)
 
-    def seg(x0, y0, x1, y1, **kw):   # NOT `line`: the headline loop binds that name
+    def rect(x0, y0, x1, y1, **kw):
+        d.rectangle([int(x0) * S, int(y0 + oy) * S, int(x1) * S, int(y1 + oy) * S], **kw)
+
+    def seg(x0, y0, x1, y1, **kw):
         d.line([int(x0) * S, int(y0 + oy) * S, int(x1) * S, int(y1 + oy) * S], **kw)
 
+    def fit(txt, max_w, path, start_pt, min_pt=22):
+        """Shrink until it fits. A name that overruns its card is worse than a
+        smaller name: 'Builder Center' at 40pt ran clean past the card edge."""
+        pt = start_pt
+        while pt > min_pt:
+            fnt = f(path, pt)
+            if d.textlength(txt, font=fnt) <= max_w * S:
+                return fnt
+            pt -= 1
+        return f(path, min_pt)
+
     pad = 72 * k
-    ink3, ink2, ink = INK_3, INK_2, INK
 
     if a.eyebrow:
-        draw(d, (pad, 38 * k), a.eyebrow, f(MONO, 17 * k), ink3)
-    y = 70 * k
-    for line in (a.headline or "").split("|"):
-        draw(d, (pad, y), line, f(SANS_B, 42 * k), ink)
-        y += 50 * k
+        T((pad, 34 * k), a.eyebrow, f(MONO, 17 * k), INK_3)
+    y = 62 * k
+    for ln in (a.headline or "").split("|"):
+        T((pad, y), ln, f(SANS_B, 46 * k), INK)
+        y += 54 * k
     if a.subhead:
-        draw(d, (pad, y + 4 * k), a.subhead, f(SANS, 24 * k), ink2)
+        T((pad, y + 2 * k), a.subhead, f(SANS, 23 * k), INK_2)
 
-    top, bot = 200 * k, 500 * k
-    mid = (top + bot) / 2
+    # ---- the source document -----------------------------------------------
+    sw, sh = 206 * k, 92 * k
+    sx = (W - sw) / 2
+    sy = 182 * k
+    rr(sx + 5 * k, sy + 5 * k, sx + sw + 5 * k, sy + sh + 5 * k, 9 * k, fill=(20, 20, 19))
+    rr(sx, sy, sx + sw, sy + sh, 9 * k, fill=TILE_BG, outline=RULE, width=S)
+    rect(sx, sy + 9 * k, sx + 6 * k, sy + sh - 9 * k, fill=COLOURS["blue"])
+    # the filename belongs ON the page, not floating under it where the fan crosses it
+    src_name = (a.source or "one source").split("|")[0]
+    T((sx + 26 * k, sy + 18 * k), src_name,
+      fit(src_name, sw - 52 * k, MONO_B, 21 * k, 14 * k), INK)
+    for i, frac in enumerate((0.72, 0.44)):
+        ly = sy + 52 * k + i * 17 * k
+        rect(sx + 26 * k, ly, sx + 26 * k + (sw - 52 * k) * frac, ly + 6 * k, fill=RULE)
 
-    # ---- source card -------------------------------------------------------
-    sx, sw, sh = pad, 268 * k, 96 * k
-    sy = mid - sh / 2
-    name, _, cap = (a.source or "source").partition("|")
-    box(sx, sy, sx + sw, sy + sh, radius=int(8 * S), fill=TILE_BG, outline=RULE, width=S)
-    box(sx, sy, sx + 5 * k, sy + sh, fill=COLOURS["blue"])
-    draw(d, (sx + 26 * k, sy + 26 * k), name, f(MONO_B, 22 * k), ink)
-    if cap:
-        draw(d, (sx + 26 * k, sy + 58 * k), cap, f(SANS, 17 * k), ink3)
+    # ---- destination documents ---------------------------------------------
+    dests = (a.dest or [])[:4]
+    n = max(len(dests), 1)
+    gap = 26 * k
+    cw = (W - 2 * pad - gap * (n - 1)) / n
+    ctop, cbot = 336 * k, 508 * k
+    fan_y = 300 * k
 
-    # ---- steps -------------------------------------------------------------
-    steps = a.step or []
-    stx, stw = sx + sw + 78 * k, 250 * k
-    sth = max(len(steps) * 34 * k + 34 * k, 96 * k)
-    sty = mid - sth / 2
-    box(stx, sty, stx + stw, sty + sth, radius=int(8 * S), fill=SURFACE,
-        outline=RULE, width=S)
-    for i, st in enumerate(steps):
-        ly = sty + 24 * k + i * 34 * k
-        box(stx + 22 * k, ly + 7 * k, stx + 28 * k, ly + 13 * k, fill=RULE)
-        draw(d, (stx + 40 * k, ly), st, f(MONO, 18 * k), ink2)
+    seg(W / 2, sy + sh, W / 2, fan_y, fill=RULE, width=S)
+    if n > 1:
+        firstc = pad + cw / 2
+        lastc = pad + (n - 1) * (cw + gap) + cw / 2
+        seg(firstc, fan_y, lastc, fan_y, fill=RULE, width=S)
 
-    # connector: source -> steps
-    seg(sx + sw, mid, stx, mid, fill=RULE, width=S)
-
-    # ---- destinations ------------------------------------------------------
-    dests = a.dest or []
-    dx = stx + stw + 96 * k
-    n = len(dests)
-    gap = (bot - top) / max(n, 1)
-    bus = dx - 46 * k
-    if n:
-        first = top + gap / 2
-        last = top + gap * (n - 0.5)
-        seg(stx + stw, mid, bus, mid, fill=RULE, width=S)
-        seg(bus, first, bus, last, fill=RULE, width=S)
     for i, spec in enumerate(dests):
         parts = (spec.split("|") + ["", "", ""])[:3]
         dname, dnote, dcol = parts
-        cy = top + gap * (i + 0.5)
         colour = COLOURS.get(dcol, RULE if dcol == "muted" else COLOURS["blue"])
-        seg(bus, cy, dx - 16 * k, cy, fill=RULE, width=S)
-        r = 6 * k
-        d.ellipse([int(dx - 10 * k - r) * S, int(cy - r + oy) * S,
-                   int(dx - 10 * k + r) * S, int(cy + r + oy) * S], fill=colour)
-        draw(d, (dx + 6 * k, cy - 20 * k), dname, f(SANS_B, 22 * k), ink)
+        x = pad + i * (cw + gap)
+        cx = x + cw / 2
+        seg(cx, fan_y, cx, ctop, fill=RULE, width=S)
+        # a page, sitting on its own shadow
+        rr(x + 5 * k, ctop + 5 * k, x + cw + 5 * k, cbot + 5 * k, 9 * k, fill=(20, 20, 19))
+        rr(x, ctop, x + cw, cbot, 9 * k, fill=TILE_BG, outline=RULE, width=S)
+        rect(x, ctop, x + cw, ctop + 7 * k, fill=colour)
+        T((x + 24 * k, ctop + 30 * k), dname,
+          fit(dname, cw - 48 * k, SANS_B, 40 * k, 24 * k), INK)
         if dnote:
-            draw(d, (dx + 6 * k, cy + 6 * k), dnote, f(SANS, 16 * k), ink3)
+            T((x + 24 * k, ctop + 86 * k), dnote, f(SANS, 19 * k), INK_3)
+        for j, frac in enumerate((0.55, 0.34)):
+            ly = cbot - 44 * k + j * 16 * k
+            rect(x + 24 * k, ly, x + 24 * k + (cw - 48 * k) * frac, ly + 6 * k, fill=RULE)
 
-    # ---- legend ------------------------------------------------------------
-    if a.legend:
-        lx = pad
-        ly = 534 * k
-        seg(pad, 518 * k, W - pad, 518 * k, fill=RULE, width=S)
-        for pair in a.legend.split(","):
-            label, _, col = pair.strip().partition("|")
-            colour = COLOURS.get(col, RULE)
-            box(lx, ly + 4 * k, lx + 10 * k, ly + 14 * k, fill=colour)
-            draw(d, (lx + 20 * k, ly), label, f(MONO, 16 * k), ink3)
-            lx += (len(label) * 9.6 + 46) * k
+    if a.footer:
+        seg(pad, 536 * k, W - pad, 536 * k, fill=RULE, width=S)
+        T((pad, 548 * k), a.footer, f(MONO, 17 * k), INK_3)
 
 
 def main():

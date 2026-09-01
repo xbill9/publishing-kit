@@ -27,9 +27,10 @@ should not be doing by hand.
   version with emoji stripped and the AWS disclaimer appended, Medium HTML with every table
   rendered to a PNG, and a LinkedIn post. `make-builder.py`, `make-medium.py`,
   `make-linkedin.py`.
-- **Make the cover once:** `make-cover.py --sizes devto,builder` renders one design at every
-  geometry the destinations demand, names it by a hash of its own bytes, and tells you which type
-  sizes survive a feed card. One article, one cover.
+- **Make the cover once:** `make-cover.py --flow --sizes devto,builder` draws the pipeline as an
+  illustration and renders it at every geometry the destinations demand, names the file by a hash
+  of its own bytes, and reports which type sizes survive a 320px feed card — which is the size a
+  cover is actually met at, and where a diagram with small labels turns to mush.
 - **Trace every number:** `check-facts.py` pulls the prices, measurements and versions out of
   your prose and reports which ones appear in no evidence file. It cannot tell you a figure is
   true. It tells you which ones you are asserting from memory.
@@ -101,7 +102,7 @@ python3 scripts/check-links.py article.md --live
 ```
 
 ```plaintext
-  ok    cover.b873c938.jpg: HTTP 200, bytes match disk
+  ok    cover.77acc7c4.jpg: HTTP 200, bytes match disk
   FAIL  table-3.png: HTTP 200 but the served bytes differ from disk
 ```
 

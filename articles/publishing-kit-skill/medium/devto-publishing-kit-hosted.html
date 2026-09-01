@@ -247,7 +247,7 @@
   </style>
 </head>
 <body>
-<figure><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/cover.b873c938.jpg" alt="Streamline Publishing with a Claude Code Skill" /></figure>
+<figure><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/cover.77acc7c4.jpg" alt="Streamline Publishing with a Claude Code Skill" /></figure>
 <header id="title-block-header" hidden>
 <h1 class="title">Streamline Publishing with a Claude Code Skill</h1>
 </header>
@@ -283,10 +283,12 @@ AWS disclaimer appended, Medium HTML with every table rendered to a PNG,
 and a LinkedIn post. <code>make-builder.py</code>,
 <code>make-medium.py</code>, <code>make-linkedin.py</code>.</li>
 <li><strong>Make the cover once:</strong>
-<code>make-cover.py --sizes devto,builder</code> renders one design at
-every geometry the destinations demand, names it by a hash of its own
-bytes, and tells you which type sizes survive a feed card. One article,
-one cover.</li>
+<code>make-cover.py --flow --sizes devto,builder</code> draws the
+pipeline as an illustration and renders it at every geometry the
+destinations demand, names the file by a hash of its own bytes, and
+reports which type sizes survive a 320px feed card — which is the size a
+cover is actually met at, and where a diagram with small labels turns to
+mush.</li>
 <li><strong>Trace every number:</strong> <code>check-facts.py</code>
 pulls the prices, measurements and versions out of your prose and
 reports which ones appear in no evidence file. It cannot tell you a
@@ -358,7 +360,7 @@ skill's value ended up.</p>
 destination actually serves rather than reasoning about what you
 pushed:</p>
 <pre class="shell"><code>python3 scripts/check-links.py article.md --live</code></pre>
-<pre class="plaintext"><code>  ok    cover.b873c938.jpg: HTTP 200, bytes match disk
+<pre class="plaintext"><code>  ok    cover.77acc7c4.jpg: HTTP 200, bytes match disk
   FAIL  table-3.png: HTTP 200 but the served bytes differ from disk</code></pre>
 <p>That second line is a regenerated image that was never re-committed.
 Every other check in the kit reasons about local state — is the file
