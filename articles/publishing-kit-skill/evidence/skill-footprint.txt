@@ -1,4 +1,4 @@
-# skill footprint, worktree, publishing 0.8.0
+# skill footprint, worktree, publishing 0.9.0
 
 SKILL.md: 591 lines, description 528 chars
 
@@ -12,7 +12,7 @@ templates (1):
       9  linkedin-post.txt
 
 scripts (12):
-    114  bodytext.py
+    156  bodytext.py
     297  check-article.py
     131  check-facts.py
     149  check-links.py
@@ -25,6 +25,6 @@ scripts (12):
      99  serve-body.py
     136  skill-footprint.py
 
-total: 3,789 lines
+total: 3,831 lines
 
-installed snapshot 8898ec4 (HEAD is 8898ec4): ~190 always-on, ~10.8k on-invoke
+installed snapshot 6fc9441 (HEAD is 6fc9441): ~190 always-on, ~10.8k on-invoke

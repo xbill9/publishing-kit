@@ -20,7 +20,13 @@ Three callers, one implementation:
     check-article.py  reports hard-wrapped paragraphs before either runs
 
 Everything whose line structure is load-bearing is left alone: fenced code,
-tables, lists, headings, block quotes, horizontal rules, indented continuations.
+tables, lists, headings, horizontal rules, indented continuations.
+
+BLOCK QUOTES ARE NOT IN THAT LIST, and used to be. Only the `>` prefix carries
+meaning in a quote; the line breaks inside it are wrapping like any other
+paragraph. Left alone, a hard-wrapped TL;DR posts as five separate lines and
+dev.to renders a break at each one -- and `hard_wrapped()` shared the blind spot,
+so the pre-flight reported nothing to fix.
 """
 
 import re
@@ -38,25 +44,55 @@ def split_front_matter(text):
     return (m.group(1), m.group(2)) if m else ("", text)
 
 
+def _quote_body(line):
+    """The text of a `>` line, or None if it is not a plain quoted paragraph line."""
+    st = line.strip()
+    if not st.startswith(">"):
+        return None
+    inner = st[1:].strip()
+    if not inner:
+        return ""                                   # blank quote line: a break
+    if inner.startswith(("|", "#", "- ", "* ", "+ ", "```", "---")):
+        return None                                 # structure inside the quote
+    return inner
+
+
 def unwrap(text: str) -> str:
-    """Join hard-wrapped paragraph lines into one line each."""
-    out, buf, fenced = [], [], False
+    """Join hard-wrapped paragraph lines into one line each, quotes included."""
+    out, buf, quote, fenced = [], [], [], False
 
     def flush():
         if buf:
             out.append(" ".join(x.strip() for x in buf))
             buf.clear()
 
+    def flush_quote():
+        if quote:
+            out.append("> " + " ".join(quote))
+            quote.clear()
+
     for line in text.splitlines():
         stripped = line.strip()
         if stripped.startswith("```"):
-            flush()
+            flush(); flush_quote()
             fenced = not fenced
             out.append(line)
             continue
         if fenced:
             out.append(line)
             continue
+
+        q = _quote_body(line)
+        if q is not None:
+            flush()
+            if q == "":                             # blank line inside the quote
+                flush_quote()
+                out.append(">")
+            else:
+                quote.append(q)
+            continue
+        flush_quote()
+
         structural = (
             not stripped
             or stripped.startswith(("|", "#", ">", "- ", "* ", "+ ", "---", "==="))
@@ -68,7 +104,7 @@ def unwrap(text: str) -> str:
             out.append(line)
         else:
             buf.append(line)
-    flush()
+    flush(); flush_quote()
     return "\n".join(out)
 
 
@@ -94,6 +130,12 @@ def hard_wrapped(text: str):
             fenced = not fenced
             continue
         if fenced:
+            continue
+        q = _quote_body(line)
+        if q:                                   # a quoted paragraph line wraps too
+            if start is None:
+                start = i
+            count += 1
             continue
         structural = (
             not stripped
