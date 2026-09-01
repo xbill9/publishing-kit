@@ -157,7 +157,16 @@ def main():
                 with urllib.request.urlopen(req, timeout=20) as r:
                     ok(f"{label}: HTTP {r.status}")
             except urllib.error.HTTPError as e:
-                fail(f"{label}: HTTP {e.code}")
+                # Medium answers any non-browser client with 403 -- documented in
+                # references/browser-publishing.md, which says to verify a published
+                # Medium article with get_page_text in the browser and not from the
+                # shell. Treating that as a broken link fails the run on a link that
+                # is fine, which is worse than not checking it.
+                if e.code == 403 and "medium.com" in v:
+                    warn(f"{label}: HTTP 403, which is what Medium answers every "
+                         f"non-browser client. Verify it in the browser, not here.")
+                else:
+                    fail(f"{label}: HTTP {e.code}")
             except Exception as e:
                 warn(f"{label}: could not reach it ({e})")
         resolved[key] = v or "PENDING"
