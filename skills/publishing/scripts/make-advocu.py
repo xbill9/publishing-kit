@@ -44,7 +44,10 @@ program statistics. Pass it with --reach from a real source -- dev.to's own
 hand. Guessing here is the same failure as any untraced figure in the article,
 with the difference that this one is reported to a program.
 
-    make-advocu.py <article>.md [--reach N] [--link URL] [--type Articles]
+Date published is in the same dev.to response as the views, so it is read from
+`published_at` rather than remembered. Override with --date.
+
+    make-advocu.py <article>.md [--reach N] [--date YYYY-MM-DD] [--link URL]
 """
 
 import argparse
@@ -96,12 +99,18 @@ def links_file(d):
     return out
 
 
-def devto_views(url, key_path=pathlib.Path.home() / ".devto.key"):
-    """Reach, from dev.to's own counter rather than from imagination."""
+def devto_stats(url, key_path=pathlib.Path.home() / ".devto.key"):
+    """Reach and publication date, from dev.to rather than from imagination.
+
+    Returns (page_views_count, published_at_date) with either half possibly
+    None. The date is in the same response as the views, so asking the author
+    to remember it -- when the API knows it exactly -- is a made-up figure
+    waiting to happen, in a form that reports to a program.
+    """
     key = os.environ.get("DEV_TO_API_KEY") or (
         key_path.read_text().strip() if key_path.exists() else "")
     if not key:
-        return None
+        return None, None
     try:
         req = urllib.request.Request(
             "https://dev.to/api/articles/me?per_page=100",
@@ -109,10 +118,11 @@ def devto_views(url, key_path=pathlib.Path.home() / ".devto.key"):
         with urllib.request.urlopen(req, timeout=20) as r:
             for a in json.load(r):
                 if a.get("url") and a["url"].rstrip("/") == url.rstrip("/"):
-                    return a.get("page_views_count")
+                    pub = (a.get("published_at") or "")[:10] or None
+                    return a.get("page_views_count"), pub
     except Exception:
-        return None
-    return None
+        return None, None
+    return None, None
 
 
 def main():
@@ -121,6 +131,7 @@ def main():
     ap.add_argument("--reach", type=int,
                     help="how many people read it, from a real counter")
     ap.add_argument("--link", help="published URL; defaults to links.txt devto-gde")
+    ap.add_argument("--date", help="YYYY-MM-DD; defaults to dev.to published_at")
     ap.add_argument("--type", default="Articles", choices=TYPES)
     ap.add_argument("--out")
     a = ap.parse_args()
@@ -158,11 +169,22 @@ def main():
             warn(f"could not reach the link ({e}): {link}")
 
     # 2  REACH ---------------------------------------------------------------
-    reach = a.reach
-    if reach is None and link and "temp-slug" not in link:
-        reach = devto_views(link)
-        if reach is not None:
+    reach, date = a.reach, a.date
+    if link and "temp-slug" not in link and (reach is None or date is None):
+        v, pub = devto_stats(link)
+        if reach is None and v is not None:
+            reach = v
             ok(f"reach {reach} read from dev.to page_views_count")
+        if date is None and pub:
+            date = pub
+            ok(f"date published {date} read from dev.to published_at")
+    if reach is not None and reach == 0:
+        warn("reach is 0. That is what the counter says, but a piece published "
+             "minutes ago has not been read yet -- file the draft and update "
+             "the number once it has had a life, rather than reporting a zero "
+             "that only means 'too early to tell'")
+    if date is None:
+        warn("no publication date. Pass --date YYYY-MM-DD")
     if reach is None:
         warn("no reach figure. Pass --reach from a real counter, or fill the "
              "field by hand -- this script will not invent a number that goes "
@@ -194,7 +216,7 @@ Once the article is public you can instead paste the Link to Content into
 {reach if reach is not None else '(fill in from a real counter)'}
 
 ## Date published
-(the date it actually went public)
+{date or '(fill in the date it actually went public)'}
 
 ## Link to Content
 {link or '(PENDING — the article is not published)'}

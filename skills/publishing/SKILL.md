@@ -645,6 +645,29 @@ in Slack**. Then **press Escape**: the trailing hashtags leave Slack's channel
 picker open, and Enter would insert a channel link instead of sending.
 `references/slack.md` has the rest.
 
+## Optional: announcing in the GDE Americas space (Google Chat)
+
+**Optional, and after the fact.** The same job as the Slack post, for the other
+community.
+
+```
+python3 scripts/make-gchat.py <article>.md
+```
+
+Same shape — the author's own format, a few lines of context then one labelled
+link per destination — because a reader in either room should see something
+familiar. **What changes is which copy of the article the room gets:** the AWS
+Slack channel gets `dev.to/aws-builders`, the GDE space gets `dev.to/gde`, and
+`make-gchat.py` fails on the swap exactly as `make-slack.py` does in the other
+direction. The link order flips for the same reason — lead with the copy that
+belongs to the room.
+
+**What this destination has NOT been measured on**, and so is not claimed:
+whether a hashtag does anything there, what the composer is made of, and whether
+Enter sends. `--hashtags` is empty unless passed, and the safe assumptions until
+someone drives it are Slack's — assume Enter sends, paste rather than type.
+`references/gchat.md` says so out loud rather than filling the gap with a guess.
+
 ## Optional: recording the activity in Advocu (GDE only)
 
 **Optional, and unrelated to getting the article out.** `app.advocu.com` is where

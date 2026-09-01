@@ -20,7 +20,7 @@ claudecode, writing, devtools, ai
 0
 
 ## Date published
-(the date it actually went public)
+2026-09-01
 
 ## Link to Content
 https://dev.to/gde/streamline-publishing-with-a-claude-code-skill-1bdn

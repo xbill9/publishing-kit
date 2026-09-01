@@ -1,0 +1,15 @@
+Publishing one technical article to four places involves a surprising amount of ceremony: making a cover at whatever size each destination wants, rendering tables to images because Medium's importer eats them, stripping emoji for AWS, checking that every number in the piece came from a real run, getting a long markdown file into a browser editor that has no API, remembering which organization the article routes to, and writing the announcement post afterwards — by which point you have four slightly different files and no idea which one is current.
+I packaged all of that into publishing-kit — a Claude Code skill and a set of small scripts — so you can just ask Claude to publish.
+The skill teaches Claude the publishing lifecycle; the scripts do the parts a language model should not be doing by hand.
+
+Dev.to is here:
+https://dev.to/gde/streamline-publishing-with-a-claude-code-skill-1bdn
+
+Medium is here:
+https://xbill999.medium.com/streamline-publishing-with-a-claude-code-skill-af03e6658c0b
+
+Builder Center Article is here:
+https://builder.aws.com/content/3IhAZMOLRPqp4a5USEUtdq6s2d2/streamline-publishing-with-a-claude-code-skill
+
+Linked In is here:
+https://www.linkedin.com/feed/update/urn:li:activity:7500566496419397632/

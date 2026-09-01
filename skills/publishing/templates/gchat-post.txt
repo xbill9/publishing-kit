@@ -1,0 +1,13 @@
+{context}
+
+Dev.to is here:
+{devto}
+
+Medium is here:
+{medium}
+
+Builder Center Article is here:
+{builder}
+
+Linked In is here:
+{linkedin}
