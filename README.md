@@ -52,6 +52,7 @@ which numbers you are asserting from memory.
 
 | `publish-devto.py` | Create, update, list and route dev.to articles over the REST API. Runs the pre-flight first and refuses on a FAIL. Key from `$DEV_TO_API_KEY` or `~/.devto.key`, never argv. |
 | `bodytext.py` | Paragraph unwrapping, in one place. dev.to and Builder Center both render a hard-wrapped source with a break at every wrap. |
+| `make-advocu.py` | **Optional, GDE only.** Prepares an Advocu activity sheet from a published article. Refuses a placeholder or draft URL, and will not invent the reach figure. |
 | `serve-body.py` | Serves an article body on localhost so a browser can copy it into a rich-text editor. Strips the title and subtitle, prints a checksum. |
 
 ## Typical run

@@ -591,6 +591,34 @@ draft** instead of editing the existing piece.
 
 **Never click Publish.** Leave it as a draft and hand back the link.
 
+## Optional: recording the activity in Advocu (GDE only)
+
+**Optional, and unrelated to getting the article out.** `app.advocu.com` is where
+a Google Developer Expert records activities, and it runs *after* publication
+rather than as part of it.
+
+```
+python3 scripts/make-advocu.py <article>.md --reach <n>
+```
+
+MEASURED 2026-09-01. `Add new activity` → `New activity` → `Content creation`
+offers **Generate your activity with AI**, which asks you to *"paste the link to
+the activity you want to add"* — **a URL field, not your post's text** — or a
+**Regular form** with seven fields, of which `Link to Content` is required.
+
+Either way the article has to be **public first**: there is no route that accepts
+prose alone. So Advocu inverts this kit's usual order, where publishing is last.
+`make-advocu.py` fails rather than emitting a sheet with a placeholder, and
+rejects a dev.to `-temp-slug-` URL because that link changes on publish.
+
+**It will not invent the reach figure.** "How many people read your content?" is
+read from dev.to's `page_views_count` when it can be, and otherwise left blank
+with a warning. That number goes into program statistics, where nobody can check
+it against the artifact.
+
+The form has **Save as draft**, so an activity parks like everything else here.
+Field list and the two other activity types are in `references/advocu.md`.
+
 ## House style
 
 Voice, section order, opener and closing formulas live in
