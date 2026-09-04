@@ -341,3 +341,59 @@ el.closest('.graf--title')        // must be null before Ctrl+A
 
 A `Range` avoids the race but does not give the keystrokes the focus they need —
 a synthetic caret did not make `Ctrl+A` clear the body. Click, verify, re-click.
+
+## Builder Center: a WAF silently drops saves whose body matches an attack signature
+
+MEASURED 2026-09-04, and it cost most of a session because every symptom points
+somewhere else. The editor shows **"Failed to save your drafts"**, the body is
+absent after reload, and the request never appears with a status — instrumenting
+`window.fetch` shows the save `PATCH` throwing **`TypeError: Failed to fetch`**
+and being retried three times. That is a network-level drop, not a 503 and not
+an application error, so there is no response body to read.
+
+The give-away is that the app sends **two** PATCHes to the same URL. The small
+metadata one (`versionId`, `heroImageUrl`, `tags`) returns 200; the one carrying
+`markdownDescription.articleMarkdownDescription` is the one dropped. A draft
+whose title and cover save while the body vanishes is this, every time.
+
+**Do not conclude a size limit.** Bodies grew to 1,498 characters with every
+PATCH returning 200, while a single 1,253-character paste was dropped — because
+the *content* differed, not the length. Confirm by replaying the save yourself
+from the page, which needs no auth to be conclusive: a request that reaches the
+server returns **401** (missing the app's own header), one the WAF drops still
+throws `Failed to fetch`.
+
+```js
+const probe = async (text) => {
+  const body = JSON.stringify({ versionId: VID,
+    markdownDescription: { articleMarkdownDescription: text } });
+  try { const r = await fetch(URL, { method:"PATCH", credentials:"include",
+          headers:{ "Content-Type":"application/json" }, body });
+        return r.status; }          // 401 = passed the WAF
+  catch (e) { return "BLOCKED"; }   // never left the browser
+};
+```
+
+Bisect the body with that probe — window it, then shrink from both ends — and it
+names the offending span in about fifteen requests. Two spans did it here, both
+ordinary technical prose:
+
+| what tripped it | why | fix that keeps the meaning |
+|---|---|---|
+| `grep -cE '^    (get\|post\|delete\|head\|put):' irc.yaml` | single-quoted string starting with `^` containing an alternation — a regex-injection signature | use **double quotes**: `"^    (get\|post…):"`. Identical in bash, and identical in Python for `r'...'` → `r"..."` |
+| ``as `open-api/rest-catalog-open-api.yaml` and`` | bare relative path ending `.yaml` — a path-traversal/LFI signature | split it: ``as `rest-catalog-open-api.yaml`, under `open-api/`,`` |
+
+Both rules are scored rather than absolute: the same path passed in isolation and
+was dropped inside its sentence, so **re-probe the whole body after each edit**
+rather than trusting a minimal repro. Windowing all 14 KB in 500-character
+slices takes 29 requests and finds every remaining span.
+
+Nothing else was the cause. The synthetic `ClipboardEvent` from the JS bridge
+**does** update the editor's model and **does** trigger a save — a 290-character
+paste saved through exactly that path. Chunking, real typing and the clipboard
+were all dead ends chased before the WAF was found.
+
+**Verify persistence through the drafts list, never a `?v=` URL.** Those pin a
+version and serve stale content, so a reload of one shows an empty body long
+after the save succeeded. Load `/profile/content?tab=draft`, take the
+`/preview/content/<id>?v=<v>` link it gives, and read that.
