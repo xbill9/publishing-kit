@@ -282,6 +282,28 @@ def main():
     else:
         ok("no hard-wrapped paragraphs")
 
+    # 7b-WAF  SIGNATURES A WEB FIREWALL DROPS ---------------------------------
+    # MEASURED 2026-09-04. AWS Builder Center saves the body through a PATCH that
+    # a WAF drops outright when the body matches an attack signature: the request
+    # throws "Failed to fetch" rather than returning a status, and the editor says
+    # only "Failed to save your drafts". Nothing names the offending text, so this
+    # costs a session to find by bisection. Two spans of ordinary technical prose
+    # did it, both in one article.
+    #
+    # These are WARNs, not FAILs: the rules are scored rather than absolute, the
+    # same span passed in isolation and was dropped inside its sentence, and only
+    # Builder Center is behind this WAF. dev.to takes either form happily.
+    for n, line in enumerate(text.splitlines(), 1):
+        if re.search(r"""(?<![\w"])'\^[^']*\([^']*\|[^']*\)[^']*'""", line):
+            warn(f"line {n}: single-quoted ^-anchored regex with an alternation "
+                 f"reads as a regex-injection signature and is dropped by Builder "
+                 f"Center's WAF; use double quotes -- identical in bash and Python "
+                 f"({line.strip()[:60]})")
+        for m in re.finditer(r"`([\w.-]+/[\w.-]+\.(?:ya?ml|ini|conf|cfg|env))`", line):
+            warn(f"line {n}: `{m.group(1)}` is a bare relative path to a config "
+                 f"file, which reads as a path-traversal signature; split it, e.g. "
+                 f"`file.yaml`, under `dir/`")
+
     # 7c  COUNTS OF THE KIT'S OWN PARTS ---------------------------------------
     # An article about a toolchain that states how many scripts it has is stating
     # a figure the toolchain's own growth invalidates. This drifted three times:

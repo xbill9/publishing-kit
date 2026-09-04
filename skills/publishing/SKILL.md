@@ -61,7 +61,7 @@ draft.
 | --- | --- | --- |
 | **dev.to** | **REST API, and it is complete** — create, update in place, list, and set `organization_id`. No browser, ever. | `published: false` |
 | **Medium** | **Claude Code driving Chrome.** Paste `-hosted.html` into the editor. No publishing API exists. | editor draft |
-| **AWS Builder Center** | **Claude Code driving Chrome.** Chunked injection into the `contenteditable`. No publishing API exists. | autosaved draft |
+| **AWS Builder Center** | **Claude Code driving Chrome.** One JS-bridge paste into the `contenteditable` — chunking is not needed. A WAF drops saves whose body matches an attack signature; see `references/browser-publishing.md`. No publishing API exists. | autosaved draft |
 | **LinkedIn** | API exists, but `PUBLISHED` is the only state accepted on creation, so posting through it *is* publishing. | composer only |
 
 So the browser work is not laziness about reading API docs — for Medium and

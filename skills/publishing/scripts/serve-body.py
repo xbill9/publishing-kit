@@ -11,13 +11,22 @@ is harder than it looks, and three obvious routes are closed:
     character chunk arrived as 3,152. Base64 has no redundancy, so a dropped
     character fails the decode outright.
 
-What works is letting the BROWSER do the copying. `file://` is blocked by the
-Chrome extension, but `http://127.0.0.1` is not:
+What works is `http://127.0.0.1` -- `file://` is blocked by the Chrome extension
+-- carried into the editor through `window.name`, which survives a cross-origin
+navigation. NO CLIPBOARD:
 
     1. python3 serve-body.py article.md
-    2. open the printed URL in a second tab
-    3. Ctrl+A, Ctrl+C there
-    4. click the editor body in the first tab, Ctrl+V
+    2. navigate the tab to the printed URL
+    3. window.name = document.body.innerText   (checksum it; see SKILL.md)
+    4. navigate the same tab to the editor and paste window.name through the
+       JS bridge in references/browser-publishing.md
+
+Do NOT drive this with Ctrl+A/Ctrl+C/Ctrl+V, which earlier revisions of this
+docstring suggested. It overwrites the user's system clipboard -- and MEASURED
+2026-09-04, a Ctrl+C that silently failed to take meant the following Ctrl+V
+pasted the user's existing clipboard contents into their draft, where it
+autosaved. `references/browser-publishing.md` says never to use the clipboard;
+that is the rule.
 
 Zero transcription, and the markdown converts properly on paste -- headings, real
 tables, line-numbered code blocks.
