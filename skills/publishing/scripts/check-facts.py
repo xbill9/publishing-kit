@@ -36,6 +36,11 @@ PATTERNS = [
     (r"\bsha256:[0-9a-f]{8,}\b", "digest"),
     (r"\bsm_\d{2,3}\b|\bSM \d\.\d\b", "arch"),
     (r"\b\d[\d,]*\s*(?:vCPUs?|chips?|GPUs?)\b", "capacity"),
+    # Ratios are the shape most often carried in from memory, and until
+    # 2026-09-07 nothing here matched one: a headline "4.46x" went unextracted
+    # while the run reported "0 untraced" over four latency readings. A ratio is
+    # almost always arithmetic, so tracing it means recording the derivation.
+    (r"\b\d[\d,]*(?:\.\d+)?x\b", "ratio"),
 ]
 
 NUM = re.compile(r"[\d.]+")
