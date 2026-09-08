@@ -37,8 +37,21 @@ Each of these looks like your fix simply did not work.
 ## What works with no effort
 
 Images. Medium fetches them, rehosts at 800px, and takes `<figcaption>` as the
-caption. **The first image in the body becomes the story's cover.** Alt text is
-worth writing — it is the accessible equivalent and it survives.
+caption. **The first image in the body becomes the story's cover.**
+
+**Alt text does NOT survive a paste.** MEASURED 2026-09-08, pasting a hosted
+HTML file whose ten `<img>` each carried a distinct `alt`: every figure in the
+draft came back `alt=""`. The control that makes this mean something is the
+author avatar on the same page, which reads `alt="xbill"` — the test can
+produce a positive, so the ten empties are real. This file previously said alt
+"survives", which holds for **import** and was generalised to paste without
+being checked.
+
+So on the paste route the alt in your HTML buys nothing, and a table rendered
+to PNG reaches Medium with no text at all behind it. Either add the alt in the
+editor by hand (click the image, then the alt button), or accept that the
+Medium copy is less accessible than the dev.to and Builder Center ones, where
+the tables are still real tables.
 
 ## Hard-wrapped source is safe here, unlike dev.to
 
