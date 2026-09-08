@@ -50,6 +50,8 @@ SCALE = 2  # render at 2x for crisp display on high-DPI screens
 # different machine. DejaVu Sans is wide and utilitarian by comparison.
 SANS = "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
 SANS_B = "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"
+SANS_I = "/usr/share/fonts/truetype/liberation/LiberationSans-Italic.ttf"
+SANS_BI = "/usr/share/fonts/truetype/liberation/LiberationSans-BoldItalic.ttf"
 MONO = "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf"
 MONO_B = "/usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf"
 
@@ -79,17 +81,29 @@ def display_width(s: str) -> int:
 
 
 # --------------------------------------------------------------------------
-# inline markdown -> (text, bold, mono) runs
+# inline markdown -> (text, bold, mono, ital) runs
 # --------------------------------------------------------------------------
 
-TOKEN = re.compile(r"(\*\*.+?\*\*|`[^`]+`)")
+# Longest delimiter first: ***x*** before **x** before *x*, or the bold
+# branch swallows a bold-italic and renders its leftover asterisks.
+TOKEN = re.compile(
+    r"(\*\*\*.+?\*\*\*|\*\*.+?\*\*|\*[^*\n]+?\*|_[^_\n]+?_|`[^`]+`)"
+)
 
 # DejaVu has no emoji glyphs and NotoColorEmoji is a 109px-only bitmap font, so
 # emoji inside a rendered table come out as tofu. Strip them; the surrounding
 # words already carry the meaning.
+#
+# The Arrows block (U+2190-U+21FF) is deliberately NOT in this class. It was,
+# and it silently ate the arrow out of every before/after cell -- "5 -> 0"
+# rendered as "5 0", which reads as a measurement rather than as damage. The
+# faces used here (Liberation Sans and Mono, both checked with
+# `fc-list ':charset=2192'`) do have the glyph, so there was never a tofu
+# problem to solve. Emoji-presentation arrows still go, because the variation
+# selector and keycap below are matched in their own right.
 EMOJI = re.compile(
     "[\U0001F000-\U0001FAFF\U00002600-\U000027BF\U0001F1E6-\U0001F1FF"
-    "\U00002190-\U000021FF\U00002B00-\U00002BFF️⃣]+"
+    "\U00002B00-\U00002BFF️⃣]+"
 )
 
 
@@ -98,18 +112,28 @@ def strip_emoji(s: str) -> str:
 
 
 def runs(cell: str):
-    """Split a table cell into styled runs. Handles **bold** and `code`."""
+    """Split a table cell into styled runs.
+
+    Handles **bold**, *italic*, _italic_ and `code`. Italic matters because a
+    cell quoting a source -- a release note, a manual -- is the common case in
+    a comparison table, and an unhandled *...* renders its own asterisks
+    rather than falling back to plain text.
+    """
     out = []
     for part in TOKEN.split(strip_emoji(cell)):
         if not part:
             continue
-        if part.startswith("**") and part.endswith("**"):
-            out.append((part[2:-2], True, False))
+        if part.startswith("***") and part.endswith("***"):
+            out.append((part[3:-3], True, False, True))
+        elif part.startswith("**") and part.endswith("**"):
+            out.append((part[2:-2], True, False, False))
         elif part.startswith("`") and part.endswith("`"):
-            out.append((part[1:-1], False, True))
+            out.append((part[1:-1], False, True, False))
+        elif len(part) > 2 and part[0] == part[-1] and part[0] in "*_":
+            out.append((part[1:-1], False, False, True))
         else:
-            out.append((part, False, False))
-    return out or [(cell, False, False)]
+            out.append((part, False, False, False))
+    return out or [(cell, False, False, False)]
 
 
 # --------------------------------------------------------------------------
@@ -132,24 +156,29 @@ def parse_table(block: list[str]) -> tuple[list[str], list[list[str]]]:
 def render_table(header: list[str], body: list[list[str]], path: Path) -> None:
     fs = 15
     f_reg, f_bold = font(SANS, fs), font(SANS_B, fs)
+    f_ital, f_bi = font(SANS_I, fs), font(SANS_BI, fs)
     f_mono, f_mono_b = font(MONO, fs - 1), font(MONO_B, fs - 1)
     pad_x, pad_y = 14 * SCALE, 10 * SCALE
 
     probe = Image.new("RGB", (1, 1))
     d = ImageDraw.Draw(probe)
 
-    def pick(bold: bool, mono: bool):
+    def pick(bold: bool, mono: bool, ital: bool = False):
         if mono:
+            # no italic mono face is used: a code span reads as code already,
+            # and the oblique makes a narrow column harder to scan
             return f_mono_b if bold else f_mono
+        if ital:
+            return f_bi if bold else f_ital
         return f_bold if bold else f_reg
 
-    def run_w(text: str, bold: bool, mono: bool) -> int:
-        return int(d.textlength(text, font=pick(bold, mono)))
+    def run_w(text: str, bold: bool, mono: bool, ital: bool = False) -> int:
+        return int(d.textlength(text, font=pick(bold, mono, ital)))
 
     def cell_w(cell: str, hdr: bool = False) -> int:
         # header cells render bold, which is wider than the regular face —
         # measure them the way they'll actually be drawn or the last column clips
-        return sum(run_w(t, b or hdr, m) for t, b, m in runs(cell))
+        return sum(run_w(t, b or hdr, m, i) for t, b, m, i in runs(cell))
 
     ncols = len(header)
     grid = [header] + body
@@ -179,8 +208,8 @@ def render_table(header: list[str], body: list[list[str]], path: Path) -> None:
         for ci in range(ncols):
             cell = row[ci] if ci < len(row) else ""
             cx = x + pad_x
-            for text, bold, mono in runs(cell):
-                fnt = pick(bold or is_hdr, mono)
+            for text, bold, mono, ital in runs(cell):
+                fnt = pick(bold or is_hdr, mono, ital)
                 col = MUTED if (mono and not is_hdr and not bold) else FG
                 dr.text((cx, y + pad_y - 1 * SCALE), text, font=fnt, fill=col)
                 cx += int(dr.textlength(text, font=fnt))
