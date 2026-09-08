@@ -38,12 +38,20 @@ DISCLAIMER = ("Any opinions in this article are those of the individual author "
 # the author's style happened to use -- medals and status markers -- which is an
 # allow-list pretending to be a filter: the moment an article used 🐕🍖 they went
 # straight through and landed in the published draft. Match the ranges instead.
+# The Arrows block (U+2190-U+21FF) was in this class and is deliberately not any
+# more. MEASURED 2026-09-08: it deleted all five arrows from one article, leaving
+# a double space behind -- "1,032 -> 151" became "1,032  151" and
+# "39.324 s -> 27.144 s" became "39.324 s  27.144 s". Four of the five were
+# before/after measurements, so the damage reads as a spacing slip rather than as
+# a missing operator, and nothing anywhere reports that a character was removed.
+# Builder Center renders text natively and has no trouble with the glyph. The
+# range was aimed at emoji-presentation arrows, which the variation selector
+# below already catches. make-medium.py had the identical bug.
 EMOJI_RE = re.compile(
     "[" 
     "\U0001F300-\U0001FAFF"   # symbols, pictographs, emoticons, supplemental
     "\U00002600-\U000027BF"   # misc symbols and dingbats
     "\U0001F1E6-\U0001F1FF"   # regional indicators
-    "\U00002190-\U000021FF"   # arrows that render as emoji on some platforms
     "\uFE0F\u20E3"            # variation selector, combining keycap
     "]+", flags=re.UNICODE)
 
