@@ -49,8 +49,28 @@ from bodytext import unwrap
 
 
 def strip_front(text: str) -> str:
-    keep = [ln for ln in text.splitlines()
-            if not (ln.startswith("# ") or ln.startswith("*Subtitle:"))]
+    """Drop the leading H1 and subtitle -- and NOTHING else.
+
+    MEASURED 2026-09-08: matching "# " over every line deleted seven shell
+    comments from inside ```bash fences in one article, including the six that
+    numbered its cheat sheet, while the prose beneath still said "Steps 1
+    through 6". Silent, and visible only by reading the payload. So: track
+    fences, and take the H1 only where a title can actually be -- before any
+    body content.
+    """
+    keep, fenced, seen_body, dropped_h1 = [], False, False, False
+    for ln in text.splitlines():
+        if ln.lstrip().startswith("```"):
+            fenced = not fenced
+        elif not fenced:
+            if not dropped_h1 and not seen_body and ln.startswith("# "):
+                dropped_h1 = True
+                continue
+            if not seen_body and ln.startswith("*Subtitle:"):
+                continue
+            if ln.strip():
+                seen_body = True
+        keep.append(ln)
     return "\n".join(keep).lstrip("\n")
 
 
