@@ -433,7 +433,15 @@ def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = No
 
     base = outdir / f"{slug}.tmp.html"
     subprocess.run(
-        ["pandoc", "-f", "gfm", "-t", "html5", "--standalone",
+        # --no-highlight: MEASURED 2026-09-08. Medium appends an empty code
+        # block after every code block pandoc has syntax-highlighted, and after
+        # none of the plain ones -- 18 of 24 blocks in one article, each a 66px
+        # grey box in the rendered story, confirmed on the draft's own /p/<id>
+        # view rather than assumed. The per-line <span> markup is what triggers
+        # it, and Medium throws that markup away regardless: its editor re-runs
+        # its own language auto-detection on paste. So the highlighting buys
+        # nothing here and costs a gap after most blocks.
+        ["pandoc", "-f", "gfm", "-t", "html5", "--standalone", "--no-highlight",
          "--metadata", f"title={title}", "-o", str(base), str(tmp)],
         check=True,
     )
