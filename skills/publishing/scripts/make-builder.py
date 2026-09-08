@@ -19,8 +19,14 @@ What it adds:
 
   # Title            } stripped again by serve-body.py, because they are
   *Subtitle: ...*    } separate fields -- kept here so the file is self-contained
-  the AWS disclaimer  Required: "Any opinions in this article are those of the
-                      individual author and may not reflect the opinions of AWS."
+What it REMOVES:
+
+  the AWS disclaimer  Builder Center appends it itself, below the tag list, on
+                      every published article. MEASURED 2026-09-08 on two
+                      independently published pieces: with the line also in the
+                      body it renders twice, once at the end of the prose and
+                      once as page chrome. So a copy in the body is duplication,
+                      not compliance, and this strips one if the source has it.
 
 Tables are checked against Builder Center's practical width. MEASURED: seven
 columns get squeezed until cells break mid-token, so more than five warns.
@@ -120,10 +126,14 @@ def convert(src_text, title, subtitle):
     # a row that only ever compared emoji support compares nothing without them
     body = re.sub(r"^\| Emoji \|.*\n", "", body, flags=re.M)
     body = drop_emptied_first_column(body)
+    # Builder Center renders its own disclaimer under the tags, so one in the
+    # body is a second copy rather than the required one. Strip it wherever the
+    # source put it, which also makes a re-run of an already-built file a no-op.
+    body = body.replace(DISCLAIMER, "").rstrip()
     head = f"# {title}\n\n"
     if subtitle:
         head += f"*Subtitle: {subtitle}*\n\n"
-    return head + body.rstrip("\n") + "\n\n" + DISCLAIMER + "\n"
+    return head + body.rstrip("\n") + "\n"
 
 
 def main():
@@ -155,10 +165,11 @@ def main():
     else:
         print(f"  ok    widest table is {cols} columns")
     if DISCLAIMER in text:
-        print("  ok    AWS disclaimer present")
-    else:
-        print("  FAIL  AWS disclaimer missing")
+        print("  FAIL  AWS disclaimer is in the body; Builder Center adds its "
+              "own under the tags, so this one renders as a duplicate")
         fails += 1
+    else:
+        print("  ok    no duplicate AWS disclaimer (the platform adds its own)")
     if text.startswith("# "):
         print("  ok    title and subtitle carried as strippable lines")
     return 1 if fails else 0
