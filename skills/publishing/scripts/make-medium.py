@@ -153,6 +153,25 @@ def parse_table(block: list[str]) -> tuple[list[str], list[list[str]]]:
     return rows[0], rows[1:]
 
 
+def table_alt(header: list[str], body: list[list[str]]) -> str:
+    """Alt text for a table rendered to PNG, built from its own column names.
+
+    A table that becomes an image has no text left for a screen reader, and
+    "table" -- what this used to emit for every one of them -- describes
+    nothing. Medium keeps alt text through import and paste, so it is the only
+    accessible form these tables have. Falls back to the first column's labels
+    when the header row is empty, which is how a transposed table is shaped.
+    """
+    # \u25cf is demoji()'s stand-in for a medal; it is a visual marker in the
+    # rendered table and pure noise read aloud, so it does not belong in alt.
+    clean = lambda c: re.sub(r"[`*\[\]\u25cf]", "", c).strip()
+    cells = [clean(c) for c in header if clean(c)]
+    if not cells:
+        cells = [clean(r[0]) for r in body[:4] if r and clean(r[0])]
+    label = ", ".join(cells)
+    return f"Table: {label}"[:180] if label else "table"
+
+
 def render_table(header: list[str], body: list[list[str]], path: Path) -> None:
     fs = 15
     f_reg, f_bold = font(SANS, fs), font(SANS_B, fs)
@@ -420,7 +439,7 @@ def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = No
             n_tab += 1
             name = f"{slug}-table-{n_tab}.png"
             render_table(hdr, body, imgdir / name)
-            out += ["", f"![table](img/{name})", ""]
+            out += ["", f"![{table_alt(hdr, body)}](img/{name})", ""]
             i = j
             continue
 
@@ -466,8 +485,15 @@ def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = No
                                 f'alt="{html.escape(title)}" /></figure>', 1)
 
     # pandoc repeats the title in a header block; Medium supplies its own.
-    h = h.replace('<header id="title-block-header">',
-                  '<header id="title-block-header" hidden>')
+    #
+    # MEASURED 2026-09-08: hiding it is not enough. This used to add hidden to
+    # the header and leave the <h1> in place, on the assumption that Medium
+    # honours the attribute. It does not -- the paste handler reads the markup,
+    # not the rendering, so the h1 arrived as a body heading and the story
+    # carried its own title twice, once as the real title and once as a heading
+    # under the cover. Removing it by hand afterwards costs a real click and 73
+    # backspaces, because Medium discards DOM edits. Strip the block instead.
+    h = re.sub(r'<header id="title-block-header".*?</header>\s*', "", h, flags=re.S)
     if desc:
         h = h.replace("</title>",
                       "</title>\n  <meta name=\"description\" content=\"%s\" />"
