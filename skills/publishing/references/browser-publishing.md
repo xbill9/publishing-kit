@@ -34,10 +34,16 @@ destroyed a clipboard mid-session.
 
 Inject through the JS bridge instead. It never touches the clipboard:
 
+**Pick the editor by what it is, not by its position.** MEASURED 2026-09-08 on
+Medium: `[contenteditable="true"]` returns two nodes, and the last is a hidden
+100x100 div parked at `x=-9999`. `eds[eds.length - 1]` — which this file used to
+recommend — pastes into that and reports success, because `dispatchEvent` returns
+the same `false` either way. Select the real editor, and assert it is on screen:
+
 ```js
 const md = new TextDecoder().decode(Uint8Array.from(atob(b64), c => c.charCodeAt(0)));
-const eds = [...document.querySelectorAll('[contenteditable="true"]')];
-const ed = eds[eds.length - 1];
+const ed = document.querySelector('.postArticle-content[contenteditable="true"]');
+if (!ed || ed.getBoundingClientRect().width < 200) throw new Error("not the body editor");
 ed.focus();
 const dt = new DataTransfer();
 dt.setData('text/plain', md);
@@ -93,10 +99,29 @@ after a reload is.
 ### Pasting inserts empty blockquotes
 
 A paste that contains a blockquote arrives with **empty blockquotes wrapped around
-the real one** — 3 empties around 1 real, in the measured case. Unlike the
-importer's empty code blocks (which do not render publicly), these show as blank
+the real one** — 3 empties around 1 real, in the measured case. These show as blank
 quoted gaps. Count blockquotes against the source and delete the empties with the
 click-and-Backspace route above.
+
+### Pasting inserts empty code blocks, and they DO render
+
+MEASURED 2026-09-08. A 24-code-block article pasted as 42 blocks, 18 of them
+empty. **This file previously said empty code blocks do not render publicly. They
+do** — 66px grey boxes, confirmed on the draft's own `/p/<id>` view, which renders
+a draft as a story without publishing it and is the cheapest way to settle any
+"does this show up?" question here.
+
+The trigger is pandoc's syntax highlighting: every block it wrapped in
+`div.sourceCode` with per-line `<span>`s got a trailing empty block, and the six
+plain blocks in the same article got none. `make-medium.py` now passes
+`--no-highlight`, which costs nothing because Medium discards that markup and
+re-runs its own language detection on paste — the published story is syntax
+coloured either way.
+
+**The general lesson is the one this kit keeps relearning: check the rendered
+view, not the editor.** The editor decorates an empty code block with an
+`Auto (TypeScript)` label, so its `innerText` is not empty and a naive
+"is it blank?" test in the editor misses all 18.
 
 ### Re-pasting over an existing draft
 
