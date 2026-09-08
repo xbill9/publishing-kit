@@ -303,6 +303,69 @@ def demote_headings(lines: list[str]) -> list[str]:
     return out
 
 
+# --------------------------------------------------------------------------
+# Medium's paste handler and code blocks
+# --------------------------------------------------------------------------
+
+# MEASURED 2026-09-08, pasting a 38-code-block article: the draft came back with
+# 64 code blocks, 19 of them empty. Medium inserts an empty code block wherever
+# two code blocks are adjacent, and splits one code block into several at any
+# blank line -- adding an empty block at each split. Neither is visible in the
+# HTML you hand it, and an empty code block is a grey gap in the published story.
+#
+# Both are worth fixing here rather than in the article, because both are
+# artefacts of Medium's editor and neither reproduces on dev.to or Builder
+# Center. In particular "command, then its output" -- two adjacent fenced blocks
+# -- is the house style's dominant shape, so this fires on almost every article.
+
+# A code block as pandoc emits it, highlighted (wrapped in div.sourceCode) or not.
+_PRE_PAIR = re.compile(
+    r"(?P<open>(?:<div[^>]*>)?<pre[^>]*><code[^>]*>)"
+    r"(?P<a>.*?)</code></pre>(?P<adiv></div>)?\s*"
+    r"(?:<div[^>]*>)?<pre[^>]*><code[^>]*>"
+    r"(?P<b>.*?)</code></pre>(?P<bdiv></div>)?",
+    re.S,
+)
+
+def merge_adjacent_code(h: str) -> str:
+    """Join code blocks with nothing between them into one block.
+
+    Medium would otherwise put an empty code block in the gap. Merging is the
+    honest rendering as well: on Medium a command block and its output block
+    are two identical grey boxes with no language label between them, so one
+    box reading like a terminal transcript loses nothing.
+    """
+    while True:
+        m = _PRE_PAIR.search(h)
+        if not m:
+            return h
+        merged = (m.group("open") + m.group("a") + "\n" + m.group("b")
+                  + "</code></pre>" + (m.group("adiv") or ""))
+        h = h[:m.start()] + merged + h[m.end():]
+
+
+def protect_blank_lines(lines: list[str]) -> list[str]:
+    """Stop Medium splitting one code block at its blank lines.
+
+    A blank line inside a fence is a paragraph break to Medium's paste handler,
+    which ends the code block and starts another with an empty one in between.
+    A line holding a single space is not, and is invisible in a monospace block.
+
+    This runs on the markdown, not on pandoc's HTML: a blank line inside a
+    highlighted block comes out of pandoc as a `<span>` carrying a line anchor,
+    so there is no blank line left in the HTML to find. An earlier version of
+    this looked for one and silently matched nothing.
+    """
+    out, fenced = [], False
+    for line in lines:
+        if line.lstrip().startswith("```"):
+            fenced = not fenced
+            out.append(line)
+            continue
+        out.append(" " if (fenced and not line.strip()) else line)
+    return out
+
+
 def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = None) -> Path:
     text = src.read_text()
 
@@ -321,7 +384,7 @@ def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = No
     imgdir = outdir / "img"
     imgdir.mkdir(parents=True, exist_ok=True)
 
-    lines = demote_headings(text.split("\n"))
+    lines = protect_blank_lines(demote_headings(text.split("\n")))
     out: list[str] = []
     n_tab = n_dia = 0
     i = 0
@@ -378,6 +441,9 @@ def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = No
 
     h = base.read_text()
     base.unlink()
+
+    # Medium inserts an empty code block between two adjacent ones
+    h = merge_adjacent_code(h)
 
     # MEDIUM MAKES THE FIRST IMAGE IN THE BODY THE STORY COVER. Without this the
     # cover becomes whatever table happened to render first -- a screenshot of a
