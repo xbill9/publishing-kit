@@ -100,3 +100,15 @@ Two details worth knowing before writing the next one:
   card; this one, several minutes after sending, had none for any of the four
   URLs. Whether that is the domains, the workspace, or just timing is not
   established — do not promise an author that their links will preview.
+
+**Updated 2026-09-09: a card did appear on the next post.** Same channel, same
+four destinations, same shape. The unfurl rendered the article's `og:image` —
+the dev.to cover, served from `raw.githubusercontent.com` — as a full-width
+preview under the message, and the post had four reactions within minutes.
+
+So the two runs disagree, which settles less than it looks. Both had the same
+domains and the same workspace, so those are ruled out as the explanation and
+timing or Slack-side caching is not. **The rule stands: do not promise an author
+a preview.** What is now established is only that a preview is *possible* here,
+and that when it comes it is the cover image rather than a title-and-blurb card
+— which is one more reason the cover is worth generating properly.
