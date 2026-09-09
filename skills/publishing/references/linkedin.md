@@ -188,3 +188,68 @@ one-line probe before committing the full payload.
 
 **Stop at the composer.** The Post button goes to a network and there is no draft
 state the API can reach afterwards. Read the post back and let a person press it.
+
+## The shape that actually gets posted
+
+MEASURED 2026-09-09, by diffing what `make-linkedin.py` emitted against the post
+that went out. The generator produced title + description + five labelled links.
+Every difference below was a change the author made by hand, which makes them
+template gaps rather than taste:
+
+| Generated | Posted |
+| --- | --- |
+| Opens with the article title | Opens with a **personal hook and a question** — "More Claude Code adventures. / I got Claude to answer a question that nobody bothered to ask. / What is really in those cloud Debian images?" The title never appears. |
+| One dense description paragraph | **Four short paragraphs**, one idea each, blank line between |
+| Five links, each labelled | **Three** — dev.to, AWS Builder Center, Medium. The repo and the second dev.to copy were dropped |
+| Links labelled by community (`dev.to (Google Developer Experts)`) | One `dev.to:` label, link on the **next line**, not the same line |
+| No hashtags | **`#debian #Claude #sysinternals #drivers`**, last line |
+
+`make-slack.py` and `make-gchat.py` both take `--hashtags`; LinkedIn is the only
+generator in the kit that emits none, and it is the destination where they matter
+most. **Closing that gap is a script change, not a template edit** —
+`make-linkedin.py` substitutes exactly four placeholders (`{hook}`,
+`{description}`, `{bullets}`, `{links}`), so a `{hashtags}` in the template would
+render literally. It needs the placeholder and a `--hashtags` flag to match the
+other two generators.
+
+Target shape once it does:
+
+```
+<hook line — a person, not a title>
+<the question the article answers>
+
+<3-4 short paragraphs, one idea each>
+
+Write ups are here:
+
+<label>:
+<url>
+
+#tags #last
+```
+
+## LinkedIn rewrites every URL to lnkd.in
+
+MEASURED 2026-09-09. The composer took five full URLs; the published post carries
+`https://lnkd.in/<code>` for each. The rewrite happens on posting, not on paste,
+and applies whatever you put in.
+
+Two consequences. A checker that compares posted links against the source will
+report a mismatch on a post that is perfectly correct — compare **redirect
+targets**, not strings. And the shortener hides the destination from the reader,
+so the label above each link is doing all the work of telling them where it goes.
+
+## The link keys in `links.txt` are fixed
+
+MEASURED 2026-09-09, at the cost of one refused run. `make-linkedin.py` renders
+from a known key list and **drops anything else**, failing with `link key(s) not
+in the render order`. The keys are:
+
+```
+devto-gde   devto-aws   builder   medium   repo
+```
+
+Human-readable keys (`Builder Center = …`, `Dev.to (GDE) = …`) look right, parse
+fine, and fail the render. The labels the post displays come from the renderer,
+not from the key — which is also why the two dev.to links come out named by
+community without anyone spelling that out.

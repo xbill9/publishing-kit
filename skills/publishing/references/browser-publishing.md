@@ -91,6 +91,19 @@ after a reload is.
 - **Deleting an empty block:** click into it, `Backspace` twice — the first strips
   the block format, the second removes the now-empty paragraph. Work bottom-up so
   earlier positions do not shift.
+  **Two Backspaces do not mean one block.** MEASURED 2026-09-09: on a paste with
+  3 empty blockquotes around 1 real one, the first click-plus-two-Backspaces took
+  the count 4 -> 2, removing *both* trailing empties. Repeating it on the last
+  empty took 2 -> 0 and ate the **real** blockquote too, stripping its format and
+  merging its text into the preceding paragraph — `its place:IMPORTANT: check…`
+  with no break. Nothing was lost, but the fix is a second edit. **Re-count after
+  every Backspace pair rather than assuming one pair removes one block**, and stop
+  as soon as the empties are gone.
+- **Re-splitting a paragraph the Backspace merged:** click at the boundary, assert
+  the caret with `getSelection()` (`before` should end with the first paragraph,
+  `after` be empty at a node edge), then `Return`. To restore blockquote format,
+  triple-click the paragraph and click the `"` button in the floating toolbar.
+  Both survive a reload.
 - **Changing one word:** get the character's rect from a `Range`, click at its
   right edge, confirm the caret with `getSelection().anchorOffset` and the
   surrounding text, then type. Do not double-click a one- or two-letter word — at
@@ -136,7 +149,9 @@ Import cannot update a draft, but paste can, and it keeps the id and the link:
    and leaves the caret in the body.
 4. Dispatch the paste with `text/html` only.
 5. Audit: landmark counts (opening, summary heading, closing line = 1 each), image
-   count and that each `src` is re-hosted (`miro.medium.com` / `0*`), heading level,
+   count and that each `src` is re-hosted (`cdn-images-1.medium.com/max/800/0*` in the
+   2026-09-09 run, `miro.medium.com` elsewhere — match on the `0*` segment, not the
+   host), heading level,
    multi-line code blocks, then **reload and audit again**.
 
 ## Medium
@@ -177,11 +192,22 @@ than assuming.
 
 ### After publishing, the story moves to a subdomain
 
-The published URL is `<user>.medium.com/<slug>-<id>`, a different origin from
+The published URL is `<handle>.medium.com/<slug>-<id>`, a different origin from
 `medium.com` — so the extension's per-domain permissions may not cover it, and
 `screenshot` / `javascript_tool` start failing there while `get_page_text` still
 works. Medium also answers `curl` with **403**, so verify the published article
 with `get_page_text` in the browser, not from the shell.
+
+The `<handle>` is Medium's, not the dev.to or GitHub username, and they need not
+match — the 2026-09-09 run published as `xbill999.medium.com` from an account
+whose dev.to handle is `xbill`. Do not construct the published URL by hand; read
+it back from the tab.
+
+**Confirmed 2026-09-09, and worth naming as a success signal:** the screenshot
+immediately after clicking Publish failed with `Permission denied for this action
+on this domain`. That error *is* the confirmation — it means the tab already moved
+to the subdomain. Call `tabs_context_mcp` for the new URL rather than treating it
+as a failed publish.
 
 ## AWS Builder Center: check you are signed in first
 
@@ -225,6 +251,38 @@ stay readable while signed out, so verifying a *published* piece still works.
   Escape and click elsewhere to dismiss it.
 - It autosaves — "Saved to your drafts", no save button.
 
+### Auditing a Builder Center paste: there are no `<pre>` elements
+
+MEASURED 2026-09-09. A clean paste of a 9-code-block article reports
+`querySelectorAll('pre').length === 0`, which reads as total loss of every code
+block. The blocks are all there. Builder Center renders them in its own widget:
+
+```
+div._code-snippet_  >  div._flex_  >  div._code-snippet-container_  >
+  code.awsui_code-variant
+```
+
+So audit code by counting `code` elements whose text contains a newline, not by
+counting `pre`. In that run: **9 multiline `code`** (the 9 fenced blocks) and
+**133 single-line `code`** (the inline backticked identifiers), and the published
+preview showed them with line numbers and syntax colouring.
+
+Tables *do* arrive as real `<table>` — 4 tables, 39 `<tr>` in the same run — so
+the table half of the audit works as written.
+
+### `window.name` is safe for a Builder Center draft in progress
+
+MEASURED 2026-09-09. The payload route needs a same-origin hop to localhost and
+back, which means navigating away from a half-filled draft. That is safe here,
+against the `/create/content/<id>?v=<v>` URL the editor is already on: the title
+(118 chars) and description (353) were both intact on return, the draft id was
+unchanged, and `window.name` still held all 18,405 characters.
+
+The `/create/content/<id>` warning elsewhere in this kit is about editing an
+**already-published** article. It does not apply to a draft you are still filling.
+Verify anyway — read the field lengths back before pasting, since the cost of
+being wrong is a duplicate article.
+
 ### Publishing runs a gate, and the first click is usually swallowed
 
 Publish from the draft's own **preview** page (`/preview/content/<id>?v=<v>`, which the
@@ -244,6 +302,69 @@ about that button, MEASURED 2026-08-30:
 It is what the `/create/content/<id>` trap leaves behind, and it is a full copy of the
 article with its own id, so nothing about it looks broken from the drafts list. Compare
 ids before touching either: the published piece and its orphan differ only in id.
+
+## The screenshot is not in CSS pixels, and the gap is silent
+
+MEASURED 2026-09-09 on Medium. `window.innerWidth` was **1673**; screenshots come
+back **1568** wide. Every coordinate a `Range.getBoundingClientRect()` hands you is
+in CSS pixels and lands ~6% right of where you meant. Three clicks in a row hit the
+wrong text node — a double-click aimed at `IMPORTANT` selected `sbin` twelve
+characters away — and each one *looked* like a normal miss rather than a systematic
+offset, which is what made it expensive.
+
+Two rules, and the second is the one that actually saves time:
+
+- If you must use a JS-derived coordinate, scale it: `x * (screenshotWidth /
+  window.innerWidth)`. Measure the factor, never assume 1.
+- **Prefer reading the coordinate off the screenshot.** The click that finally
+  worked came from looking at the rendered page and picking the boundary by eye.
+  A `Range` rect is the right tool for deciding *what* to click and the wrong one
+  for deciding *where*.
+
+The same session's Builder Center clicks all landed first time, because those
+coordinates were read from screenshots throughout.
+
+## Medium's Publish button also swallows the first click
+
+MEASURED 2026-09-09. Documented above for Builder Center; it is true on Medium too.
+The first click on `Publish` scrolled the page to the top and opened nothing. The
+second, on the same element, opened the story-preview dialog. Judge by the dialog,
+never by the click result — and re-screenshot before the second click, because the
+first one moves the button.
+
+## Medium's topic picker: clicking a suggestion does nothing
+
+MEASURED 2026-09-09. Typing `Linux` in the story-preview dialog's topic field
+raises a suggestion list (`Linux (16.7K)`, `Linux Tutorial (2.3K)`, …). **Clicking
+a row does not add a chip** — tried twice, at the text and at the row centre, and
+the field stayed on its `Add a topic...` placeholder both times. What works is
+**type, wait, `ArrowDown`, `Return`**. The placeholder then flips to
+`Add more topics...`, which is the acceptance signal to check.
+
+Clicking a suggestion also *drops focus* — `document.activeElement.placeholder`
+reads `NONE` afterwards — which is how a stray keystroke reaches the page and the
+paywall/notify checkboxes. The keyboard route keeps focus in the field for the
+next topic.
+
+## An assertion inside a batch cannot gate the batch
+
+MEASURED 2026-09-09, and it is the mechanism behind the checkbox hazard above.
+Batching `click → assert focus → type` runs the type **whatever the assertion
+returned**; the assertion is a log line, not a guard. The run that produced this
+note asserted `placeholder: NONE` and typed `Debian` into the page anyway. The
+checkboxes survived by luck.
+
+Put the assertion in its own call and read it before sending the keystrokes.
+
+## A domain the tab has not visited fails inside a batch, not standalone
+
+MEASURED 2026-09-09. `navigate` to `medium.com` inside a `browser_batch` returned
+`Navigation to this domain is not allowed` and stopped the batch. The identical
+navigate, called standalone, succeeded immediately. The per-item permission check
+runs ahead of the batch and cannot prompt.
+
+This reads exactly like a missing site permission and is not one. **Retry
+standalone before telling the user to grant anything.**
 
 ## Free the browser when you are done
 
