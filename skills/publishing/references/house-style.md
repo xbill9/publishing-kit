@@ -66,6 +66,21 @@ between compared runs. State it once and stop.
   of AWS."* under the tags, so a copy in the body shows twice. `make-builder.py`
   strips it.
 
+## Medium publish settings
+
+The author's defaults for Medium's publish dialog, stated 2026-09-10:
+
+| Setting | Author's default | Medium's default |
+|---|---|---|
+| **Paywall this story** | **off** | on |
+| **Notify your subscribers** | **on** | on |
+
+The paywall stays off because the same article is free on dev.to. Set both
+deliberately and read them back before clicking Publish — the dialog hydrates
+late and a stray keystroke toggles them (`browser-publishing.md`). Notify is
+the author's choice, but it still sends an email that cannot be recalled, so
+publishing waits for an explicit go.
+
 ## Per-destination differences
 
 | | dev.to | Builder Center | Medium | LinkedIn |
