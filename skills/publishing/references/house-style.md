@@ -61,8 +61,10 @@ between compared runs. State it once and stop.
 
 - **dev.to:** *"The strategy for using MCP for … was validated with an incremental
   step by step approach."* The grammar is the author's. Keep it.
-- **AWS Builder Center:** *"Any opinions in this article are those of the individual
-  author and may not reflect the opinions of AWS."* Required.
+- **AWS Builder Center:** none of your own. The platform appends *"Any opinions in
+  this article are those of the individual author and may not reflect the opinions
+  of AWS."* under the tags, so a copy in the body shows twice. `make-builder.py`
+  strips it.
 
 ## Per-destination differences
 

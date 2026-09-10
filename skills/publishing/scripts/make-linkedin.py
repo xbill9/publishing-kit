@@ -283,6 +283,10 @@ def main():
                     a.bullets_from = ln.split("=", 1)[1].strip()
     links = read_links(src.parent / a.links if not pathlib.Path(a.links).is_absolute()
                        else a.links, a.url)
+    # "linkedin" is this post's own URL, which make-slack.py and make-gchat.py read
+    # out of the same links.txt. A post cannot link to itself and the URL does not
+    # exist until it is posted, so the key is neither rendered nor required here.
+    links.pop("linkedin", None)
     out = pathlib.Path(a.out) if a.out else src.parent / f"linkedin-{src.stem}.txt"
 
     print(f"\n{src.name} -> {out.name}")

@@ -215,7 +215,7 @@ python3 scripts/make-cover.py --out devto-cover.jpg --mode devto \
 
 ```
 wrote devto-cover.6d805f0f.jpg  1376x578   84 KB
-cover_image: https://.../devto-cover.0d021e90.jpg
+cover_image: https://.../devto-cover.6d805f0f.jpg
 ```
 
 A hashed name is a URL nothing has cached, and the old file stays put so published
@@ -321,8 +321,7 @@ nothing about the state change; only `--list` shows it. **After updating anythin
 already live, re-run `--publish <id>` and confirm with `--list`.** The slug and
 the id survive, so links keep working once it is back.
 
-It reads the key from `$DEV_TO_API_KEY` or `~/.devto.key` and never takes it on the
-command line. Front matter is part of `body_markdown`, so title, tags and
+Front matter is part of `body_markdown`, so title, tags and
 `cover_image` all transfer — no field-filling, no cover upload, no title retyping.
 `--update` rewrites those too, and does not change the slug of an already-published
 article, so existing links survive.
@@ -492,8 +491,10 @@ a Google property finds nothing.
   image conversion needed; code shows with line numbers.
 - The editor **autosaves** — a "Saving…" indicator, no save button.
 - **No emoji** in the house style there.
-- **Required closing line:** *"Any opinions in this article are those of the
-  individual author and may not reflect the opinions of AWS."*
+- **No AWS disclaimer in the body.** Builder Center renders *"Any opinions in
+  this article are those of the individual author…"* itself, under the tag list,
+  on every published article (MEASURED 2026-09-08 on two live pages). A copy in
+  the body shows twice; `make-builder.py` strips it and fails if one remains.
 
 Tags are a searchable fixed vocabulary, not free text — you pick from their list.
 `amazon-ec2`, `generative-ai`, `cost-optimization`, `graviton` and `python` exist;
@@ -525,23 +526,16 @@ twice, and nothing anywhere reported a failed copy.
 
 **The route that works — fully automated, self-verifying, no clipboard:**
 
-1. **Inject the text in chunks through the JS bridge**, JSON-escaped so you
-   control the escaping, appending to one variable and **checking the cumulative
-   length after every chunk**:
+1. **Carry the payload in with `window.name`.** It survives a cross-origin
+   navigation in the same tab, so load the body same-origin from `serve-body.py`
+   on localhost, stash it in `window.name`, navigate that tab to the editor, and
+   set `window.__p = window.name` there. One step, no size limit to work around:
+   18,405 characters held across a Builder Center draft, 34,715 into Medium. The
+   code is in `references/browser-publishing.md`.
 
-   ```js
-   window.__p = (window.__p || "") + "<json-escaped chunk>";
-   window.__p.length            // must equal the expected running total
-   ```
-
-   ~1400 characters per chunk. A mismatch means characters were dropped — redo
-   that chunk. Never proceed past a mismatch.
-
-   **There is a better route when you can navigate the tab:** `window.name`
-   survives a cross-origin navigation, so load the payload same-origin from
-   localhost, stash it there, then navigate to the editor and read it back. 34,715
-   characters carried into Medium intact with no chunk loop at all. See
-   `references/browser-publishing.md`.
+   Only if you cannot navigate the tab, fall back to appending JSON-escaped
+   ~1400-character chunks to `window.__p`, checking the cumulative length after
+   every one and never proceeding past a mismatch.
 
 2. **Verify the whole payload before using it.** Checksum it in the page and
    compare against the same computed locally. Use a NUMERIC checksum: a hex or

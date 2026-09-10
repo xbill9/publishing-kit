@@ -27,20 +27,32 @@ import sys
 
 # Claims worth tracing. Ordinary prose numbers ("three reasons", "two platforms")
 # are excluded by the shape of these patterns rather than by a stop-list.
+#
+# Each pattern carries an example it must match: the positive control. main()
+# refuses to run if any pattern misses its own example, because a zero from a
+# pattern that cannot fire is not a result.
 PATTERNS = [
-    (r"\$\s?\d[\d,]*\.?\d*", "price"),
-    (r"\b\d[\d,]*\.\d+\s*(?:tok/s|tokens/s|GB/s|GiB/s|MB/s|ms|s\b|%)", "measurement"),
-    (r"\b\d[\d,]{2,}\s*(?:tokens?|MiB|GiB|GB|MB|bytes|B)\b", "quantity"),
-    (r"\bv?\d+\.\d+\.\d+(?:rc\d+)?(?:\.dev\d+)?\b", "version"),
-    (r"\b(?:ami|i|subnet|sg|vol|snap)-[0-9a-f]{8,}\b", "cloud-id"),
-    (r"\bsha256:[0-9a-f]{8,}\b", "digest"),
-    (r"\bsm_\d{2,3}\b|\bSM \d\.\d\b", "arch"),
-    (r"\b\d[\d,]*\s*(?:vCPUs?|chips?|GPUs?)\b", "capacity"),
+    (r"\$\s?\d[\d,]*\.?\d*", "price", "$0.42"),
+    (r"\b\d[\d,]*\.\d+\s*(?:tok/s|tokens/s|GB/s|GiB/s|MB/s|ms|s\b|%)", "measurement",
+     "73.75 tok/s"),
+    (r"\b\d[\d,]{2,}\s*(?:tokens?|MiB|GiB|GB|MB|bytes|B)\b", "quantity", "15,360 MiB"),
+    (r"\bv?\d+\.\d+\.\d+(?:rc\d+)?(?:\.dev\d+)?\b", "version", "v0.26.0"),
+    (r"\b(?:ami|i|subnet|sg|vol|snap)-[0-9a-f]{8,}\b", "cloud-id", "ami-0abc1234def56789"),
+    (r"\bsha256:[0-9a-f]{8,}\b", "digest", "sha256:6d805f0f"),
+    (r"\bsm_\d{2,3}\b|\bSM \d\.\d\b", "arch", "sm_75"),
+    (r"\b\d[\d,]*\s*(?:vCPUs?|chips?|GPUs?)\b", "capacity", "8 vCPUs"),
     # Ratios are the shape most often carried in from memory, and until
     # 2026-09-07 nothing here matched one: a headline "4.46x" went unextracted
     # while the run reported "0 untraced" over four latency readings. A ratio is
     # almost always arithmetic, so tracing it means recording the derivation.
-    (r"\b\d[\d,]*(?:\.\d+)?x\b", "ratio"),
+    (r"\b\d[\d,]*(?:\.\d+)?x\b", "ratio", "4.46x"),
+    # Until 2026-09-10 none of these four matched, and this kit's own article --
+    # whose headline facts are "47 of 62", "1376x768", "95px" and "2.381:1" --
+    # reported "0 claim(s), 0 untraced".
+    (r"\b\d+(?:\.\d+)?:1\b", "ratio", "2.381:1"),
+    (r"\b\d+ of \d+\b", "count", "47 of 62"),
+    (r"\b\d{2,5}x\d{2,5}\b", "dimensions", "1376x768"),
+    (r"\b\d+(?:\.\d+)?\s?px\b", "pixels", "95px"),
 ]
 
 NUM = re.compile(r"[\d.]+")
@@ -92,8 +104,15 @@ def main():
         exempt += [ln.strip() for ln in ig.read_text().splitlines()
                    if ln.strip() and not ln.startswith("#")]
 
+    broken = [(kind, ex) for pat, kind, ex in PATTERNS if not re.search(pat, ex)]
+    if broken:
+        for kind, ex in broken:
+            print(f"  FAIL  {kind} pattern does not match its own control {ex!r}")
+        print("\nA pattern that cannot match its control cannot report a claim. Fix it.")
+        return 1
+
     claims = {}
-    for pat, kind in PATTERNS:
+    for pat, kind, _ in PATTERNS:
         for m in re.finditer(pat, prose):
             c = re.sub(r'\s+', ' ', m.group(0)).strip()
             if any(e in c for e in exempt):
