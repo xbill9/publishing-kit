@@ -133,9 +133,29 @@ block — 𝗕𝗢𝗟𝗗 built from U+1D400–U+1D7FF. A screen reader announc
 points individually or skips them, so the headline becomes the least readable part
 of the post. `make-linkedin.py` fails the run if any appear.
 
+## The post carries the article's cover
+
+`make-linkedin.py` writes `linkedin-<stem>-cover.jpg` beside the post text, made
+from the article's own cover: `--cover FILE`, else the local file named by
+`cover_image:`, else a `builder-cover*` beside the article. **No cover found is a
+FAIL**, so a text-only post cannot go out by accident; `--no-cover` opts out.
+
+It is **1200x627 (1.91:1)** — LinkedIn's usual landscape image-share size, taken
+from its image guidance and third-party consensus, **not measured on a live
+post**. The cover is fitted and padded with its own border colour, never
+cropped: the dev.to cover is 2.381:1 with the title drawn into it, and a centre
+crop cuts the lettering.
+
+Attach it in the composer with the image button, which takes a file upload. In a
+driven browser that means `find` the composer's `input[type=file]` and use
+`file_upload` with its ref — never click the button, which opens a native picker.
+An uploaded image replaces LinkedIn's link-preview card for the first URL, which
+is the point: the preview card would otherwise show whatever `og:image` the first
+link's host serves.
+
 ## What the generator checks
 
-Five, and it exits non-zero on any of them:
+Six, and it exits non-zero on any of them:
 
 1. Every link resolves. A `PENDING` value is carried into the file as a visible
    placeholder **and** fails, so a post with an unpublished link cannot go out.
@@ -143,6 +163,8 @@ Five, and it exits non-zero on any of them:
 3. The post fits the limit.
 4. No markdown survives — `**`, `](`, backticks, `##`.
 5. No Unicode pseudo-bold.
+6. The article's cover is found and written as `linkedin-<stem>-cover.jpg`
+   (unless `--no-cover`).
 
 Two dev.to articles routed to two organizations are two different URLs. Label them
 distinctly, or the post shows the same word against two links.

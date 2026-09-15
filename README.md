@@ -48,7 +48,7 @@ which numbers you are asserting from memory.
 | `check-facts.py` | Fact-tracing against evidence files. Exits non-zero on untraced claims. `.factsignore` records deliberate exemptions with reasons. |
 | `make-medium.py` | Tables and diagrams to PNG, emits `-embed.html` (paste) and `-hosted.html` (import). |
 | `make-cover.py` | Cover images. `--mode devto` (1376x578, the 2.381:1 dev.to actually displays) and `--mode builder` (1200x675, text-free per AWS guidance). `--content-address` names the file by a hash of its bytes, because dev.to proxies the cover URL rather than re-hosting it. |
-| `make-linkedin.py` | LinkedIn post draft with links. `--bullets-from` names the section its bullets come from. |
+| `make-linkedin.py` | LinkedIn post draft with links, plus `linkedin-<stem>-cover.jpg`: the article's cover fitted (never cropped) to 1200x627 for the post's image. Fails when no cover is found; `--cover FILE` overrides, `--no-cover` opts out. `--bullets-from` names the section its bullets come from. |
 
 | `publish-devto.py` | Create, update, list and route dev.to articles over the REST API. Runs the pre-flight first and refuses on a FAIL. Key from `$DEV_TO_API_KEY` or `~/.devto.key`, never argv. |
 | `bodytext.py` | Paragraph unwrapping, in one place. dev.to and Builder Center both render a hard-wrapped source with a break at every wrap. |

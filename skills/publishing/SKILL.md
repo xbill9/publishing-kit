@@ -510,7 +510,10 @@ python3 scripts/make-linkedin.py devto-<slug>.md --api
 ```
 
 It reads `links.txt` beside the article — `key = url`, one per line — and writes
-`linkedin-<slug>.txt`. Five checks, exits non-zero:
+`linkedin-<slug>.txt`, plus **`linkedin-<slug>-cover.jpg`** — the article's own
+cover fitted to 1200x627 for the post's image, attached in the composer as an
+upload. A missing cover fails the run (`--no-cover` opts out). Six checks, exits
+non-zero:
 
 1. **Every link resolves.** `PENDING` is written into the file as a visible
    placeholder *and* fails the run, so a post with an unpublished link cannot go
@@ -520,6 +523,8 @@ It reads `links.txt` beside the article — `key = url`, one per line — and wr
 4. **No markdown survives.** LinkedIn renders none of it.
 5. **No Unicode pseudo-bold.** Screen readers cannot read U+1D400–U+1D7FF, so the
    headline becomes the least readable part of the post.
+6. **The cover is found and written.** Fitted and padded, never cropped, so
+   lettering drawn into the cover survives the change of ratio.
 
 **Post text takes no formatting.** The `commentary` field is LinkedIn's `little`
 format, whose whole element set is text, mentions and hashtags. No bold, no

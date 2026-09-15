@@ -72,12 +72,39 @@ standalone.
 `links.txt` is `key = url`, one per line, `#` comments. A value of PENDING is
 carried into the output as a visible placeholder AND fails the run, so a draft
 with an unpublished link in it cannot be posted by accident.
+
+THE COVER IMAGE COMES WITH THE POST
+-----------------------------------
+Every article already has a cover (check-article.py fails without one), and a
+post with the article's own art beside it is the one people stop on. So the
+image is part of the artifact, not a step to remember: beside the text this
+writes `linkedin-<stem>-cover.jpg`, taken from the article's cover.
+
+Which cover: `--cover FILE` if given, else the local file named by the
+article's `cover_image:` URL (its basename, looked up beside the article --
+covers are content-addressed, so the name is exact), else a
+`builder-cover*.jpg` beside it. A cover that cannot be found FAILS the run
+rather than shipping a text-only post silently; `--no-cover` opts out.
+
+Geometry: 1200x627, the 1.91:1 landscape size LinkedIn's image guidance uses
+for shared images and link previews. That figure is NOT measured here. The
+cover is FITTED, never cropped -- the dev.to cover is 2.381:1 and carries its
+title as lettering, so a centre crop would cut the words -- and padded with
+the median colour of its own border so the bars read as background.
+
+The composer takes the image as an upload (the media button), not a URL, so
+the file is what gets attached; see references/linkedin.md.
 """
 
 import argparse
 import pathlib
 import re
+import statistics
 import sys
+
+# LinkedIn image-share geometry. Third-party consensus and LinkedIn's ad-spec
+# pages agree on 1.91:1 at 1200x627; not measured against a live post.
+LI_W, LI_H = 1200, 627
 
 # LinkedIn's own docs give no number for the commentary limit -- only the error
 # FIELD_LENGTH_TOO_LONG. 3,000 is the figure every third-party counter agrees on
@@ -201,6 +228,44 @@ def has_pseudo_bold(s):
     return [c for c in s if 0x1D400 <= ord(c) <= 0x1D7FF]
 
 
+def find_cover(article, fm, explicit):
+    """The article's own cover, as a local file. None when there is none to use."""
+    if explicit:
+        p = pathlib.Path(explicit).expanduser().resolve()
+        return p if p.exists() else None
+    url = field(fm, "cover_image")
+    if url:
+        local = article.parent / url.rsplit("/", 1)[-1]
+        if local.exists():
+            return local
+    for pattern in ("builder-cover*.jpg", "builder-cover*.png", "*cover*.jpg", "*cover*.png"):
+        hits = sorted(article.parent.glob(pattern))
+        if hits:
+            return hits[0]
+    return None
+
+
+def write_linkedin_cover(src, out):
+    """Fit the cover inside 1200x627 without cropping, padded with its border colour."""
+    from PIL import Image  # make-cover.py already needs Pillow; only this path does here
+
+    im = Image.open(src).convert("RGB")
+    scale = min(LI_W / im.width, LI_H / im.height)
+    fitted = im.resize((round(im.width * scale), round(im.height * scale)), Image.LANCZOS)
+
+    w, h = im.size
+    border = ([im.getpixel((x, 0)) for x in range(0, w, max(1, w // 64))]
+              + [im.getpixel((x, h - 1)) for x in range(0, w, max(1, w // 64))]
+              + [im.getpixel((0, y)) for y in range(0, h, max(1, h // 32))]
+              + [im.getpixel((w - 1, y)) for y in range(0, h, max(1, h // 32))])
+    fill = tuple(int(statistics.median(c[i] for c in border)) for i in range(3))
+
+    canvas = Image.new("RGB", (LI_W, LI_H), fill)
+    canvas.paste(fitted, ((LI_W - fitted.width) // 2, (LI_H - fitted.height) // 2))
+    canvas.save(out, "JPEG", quality=90)
+    return (w, h), fitted.size, out.stat().st_size
+
+
 def load_template(explicit):
     """The post shape lives in a file so it is written once, not once per article."""
     if explicit:
@@ -265,6 +330,10 @@ def main():
                         "must not mutate the artifact it is checking.")
     ap.add_argument("--api", action="store_true",
                     help="also write the little-escaped variant for the Posts API")
+    ap.add_argument("--cover", help="image for the post; default: the article's cover_image, "
+                                    "looked up beside the article")
+    ap.add_argument("--no-cover", action="store_true",
+                    help="text-only post; skips writing and requiring the cover image")
     a = ap.parse_args()
 
     src = pathlib.Path(a.article).resolve()
@@ -350,6 +419,29 @@ def main():
         fail(f"{len(pb)} Unicode pseudo-bold character(s); screen readers cannot read them")
     else:
         ok("no Unicode pseudo-bold")
+
+    # 6  THE COVER -----------------------------------------------------------
+    cover_out = out.with_name(f"{out.stem}-cover.jpg")
+    if not a.no_write:
+        # --out may name a directory that does not exist yet; the cover is written
+        # before the text, so without this the first write is the one that fails.
+        out.parent.mkdir(parents=True, exist_ok=True)
+    if a.no_cover:
+        warn("--no-cover: the post goes out without the article's image")
+    else:
+        cover = find_cover(src, front_matter(src.read_text()), a.cover)
+        if cover is None:
+            fail("no cover image found (--cover FILE, a local file matching cover_image:, "
+                 "or builder-cover* beside the article); pass --no-cover for a text-only post")
+        elif a.no_write:
+            ok(f"cover found: {cover.name} ({cover_out.name} not written)")
+        else:
+            try:
+                (sw, sh), (fw, fh), size = write_linkedin_cover(cover, cover_out)
+                ok(f"cover {cover.name} {sw}x{sh} -> {cover_out.name} {LI_W}x{LI_H} "
+                   f"(fitted {fw}x{fh}, not cropped, {size // 1024} KB)")
+            except Exception as e:  # a broken image file must not look like success
+                fail(f"could not render {cover.name} for LinkedIn: {e}")
 
     if a.no_write:
         ok(f"checked without writing ({out.name} left alone)")
