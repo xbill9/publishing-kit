@@ -43,7 +43,7 @@ which numbers you are asserting from memory.
 |---|---|
 | `preflight.py` | **Start here.** Runs every check for an article with one exit code. `--live` fetches every published URL and compares bytes. |
 | `make-builder.py` | Derives the Builder Center version from the dev.to source: front matter, emoji and any AWS disclaimer out (Builder Center adds its own), title/subtitle in. Checks table width. |
-| `check-links.py` | Fetches every cover and Medium image URL and compares the served bytes to disk. The only check that sees what a reader sees. |
+| `check-links.py` | Fetches every cover and Medium image URL and compares the served bytes to disk, and fetches every article link the way Builder Center's publish gate does (no cookies): FAIL on broken links and on links that only resolve through a sign-in hop. The only check that sees what a reader sees. |
 | `check-article.py` | Pre-flight. Cover exists, is referenced, is **committed**, right geometry; `published: false`; front matter complete; Medium artifacts resolve to this article's directory. Exits non-zero. |
 | `check-facts.py` | Fact-tracing against evidence files. Exits non-zero on untraced claims. `.factsignore` records deliberate exemptions with reasons. |
 | `make-medium.py` | Tables and diagrams to PNG, emits `-embed.html` (paste) and `-hosted.html` (import). |
@@ -56,6 +56,8 @@ which numbers you are asserting from memory.
 | `make-gchat.py` | **Optional.** GDE Americas (Google Chat) announcement, the same shape as the Slack one. Leads with the `dev.to/gde` copy and fails on sending the aws-builders one to the Google community. Does not post. |
 | `make-advocu.py` | **Optional, GDE only.** Prepares an Advocu activity sheet from a published article. Refuses a placeholder or draft URL. Reads the publication date from dev.to, and writes reach as a labelled standing estimate rather than a counter reading that would cover one destination of five. |
 | `serve-body.py` | Serves an article body on localhost so a browser can copy it into a rich-text editor. Strips the title and subtitle, prints a checksum. |
+| `browser/builder-gate.js` | Paste into a Builder Center draft's preview page. Captures the publish gate's own API response and returns the exact links behind "Broken Links" / "Malicious Links", which the UI hides. Click Publish only on a draft known to fail. |
+| `browser/builder-editor.js` | Paste into the Builder Center editor. `window.bc` helpers to swap links and text by select-and-paste (typing is dropped in a hidden tab), edit code blocks through their Ace dialog, upload images at a verified slot, and `audit()` a draft. Each helper refuses when its precondition fails. |
 
 ## Typical run
 

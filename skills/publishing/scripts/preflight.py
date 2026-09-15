@@ -11,7 +11,8 @@ happened to run came back green.
 
   check-facts.py    every number traces to an artifact
   check-article.py  cover, geometry, crop, committed, front matter, wraps, links
-  check-links.py    --live only: fetch every URL and compare bytes to disk
+  check-links.py    --live only: fetch every URL and compare bytes to disk, and
+                    every rendered link the way Builder Center's gate checks it
   make-linkedin.py  the announcement's links resolve
 
 --live needs the network and is the only check that sees what a reader sees.

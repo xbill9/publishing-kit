@@ -251,6 +251,46 @@ stay readable while signed out, so verifying a *published* piece still works.
   Escape and click elsewhere to dismiss it.
 - It autosaves — "Saved to your drafts", no save button.
 
+### Editing a Builder Center draft in place: `scripts/browser/builder-editor.js`
+
+MEASURED 2026-09-15, repairing a live draft without re-pasting it. Paste the file
+into the editor page once; it defines `window.bc`. Every mutating helper checks
+its precondition inside the same script and returns `{refused: …}` instead of
+acting, which is a real guard — unlike an assertion inside a `browser_batch`.
+
+- **Typing can silently go nowhere.** The editor tab reported
+  `document.visibilityState === "hidden"`; `computer type` returned success and no
+  text landed in the body, the title, the description or any input, and
+  screenshots timed out. A synthetic `paste` over a `Range` selection still
+  updated the model and autosaved. So `bc.replaceText` and `bc.replaceBlock` edit
+  by selecting and pasting, never by typing. After any typed edit, read the text
+  back before believing it.
+- **Swapping a link:** `bc.replaceBlock("Old label | Site", "[New label](https://…)")`.
+  The selection starts outside the anchor, so the paste does not inherit the old
+  href, and the paste handler turns the markdown into a real link.
+- **Code blocks are non-editable widgets.** `bc.replaceInCodeBlock(old, new)` opens
+  the block's "Code block options" → Edit dialog and calls `setValue` on the Ace
+  editor inside it, then Save. A plain `.click()` on the options button did not open
+  the menu; the pointer/mouse event sequence in `bc.press` did.
+- **Markdown images are dropped on save**, and Insert image rejects external URLs
+  with "Invalid image URL". Upload each image through the dialog:
+  `bc.caretBefore("<paragraph that follows the image>")`, send real keys
+  `Return Up`, confirm with `bc.caretSlot(prefix)`, then `bc.openInsertImage(prefix)`.
+  It installs a guard so no file input can open a native picker. `find` the dialog's
+  file input, `file_upload` to it, click "Alternative text" and type, click Insert.
+  The image lands with an empty paragraph on each side; that renders as nothing.
+- **Coordinate clicks race the page.** A click aimed at one paragraph put the caret
+  in another after the editor scrolled. `bc.caretBefore` places it with a `Range`.
+- **When the toolbar is narrow, Insert image moves into "More options"**, but the
+  `aria-label="Insert image"` button stays in the DOM and `bc.openInsertImage`
+  finds it either way.
+- **Prove persistence from the server, not the editor:** leave the editor (a
+  "Leave site?" block means unsaved), open the preview from the drafts list, and
+  run `bc.audit()` there. For tags, reopen the editor via the preview's Edit
+  button; the preview page does not render them.
+- **Closing a tab can dissolve the extension's tab group**, leaving the other tab
+  outside it and uncontrollable. Close the tab you are still using last.
+
 ### Auditing a Builder Center paste: there are no `<pre>` elements
 
 MEASURED 2026-09-09. A clean paste of a 9-code-block article reports
@@ -297,6 +337,40 @@ about that button, MEASURED 2026-08-30:
   characters", "description within 160"). Publication completes on its own when the
   checks pass, and the URL changes from `/preview/content/<id>?v=…` to
   `/content/<id>/<slug>`. That URL change is the confirmation; there is no banner.
+
+**"Broken Links" / "Malicious Links" come from that gate, and its API names the
+links.** MEASURED 2026-09-15: Publish sends `POST
+https://api.builder.aws.com/cs/v2/content/submit-review` and then polls
+`.../review-status`; both return
+`contentIssues.{brokenLinks,maliciousLinks,profanityDetection}.violatedFragments`,
+the exact URLs. The UI drops them and shows each generic message twice.
+**`scripts/browser/builder-gate.js` packages this**: paste it on the preview page,
+click Publish only while the draft is known to fail (a passing gate publishes
+itself), then `await gate.wait(); gate.verdict()`. The bare hook it wraps, which
+fills `window.__gate`:
+
+```js
+window.__gate = [];
+const keep = (url, body) => { if (/submit-review|review-status/.test(url)) window.__gate.push({url, body}); };
+const f = window.fetch;
+window.fetch = async (...a) => { const r = await f(...a); r.clone().text().then(t => keep(String(a[0]?.url || a[0]), t)); return r; };
+const o = XMLHttpRequest.prototype.open;
+XMLHttpRequest.prototype.open = function (m, u, ...rest) {
+  this.addEventListener("load", () => keep(String(u), this.responseText));
+  return o.call(this, m, u, ...rest);
+};
+```
+
+On the captured draft it named two `ai.google.dev` docs links, both as broken
+*and* malicious, and passed dev.to, GitHub, a plain-text URL and everything else.
+**It does not report every problem in one run.** The next capture, after those two
+were replaced, flagged the plain-text `ai.google.dev/.../api-key` URL it had just
+passed, plus a lone `/` left outside inline code by an earlier edit. Re-capture
+after every fix until `reviewStatus` is no longer `FAILED`.
+A guessed fix that removed three other suspects first did not clear it.
+`preflight.py --live` now fails the same shape — an anchor that only resolves
+through a sign-in or `oauth2callback` hop with no cookies — but the capture is
+the ground truth.
 
 **A draft whose title already appears under Published is a duplicate, not a revision.**
 It is what the `/create/content/<id>` trap leaves behind, and it is a full copy of the

@@ -91,6 +91,73 @@ It enforces, in order of how silently each fails:
 7. Medium artifacts point at *this* article's directory and their PNGs exist.
 8. No empty link targets.
 
+### Links: get the gate's own answer, then check what it checks
+
+AWS Builder Center refuses to publish with two messages and no detail:
+
+> **Broken Links** — A URL link you have shared is broken. Please correct to publish.
+> **Malicious Links** — A URL link you have shared violates our AWS Builder Terms. Please remove to publish.
+
+Each renders twice; that is the UI repeating itself, not two separate hits.
+
+**Do not guess which link it means. The gate names them, and the UI hides it.**
+MEASURED 2026-09-15: Publish calls `POST https://api.builder.aws.com/cs/v2/content/submit-review`,
+then `.../review-status`, and both responses carry
+`contentIssues.{brokenLinks,maliciousLinks,profanityDetection}.violatedFragments` —
+arrays of the exact offending URLs. To read them, paste
+**`scripts/browser/builder-gate.js`** into the draft's preview page, click Publish
+on a draft you know fails, then `await gate.wait(); gate.verdict()`. A failing
+draft is not published, so the capture costs nothing — but a passing gate
+publishes on its own, so never run it on a draft that might pass.
+
+To then fix the draft in place, paste **`scripts/browser/builder-editor.js`** into
+the editor page: `bc.replaceBlock(...)` swaps a link, `bc.replaceText(...)` a
+phrase, `bc.replaceInCodeBlock(...)` text inside a code block, and `bc.audit()`
+re-counts images, code blocks, tables, links and tags. Each helper refuses rather
+than acts when its precondition fails. Why each one exists is in
+`references/browser-publishing.md`.
+
+What that capture showed, on a draft that still failed:
+
+| Link | Gate verdict |
+| --- | --- |
+| `ai.google.dev/gemini-api/docs/interactions-breaking-changes-may-2026` (markdown link) | **brokenLinks and maliciousLinks** |
+| `ai.google.dev/gemini-api/docs/interactions-overview` (markdown link) | **brokenLinks and maliciousLinks** |
+| two `dev.to` links (403 to a client with no User-Agent) | passed |
+| `github.com`, `docs.cloud.google.com`, `py.sdk.modelcontextprotocol.io` | passed |
+| `ai.google.dev/gemini-api/docs/api-key` as **plain text**, not linked | passed that run — **flagged broken and malicious on the next** |
+
+**The gate does check plain text, and it does not report everything at once.**
+MEASURED 2026-09-15, second capture on the same draft after the two links above
+were replaced: `brokenLinks` was `["/", "https://ai.google.dev/gemini-api/docs/api-key"]`
+and `maliciousLinks` the same api-key URL. That URL had been plain text in both
+runs. The `"/"` matched a lone slash left outside inline code
+(`` `.kiro/skills/<name>`/ ``). So a clean capture proves only that the reported
+fragments are bad, not that nothing else is: fix, re-capture, repeat until
+`reviewStatus` passes — and keep every `ai.google.dev` URL out of the body,
+linked or not. Both flagged links load fine in a browser. The likely mechanism, **inferred and not
+confirmed**: a client with no cookies is bounced through
+`ai.google.dev/oauth2callback` and never gets a 200.
+
+**Correction.** This section previously listed three "measured causes": a URL in
+pasted code ending `',`, an `aistudio.google.com/apikey` link that redirects to
+Google sign-in, and `SKILL.md` being a live domain. They were removed *before*
+the gate's response was captured, so whether it counted any of them is unknown.
+Only the two `ai.google.dev` links are confirmed.
+
+`check-links.py` (run by `preflight.py --live`) now checks the gate's profile:
+
+- **FAIL**: a markdown/HTML anchor fetched with a browser User-Agent and **no
+  cookies** that returns 4xx/5xx, times out, or passes through any sign-in or
+  `oauth2callback` hop
+- **WARN**: a dev.to or Medium 403 (the gate passed dev.to); URLs in code blocks
+  or plain text, including one whose naive cut (`…',`) is dead; filenames in the
+  prose that resolve as domains
+
+Fix a flagged `ai.google.dev` link by unlinking it (plain text passed) or by
+linking an equivalent page that does not bounce. Re-run the capture to confirm —
+it is the only answer that is not a guess.
+
 ## Proof-reading: no unverified facts
 
 An article is a set of assertions, and the ones that embarrass you are numbers
