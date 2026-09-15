@@ -1,4 +1,4 @@
-// LinkedIn composer helpers, for pasting into javascript_tool on linkedin.com/feed.
+// LinkedIn composer helpers, for evaluation in the page on linkedin.com/feed.
 //
 // MEASURED 2026-09-15 posting an article announcement with its cover image. Why each
 // helper exists is in references/linkedin.md ("Attaching the cover and posting").
@@ -8,7 +8,7 @@
 //
 //   await li.openComposer()                    -> {editor:true}
 //   await li.openMediaEditor()                 -> {uploadInput:true}
-//   li.addProxyInput()                         then: find "Claude proxy file input"
+//   li.addProxyInput()                         then: find "Publishing proxy file input"
 //                                              -> file_upload(cover.jpg, ref)
 //   await li.moveProxyFileToEditor(110091)     -> {preview:"1200x627", nextEnabled:true}
 //   await li.next()                            -> {composer:true, imageAttached:true}
@@ -63,19 +63,19 @@ window.li = (() => {
   // find() and read_page cannot see into shadow roots, so give file_upload a target
   // in the light DOM.
   function addProxyInput() {
-    let p = document.getElementById("claude-proxy-file-input");
+    let p = document.getElementById("publishing-proxy-file-input");
     if (!p) {
       p = document.createElement("input");
-      p.type = "file"; p.id = "claude-proxy-file-input"; p.accept = "image/jpeg,image/png,image/webp";
-      p.setAttribute("aria-label", "Claude proxy file input");
+      p.type = "file"; p.id = "publishing-proxy-file-input"; p.accept = "image/jpeg,image/png,image/webp";
+      p.setAttribute("aria-label", "Publishing proxy file input");
       Object.assign(p.style, { position: "fixed", top: "4px", left: "4px", zIndex: "2147483647", width: "220px", height: "28px", background: "#fff" });
       document.body.appendChild(p);
     }
-    return { proxy: true, next: 'find "Claude proxy file input", then file_upload the image to that ref' };
+    return { proxy: true, next: 'find "Publishing proxy file input", then upload the image to that input' };
   }
 
   async function moveProxyFileToEditor(expectedBytes) {
-    const p = document.getElementById("claude-proxy-file-input");
+    const p = document.getElementById("publishing-proxy-file-input");
     const f = p && p.files && p.files[0];
     if (!f) return { refused: "proxy input holds no file; run file_upload first" };
     if (expectedBytes && f.size !== expectedBytes) return { refused: "size mismatch", size: f.size, expectedBytes };

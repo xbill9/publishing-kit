@@ -1,9 +1,23 @@
 ---
 name: publishing
 description: Trigger when writing up or publishing a technical article to AWS Builder Center, dev.to, Medium, or LinkedIn — including "write this up", "make an article", "builder center", "dev.to post", "medium version", "linkedin post", "announce the article", "cover image", or turning a benchmark or deployment into a paper. Covers the four destination formats and their incompatibilities, the table/code-to-image generator, mandatory cover images, the LinkedIn draft whose links must resolve, and a pre-flight check that fails the build.
+metadata:
+  short-description: Publish technical articles without silent format failures
 ---
 
 # Publishing a technical article
+
+This skill works in Antigravity (`agy`), Codex, and Claude Code. Locate bundled resources relative to
+this `SKILL.md` and invoke scripts by absolute path; do not assume `scripts/` is
+inside the user's current working directory. Keep article arguments relative to
+the user's working directory. Browser-only workflows require browser automation
+that can evaluate JavaScript in the page, inspect the DOM,
+upload a local file, click/type, and read the result back. Tool names vary by
+host; descriptions such as `javascript_tool`, `file_upload`, `find`, `computer
+type`, and `browser_batch` below name capabilities, not required Codex tool names.
+If those capabilities are unavailable, generate and validate the artifacts, then
+hand the user the file and the specific remaining manual browser steps. Never
+claim that a browser draft or post was created when it was not.
 
 Four destinations, **four different artifacts, not four copies of one.** They
 disagree about tables, about code blocks and about cover images. LinkedIn renders
@@ -60,8 +74,8 @@ draft.
 | Destination | How the article gets there | Draft state |
 | --- | --- | --- |
 | **dev.to** | **REST API, and it is complete** — create, update in place, list, and set `organization_id`. No browser, ever. | `published: false` |
-| **Medium** | **Claude Code driving Chrome.** Paste `-hosted.html` into the editor. No publishing API exists. | editor draft |
-| **AWS Builder Center** | **Claude Code driving Chrome.** One JS-bridge paste into the `contenteditable` — chunking is not needed. A WAF drops saves whose body matches an attack signature; see `references/browser-publishing.md`. No publishing API exists. | autosaved draft |
+| **Medium** | **Browser automation.** Paste `-hosted.html` into the editor. No publishing API exists. | editor draft |
+| **AWS Builder Center** | **Browser automation.** One JS-bridge paste into the `contenteditable` — chunking is not needed. A WAF drops saves whose body matches an attack signature; see `references/browser-publishing.md`. No publishing API exists. | autosaved draft |
 | **LinkedIn** | API exists, but `PUBLISHED` is the only state accepted on creation, so posting through it *is* publishing. | composer only |
 
 So the browser work is not laziness about reading API docs — for Medium and
@@ -330,8 +344,8 @@ cover without one.** Do not edit a content-addressed file in place.
 
 Rules the generator already follows, worth knowing if you edit it: colour rides on
 chips and swatches, **never on numerals or labels** — text wears ink tokens. The
-two-colour pair is validated with the `dataviz` skill's palette validator rather
-than eyeballed. Draw at 2x and downsample or the type looks soft. **Render it and
+two-colour pair must pass an available palette/contrast validator rather than an
+eyeball check. Draw at 2x and downsample or the type looks soft. **Render it and
 open it** — a validator checks colour, not layout, and the first pass usually has
 a label collision.
 

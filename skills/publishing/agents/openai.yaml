@@ -1,0 +1,7 @@
+interface:
+  display_name: "Publishing"
+  short_description: "Publish technical articles across major platforms"
+  default_prompt: "Use $publishing to prepare and validate my technical article for its target publishing platforms."
+
+policy:
+  allow_implicit_invocation: true

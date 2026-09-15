@@ -38,7 +38,7 @@ What came back, against the sheet `make-advocu.py` had already written:
 | What was it about? | its own third-person prose |
 
 The description is the part to read before keeping. It opened *"This article
-introduces `publishing-kit`, an open-source Claude Code skill designed to
+introduces `publishing-kit`, an open-source Codex and Claude Code skill designed to
 automate and streamline…"* and went on to *"Authored by [name], a Google
 Developer Expert, the piece details how the tool handles various aspects of…"* —
 third person, about the author, and it left a markdown backtick pair sitting

@@ -1,8 +1,8 @@
 # publishing-kit
 
-A [Claude Code](https://claude.com/claude-code) skill and toolchain for publishing a
-technical article to **AWS Builder Center**, **dev.to** and **Medium**, and
-announcing it on **LinkedIn**.
+A Codex- and Claude Code-compatible skill and toolchain for publishing a technical
+article to **AWS Builder Center**, **dev.to** and **Medium**, and announcing it on
+**LinkedIn**.
 
 Three destinations, three different artifacts — not three copies of one. They
 disagree about tables, about code blocks, and about cover images, and **every
@@ -12,7 +12,34 @@ destination quietly mangles, and you find out after publishing.
 This packages the workarounds, the generators, and two checks that fail loudly
 instead.
 
-## Install
+## Install in Codex
+
+```
+codex plugin marketplace add xbill9/publishing-kit
+codex plugin add publishing@publishing-kit
+```
+
+For a manual install, copy `skills/publishing/` into
+`${CODEX_HOME:-~/.codex}/skills/publishing/`.
+
+Invoke it as `$publishing`, or describe a technical-article publishing task and
+let Codex select it automatically. Browser-only steps require a Codex environment
+with browser automation; the generators, checks, and dev.to API workflow run from
+the shell.
+
+### Antigravity (`agy`)
+
+Install directly via the `agy` CLI:
+
+```bash
+agy plugin install /path/to/publishing-kit
+```
+
+Or copy `skills/publishing/` into your workspace at `.agents/skills/publishing/` (or global `~/.gemini/config/skills/publishing/`).
+
+### Claude Code
+
+The existing Claude plugin remains supported:
 
 ```
 /plugin marketplace add xbill9/publishing-kit
@@ -20,6 +47,13 @@ instead.
 ```
 
 Or copy `skills/publishing/` into `~/.claude/skills/`.
+
+## Requirements
+
+The checks and API workflow use Python 3 and the standard library. Cover and
+Medium image generation additionally require
+[Pillow](https://pypi.org/project/pillow/) and `pandoc`. Browser-only publishing
+steps require a signed-in browser automation environment.
 
 ## What it does
 

@@ -1,4 +1,4 @@
-// AWS Builder Center editor helpers, for pasting into javascript_tool.
+// AWS Builder Center editor helpers, for evaluation in the browser page.
 //
 // MEASURED 2026-09-15 while repairing a live draft. Each helper exists because the
 // obvious route failed silently:
