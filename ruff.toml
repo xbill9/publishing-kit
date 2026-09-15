@@ -1,0 +1,45 @@
+# Lint config for the kit's Python scripts.
+#
+# Deliberately narrow. This repo's house style is long explanatory comments that
+# record what was measured, four-space indent, and the occasional semicolon in a
+# one-line guard -- none of that is a defect, so the rules that fight it are off.
+# What is left is the set that catches things preflight.py would only discover by
+# failing an article: an undefined name, an unused import, a mutable default, a
+# bare except, an f-string with no placeholder.
+#
+# Run: ruff check skills/publishing/scripts/
+# A PostToolUse hook runs `ruff check --fix` on any .py file that gets edited.
+
+target-version = "py39"
+line-length = 100
+
+[lint]
+select = [
+  "F",    # pyflakes: undefined names, unused imports, f-string mistakes
+  "E4",   # import placement
+  "E7",   # statement-level mistakes
+  "E9",   # syntax / IO errors
+  "W6",   # deprecated constructs
+  "B",    # bugbear: mutable defaults, bare except, zip without strict
+  "I",    # import sorting
+  "C4",   # comprehension misuse
+  "UP",   # outdated idioms
+  "RET",  # return-path mistakes
+]
+
+ignore = [
+  "E501",  # long lines: the measured comments are the documentation
+  "E702",  # semicolons: used intentionally in short guards
+  "E731",  # lambda assignment: fine where it reads as a named predicate
+  "E741",  # "l"/"I" as a name: appears in short local loops
+  "B905",  # zip(strict=) would change behavior; not retrofitting silently
+  "RET505", # else-after-return reads better in these branch tables
+]
+
+[lint.isort]
+known-first-party = ["bodytext"]
+
+[format]
+# Not used -- this repo is not auto-formatted. Present so `ruff format` does not
+# invent a style if someone runs it by hand.
+quote-style = "preserve"

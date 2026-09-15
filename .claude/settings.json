@@ -1,0 +1,36 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PROJECT_DIR:-.}\"/.claude/hooks/guard-generated-assets.sh",
+            "timeout": 10,
+            "statusMessage": "Checking for generated output..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PROJECT_DIR:-.}\"/.claude/hooks/sync-plugin-manifest.sh",
+            "timeout": 10,
+            "statusMessage": "Syncing plugin manifest..."
+          },
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PROJECT_DIR:-.}\"/.claude/hooks/ruff-edited-file.sh",
+            "timeout": 30,
+            "statusMessage": "Linting edited file..."
+          }
+        ]
+      }
+    ]
+  }
+}
