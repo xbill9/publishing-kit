@@ -208,8 +208,64 @@ composer at **1 character**, with no error. What works is selecting the contents
 and calling `document.execCommand("insertText", false, POST)`. Verify with a
 one-line probe before committing the full payload.
 
-**Stop at the composer.** The Post button goes to a network and there is no draft
-state the API can reach afterwards. Read the post back and let a person press it.
+**Stop at the composer** unless the author has said, in this session, to post. The
+Post button goes to a network and there is no draft state the API can reach
+afterwards. Read the post back first either way.
+
+## Attaching the cover and posting, measured end to end
+
+MEASURED 2026-09-15, posting a real article announcement with its cover. Five more
+things broke silently before it worked. `scripts/browser/linkedin-composer.js`
+packages the route that worked; paste it into the feed page and call its helpers
+in order.
+
+**1. Ref clicks do nothing when the tab is hidden.** The extension's tab reported
+`document.visibilityState === "hidden"` and screenshots timed out. "Start a post",
+"Add media", "Next" and "Post" all had to be pressed from JS with the
+`pointerdown → mousedown → pointerup → mouseup → click` sequence (`li.press`).
+
+**2. The upload input is invisible to every locator.** "Add media" opens an
+*Editor* dialog ("Select files to begin … Upload from computer"). Its input,
+`#media-editor-file-selector__file-input`, sits inside a **shadow root**. A
+recursive `shadowRoot` walk finds it; `find` and `read_page` do not, so there is
+no ref and `file_upload` cannot target it. "Add media" did not call
+`input.click()` either — a click guard installed first never fired — so there is
+no native picker to intercept.
+
+**3. The page cannot fetch the image.** `fetch()` from `linkedin.com` to
+`raw.githubusercontent.com` fails with a bare `TypeError: Failed to fetch` (CSP),
+even for a URL that returns 200 everywhere else. `window.name` does not survive
+the navigation either (see above), so neither route carries bytes in.
+
+**4. What works: a proxy input.** Append a plain `<input type=file>` to the
+*light* DOM (`li.addProxyInput()`); `find` sees it, `file_upload` fills it from
+disk, and `li.moveProxyFileToEditor(expectedBytes)` copies `proxy.files` onto the
+shadow input through a `DataTransfer` and dispatches `input` and `change` with
+`composed: true`. The editor shows a 1200x627 preview and enables Next; Next
+returns to the composer with the image attached. Remove the proxy afterwards.
+**Rejected:** splitting a 147 KB base64 payload into chunks typed through
+`javascript_tool` — every character is a transcription risk, and the proxy input
+costs one upload.
+
+**5. Read the text back without trusting raw length.** `execCommand("insertText")`
+puts the post in (a synthetic paste still does nothing), but the editor's
+`innerText` came back 8 characters longer than the 1,399-character source: each
+blank line is an empty `<p>`. Compare with whitespace collapsed
+(`li.verifyPost(text)`); that compared equal, which is the check that means
+something.
+
+**6. The confirmation is a toast with the URL in it.** After Post the composer
+closes and a toast reads `Post successful. View post`; its link is
+`/feed/update/urn:li:share:<id>/`. That link is the only place the post's URL
+appears — keep it (for `links.txt` key `linkedin`), because the API that could
+list posts needs `r_member_social`.
+
+**7. The published post looks different, and is fine.** On the post page the
+cover is served downscaled (**535x279**, same 1.91:1 ratio), the body is ~430
+characters shorter because every URL became `lnkd.in`, and no anchor points at
+the original hosts. Verify by the title, the bullets and the link **labels**, not
+by URLs or image dimensions. An 800x199 image on the same page is the profile
+banner, not the post.
 
 ## The shape that actually gets posted
 

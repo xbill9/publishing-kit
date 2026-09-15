@@ -57,6 +57,7 @@ which numbers you are asserting from memory.
 | `make-advocu.py` | **Optional, GDE only.** Prepares an Advocu activity sheet from a published article. Refuses a placeholder or draft URL. Reads the publication date from dev.to, and writes reach as a labelled standing estimate rather than a counter reading that would cover one destination of five. |
 | `serve-body.py` | Serves an article body on localhost so a browser can copy it into a rich-text editor. Strips the title and subtitle, prints a checksum. |
 | `browser/builder-gate.js` | Paste into a Builder Center draft's preview page. Captures the publish gate's own API response and returns the exact links behind "Broken Links" / "Malicious Links", which the UI hides. Click Publish only on a draft known to fail. |
+| `browser/linkedin-composer.js` | Paste into linkedin.com/feed. `window.li` helpers that open the composer, attach an image through a light-DOM proxy input (the real upload input is in a shadow root and the page's CSP blocks fetching), insert and verify the text, and post only when told to, returning the post URL from the success toast. |
 | `browser/builder-editor.js` | Paste into the Builder Center editor. `window.bc` helpers to swap links and text by select-and-paste (typing is dropped in a hidden tab), edit code blocks through their Ace dialog, upload images at a verified slot, and `audit()` a draft. Each helper refuses when its precondition fails. |
 
 ## Typical run

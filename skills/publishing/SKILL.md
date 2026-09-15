@@ -74,6 +74,41 @@ The corollary is the rule worth remembering: **before reaching for the browser o
 any destination, check whether that destination has an API.** dev.to's was sitting
 unused in eight directories while a browser flow was built around it.
 
+## Before driving an editor: paste its helper, read its quirks
+
+**Every browser session has been rediscovering the same quirks.** On 2026-09-15
+one article hit, in order: typing dropped in a hidden tab, ref clicks swallowed,
+upload inputs inside shadow roots, a CSP that blocks fetching the image, a publish
+gate that reports its failures in batches, and a tab group that dissolves when a
+tab closes — most already half-known, none written where the next session would
+look first. So, before touching a destination's editor:
+
+| Destination | Paste first | Read first |
+| --- | --- | --- |
+| AWS Builder Center — editor | `scripts/browser/builder-editor.js` (`window.bc`) | `references/browser-publishing.md` → "Editing a Builder Center draft in place" |
+| AWS Builder Center — publish gate | `scripts/browser/builder-gate.js` (`window.gate`) | `SKILL.md` → "Links" and `references/browser-publishing.md` → "Publishing runs a gate" |
+| LinkedIn composer | `scripts/browser/linkedin-composer.js` (`window.li`) | `references/linkedin.md` → "Attaching the cover and posting" |
+| Medium | — | `references/browser-publishing.md` → "Medium" and `references/medium.md` |
+
+Quirks that apply to every editor, all measured:
+
+- **Assume the tab is hidden.** Check `document.visibilityState`. When it is
+  `hidden`, `computer type` can report success and insert nothing, ref clicks can
+  do nothing, and screenshots time out. Act through JS (select + synthetic paste,
+  or `execCommand("insertText")` on LinkedIn) and read the result back.
+- **Locators do not see shadow roots.** Walk `shadowRoot` recursively in JS. For a
+  file input inside one, add a light-DOM proxy input, `file_upload` to that, and
+  copy its `files` across with a `DataTransfer`.
+- **Close the tab you are still using last.** Closing one tab has dissolved the
+  extension's tab group and left the other tab uncontrollable.
+- **A guard inside one `javascript_tool` script is real; an assertion inside a
+  `browser_batch` is not.** Every helper above refuses in-script.
+
+**When a quirk costs a retry, it is not done until it is written down**: add it to
+the reference section in the table with `MEASURED <date>`, and fold the working
+route into that destination's helper script, so the next session pastes the fix
+instead of finding it again.
+
 ## Pre-flight
 
 ```

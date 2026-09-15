@@ -155,6 +155,13 @@ dropped it twice; typing and pressing Enter worked every time.
 ## Medium 403s a request with no User-Agent
 
 `curl` with its default header gets **HTTP 403** on a published story URL, while
-the same URL returns 200 with any ordinary User-Agent set. Same shape as dev.to
+the same URL returns 200 with any ordinary User-Agent set.
+
+**A User-Agent is no longer enough.** MEASURED 2026-09-15: a published story under
+a publication (`medium.com/stackademic/<slug>-<id>`) answered **403 to
+`curl -A 'Mozilla/5.0'`** as well, while it opened normally in the browser. Verify a
+published Medium story with `get_page_text` in the browser; treat a scripted 403
+as unknown, not as dead. The browser also redirected that publication URL to the
+author's `xbill999.medium.com` subdomain — expected, and not a different story. Same shape as dev.to
 answering `Forbidden Bots`. A link checker that reports a published article as
 dead is checking its own headers, not the article.
