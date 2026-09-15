@@ -86,6 +86,80 @@ comes first and Advocu is the tail.
 it rejects a dev.to draft URL outright, because a `-temp-slug-` link changes the
 moment the article is published.
 
+## The activity carries the article's cover, as WebP
+
+Advocu accepts WebP for an activity's image (author's report, 2026-09-15), so
+`make-advocu.py` now writes `advocu-<stem>-cover.webp` beside the sheet and names
+it under `## Cover image`. The source is `--cover FILE`, else a `builder-cover*`
+beside the article — the 16:9 Builder Center cover, the shape a card shows best —
+else the local file named by `cover_image:`. **No cover found is a FAIL**;
+`--no-cover` opts out.
+
+The image is converted, never cropped, and scaled down only past 1600px wide. On
+the Kiro CLI 3 article: `builder-cover.d558caf2.jpg` 1200x675 became a 57 KB WebP.
+Advocu's own size and dimension limits are **not measured** here; read the
+upload widget's hint when attaching, and record what it says in this file.
+
+## Filing the activity in a browser, measured
+
+MEASURED 2026-09-15, filing the Kiro CLI 3 article through the regular form with
+its WebP cover.
+
+- **The image is on step 2, "Additional information"**, not step 1: "Please
+  provide an image for your activity — Drop image here or click to select — You
+  can upload JPG, PNG, GIF or WEBP file". That hint is the first-party
+  confirmation of WebP. Its `<input type=file accept="image/jpeg,image/png,image/gif,image/webp">`
+  is in the **light DOM**, so `find` returns a ref and `file_upload` attaches the
+  file directly — no proxy input, unlike LinkedIn.
+- **Step 2 also holds "Do you want to make this activity private?"**, a switch
+  that defaulted **off**. Read it before Submit.
+- **The form is Angular with ng-zorro (antd) controls.** Plain text fields
+  (title, link, reach) take the native value setter plus `input`/`change`
+  events; "What was it about?" is a Quill editor and takes
+  `execCommand("insertText")`. Content type opened with a synthetic
+  `mousedown` on `.ant-select-selector` and accepted a click on the option.
+- **Tags accepted one scripted selection and ignored the second.** "AI" stuck;
+  "AI - Gemini" — clicked on the option and on its inner content, with pointer
+  events — did not, and the dropdown would not close afterwards. The first
+  attempt's script also hung the renderer until `javascript_tool` timed out.
+  Tags are optional; do not burn turns on a second one. Advocu's vocabulary has
+  `AI - Gemini`, `AI - AI Studio`, `AI - Gemma` and similar, and nothing for
+  `mcp` or `python`.
+- **A typed date looks accepted and is not.** Setting `2026-09-15` in the
+  input showed the text, and **Next moved to step 2 without complaint** — but
+  Submit failed with *"A problem occurred — Activity did not pass validation."*
+  Back on step 1 the field read *"This field is required."*: the form model was
+  still empty. Next does not validate step 1, so it proves nothing. Set the date
+  by opening the picker and clicking the cell `td[title="YYYY-MM-DD"]`, then read
+  the form item's `ant-form-item-has-success` before moving on.
+- **Previous drops the uploaded image.** After fixing the date on step 1 and
+  pressing Next again, step 2's drop zone no longer listed the WebP. Attach the
+  image last, after step 1 is known good, and re-check the filename in the drop
+  zone immediately before Submit.
+- **Keep Submit and the wait for its result in separate scripts.** One script
+  that pressed Submit and then polled for up to 20 s hung the renderer until
+  `javascript_tool` timed out at 45 s, leaving it unclear whether anything was
+  filed. A short read afterwards showed the validation toast and the form still
+  open — nothing filed, no duplicate. Press, return, then poll with short reads.
+- **"A problem occurred — Activity did not pass validation." stays on screen.**
+  It was still visible after going back and forward between steps without a new
+  Submit, so its presence alone does not mean a second attempt failed.
+- **What success looks like.** With the date set through the picker and the WebP
+  re-attached on step 2, Submit produced *"Success! Your activity has been
+  submitted"* — shown **alongside** the stale validation toast, with the form
+  still rendered for a few seconds. Judge by the success text, then confirm the
+  activity from a fresh load of the Activity Stream rather than from the modal.
+- **In a hidden tab the lists did not render, so the toast was the only
+  confirmation.** After submitting, a fresh load of the Activity Stream, the
+  member profile (which shows only per-type totals, e.g. "272 submitted") and the
+  *My activities → Activities (318)* and *Drafts (8)* tabs all showed counts but
+  no entries in the DOM or page text — "Total results: 107311" with nothing under
+  it. The new activity could not be found there, and neither could any other.
+  Whether a new activity also waits on community-manager review before it is
+  listed is **not established**. Check the list in a visible browser window.
+- **The tab was hidden**, as with every other editor this session: all presses
+  went through JS.
+
 ## Reach is an estimate, and it says so
 
 "How many people read your content?" cannot be measured for an article that ran

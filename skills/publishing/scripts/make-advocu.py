@@ -36,6 +36,17 @@ THE FORM, STEP 1 "Content details"
 Step 2 is "Additional information". There is a **Save as draft**, so an activity
 can be parked exactly like every other destination in this kit.
 
+THE COVER IMAGE, AS WEBP
+------------------------
+Advocu now accepts WebP for an activity's image (author's report, 2026-09-15).
+Every article already has a cover, so the activity gets one too:
+`advocu-<stem>-cover.webp` beside the sheet. Which cover: `--cover FILE`, else a
+`builder-cover*` beside the article (16:9, the shape a card shows best), else
+the local file named by `cover_image:`. No cover found is a FAIL; `--no-cover`
+opts out. The image is converted, never cropped, and scaled down only if it is
+wider than MAX_COVER_WIDTH. Advocu's size and dimension limits are NOT measured
+here -- read the upload widget's own hint when attaching it.
+
 REACH: A LABELLED ESTIMATE, NOT A COUNTER READING
 -------------------------------------------------
 "How many people read your content?" cannot be measured for an article that ran
@@ -57,6 +68,7 @@ Date published is in the same dev.to response as the views, so it is read from
 `published_at` rather than remembered. Override with --date.
 
     make-advocu.py <article>.md [--reach N] [--date YYYY-MM-DD] [--link URL]
+                   [--cover FILE | --no-cover]
 """
 
 import argparse
@@ -75,6 +87,10 @@ TYPES = ["Articles", "Books", "Code contribution", "Demos",
 # See the header: this is an estimate by construction, and is written into the
 # sheet as one.
 DEFAULT_REACH = 3000
+
+# Covers are authored at 1200-1376px wide. Anything wider is scaled down to keep
+# the upload small; nothing is ever cropped.
+MAX_COVER_WIDTH = 1600
 
 FAILS, WARNS = [], []
 
@@ -139,6 +155,35 @@ def devto_stats(url, key_path=pathlib.Path.home() / ".devto.key"):
     return None, None
 
 
+def find_cover(article, fm, explicit):
+    """The activity's image: explicit, else the 16:9 Builder cover, else cover_image."""
+    if explicit:
+        p = pathlib.Path(explicit).expanduser().resolve()
+        return p if p.exists() else None
+    for pattern in ("builder-cover*.jpg", "builder-cover*.png", "builder-cover*.webp"):
+        hits = sorted(article.parent.glob(pattern))
+        if hits:
+            return hits[0]
+    url = field(fm, "cover_image")
+    if url:
+        local = article.parent / url.rsplit("/", 1)[-1]
+        if local.exists():
+            return local
+    return None
+
+
+def write_webp(src, out):
+    """Convert to WebP; scale down only past MAX_COVER_WIDTH, never crop."""
+    from PIL import Image  # make-cover.py already needs Pillow; only this path does here
+
+    im = Image.open(src).convert("RGB")
+    w, h = im.size
+    if w > MAX_COVER_WIDTH:
+        im = im.resize((MAX_COVER_WIDTH, round(h * MAX_COVER_WIDTH / w)), Image.LANCZOS)
+    im.save(out, "WEBP", quality=88, method=6)
+    return (w, h), im.size, out.stat().st_size
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("article")
@@ -147,6 +192,10 @@ def main():
     ap.add_argument("--link", help="published URL; defaults to links.txt devto-gde")
     ap.add_argument("--date", help="YYYY-MM-DD; defaults to dev.to published_at")
     ap.add_argument("--type", default="Articles", choices=TYPES)
+    ap.add_argument("--cover", help="image for the activity; default builder-cover*, "
+                                    "then the article's cover_image")
+    ap.add_argument("--no-cover", action="store_true",
+                    help="file the activity without an image")
     ap.add_argument("--out")
     a = ap.parse_args()
 
@@ -162,6 +211,7 @@ def main():
     link = a.link or links.get("devto-gde") or ""
 
     out = pathlib.Path(a.out) if a.out else d / f"advocu-{src.stem}.md"
+    out.parent.mkdir(parents=True, exist_ok=True)
     print(f"\n{src.name} -> {out.name}")
 
     # 1  THE LINK ------------------------------------------------------------
@@ -206,6 +256,25 @@ def main():
     for label, value in (("title", title), ("description", desc)):
         (ok if value else fail)(f"{label} present" if value else f"{label} missing from front matter")
 
+    # 4  THE COVER -----------------------------------------------------------
+    cover_out = out.with_name(f"{out.stem}-cover.webp")
+    cover_line = "(none: --no-cover)"
+    if a.no_cover:
+        warn("--no-cover: the activity is filed without an image")
+    else:
+        cover = find_cover(src, fm, a.cover)
+        if cover is None:
+            fail("no cover image found (--cover FILE, builder-cover* or a local file "
+                 "matching cover_image: beside the article); pass --no-cover to skip")
+        else:
+            try:
+                (sw, sh), (cw, ch), size = write_webp(cover, cover_out)
+                ok(f"cover {cover.name} {sw}x{sh} -> {cover_out.name} {cw}x{ch} "
+                   f"WebP, {size // 1024} KB (not cropped)")
+                cover_line = f"{cover_out.name} ({cw}x{ch} WebP, {size // 1024} KB, from {cover.name})"
+            except Exception as e:  # a broken image must not look like success
+                fail(f"could not convert {cover.name} to WebP: {e}")
+
     body = f"""# Advocu activity — paste into app.advocu.com
 
 Add new activity -> New activity -> Content creation -> Regular form.
@@ -232,6 +301,9 @@ Once the article is public you can instead paste the Link to Content into
 
 ## Link to Content
 {link or '(PENDING — the article is not published)'}
+
+## Cover image
+{cover_line}
 
 ---
 Save as draft rather than submitting, and read it back before you do.
