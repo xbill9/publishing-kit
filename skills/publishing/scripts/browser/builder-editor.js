@@ -15,6 +15,11 @@
 //   - "Insert image" rejects external URLs ("Invalid image URL") and the body
 //     silently drops markdown images on save. Images must be uploaded through the
 //     dialog's own <input type=file> (find it, then `file_upload` with its ref).
+//   - The tag picker commits on a REAL mouse click only (MEASURED 2026-09-15).
+//     element.click() and Return both report success and select nothing, and its
+//     rows carry no checkbox, so a checked-checkbox audit reads 0 on a field that
+//     visibly has chips. The tag helpers below therefore filter the list and hand
+//     back a point to click; they never claim to have selected anything.
 //
 // Paste this whole file once per page load (it only defines functions on
 // window.bc), then call e.g. `await bc.replaceText("old", "new")`.
@@ -169,6 +174,58 @@ window.bc = (() => {
     };
   }
 
-  return { editor, dialog, pasteOver, press, replaceText, replaceBlock, caretBefore, caretSlot, openInsertImage, replaceInCodeBlock, audit };
+  // ---- Tags -------------------------------------------------------------
+  // MEASURED 2026-09-15. The field is an input[role=combobox] over a VIRTUALISED
+  // [role=listbox], so only the rendered window exists: probe the exact slug, never
+  // the taxonomy. A click a few pixels off the row removes both the combobox and
+  // the listbox from the DOM, so the next lookup throws -- every helper here reads
+  // that as "the dropdown was dismissed" and refuses instead.
+
+  const tagBox = () => [...document.querySelectorAll('input[role=combobox]')].filter(visible)[0] || null;
+  const tagList = () => [...document.querySelectorAll('[role=listbox]')].filter(visible)[0] || null;
+
+  // Committed tags, read from the field's own chips. They only exist in the DOM
+  // while the control is open, so an empty list may mean "closed", not "none".
+  function tagChips() {
+    return [...document.querySelectorAll('[aria-label^="Remove "]')]
+      .map((e) => e.getAttribute("aria-label").slice(7))
+      .filter((x) => x !== "hero image");
+  }
+
+  // Filter the list to one slug and hand back the point to click. The caller does
+  // the clicking with a real mouse: a synthetic click on the row does nothing,
+  // and neither does Return (aria-activedescendant is null, so no row is active).
+  async function tagSearch(slug) {
+    const box = tagBox();
+    if (!box) return { refused: "no open tag combobox; click the tag field to open it" };
+    box.focus();
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+    setter.call(box, slug);
+    box.dispatchEvent(new Event("input", { bubbles: true }));
+    await sleep(1200);
+    const list = tagList();
+    if (!list) return { refused: "listbox did not open; the filter may have dismissed the control" };
+    const rows = [...list.querySelectorAll('[role=option]')].filter(visible);
+    const row = rows.find((r) => r.innerText.trim() === slug);
+    if (!row) return { refused: `no row for "${slug}"`, offered: rows.map((r) => r.innerText.trim()).slice(0, 12) };
+    const b = row.getBoundingClientRect();
+    return {
+      slug,
+      selected: row.getAttribute("aria-selected") === "true",
+      click: { x: Math.round(b.left + b.width / 2), y: Math.round(b.top + b.height / 2) },
+      note: "click that point with a real mouse, then bc.tagStatus(slug) -- a synthetic click reports success and selects nothing",
+    };
+  }
+
+  // Did it take? Selection is aria-selected on the row, not a checkbox anywhere.
+  function tagStatus(slug) {
+    const list = tagList();
+    if (!list) return { refused: "listbox is gone; a click landed off the row and dismissed the control -- click the closed field to re-open", chips: tagChips() };
+    const row = [...list.querySelectorAll('[role=option]')].filter(visible).find((r) => r.innerText.trim() === slug);
+    if (!row) return { refused: `"${slug}" is not in the rendered window; filter to it first with bc.tagSearch`, chips: tagChips() };
+    return { slug, selected: row.getAttribute("aria-selected") === "true", chips: tagChips() };
+  }
+
+  return { editor, dialog, pasteOver, press, replaceText, replaceBlock, caretBefore, caretSlot, openInsertImage, replaceInCodeBlock, audit, tagChips, tagSearch, tagStatus };
 })();
 Object.keys(window.bc);

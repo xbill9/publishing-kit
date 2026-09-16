@@ -650,6 +650,12 @@ Because the list is virtualised, only the rendered window exists. Probing the wh
 taxonomy for selected rows is meaningless — search the exact slug and read that
 row's `aria-selected`.
 
+That route is in `scripts/browser/builder-editor.js`: `bc.tagSearch(slug)` filters
+the list and returns the **point to click with a real mouse** (it does not click,
+because a synthetic one selects nothing), `bc.tagStatus(slug)` reads that row's
+`aria-selected`, and `bc.tagChips()` reads the committed chips. Both refuse, rather
+than throwing, when the control has been torn down by an off-row click.
+
 **Not every subject has a tag, and a miss looks like a broken control.** `iceberg`
 returns nothing at all. `lakehouse` returns only `amazon-sagemaker-lakehouse`.
 Search the AWS product vocabulary instead: `agents` → `strands-agents`,
