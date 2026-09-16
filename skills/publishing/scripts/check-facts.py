@@ -17,6 +17,26 @@ Exit codes: 0 all traced, 1 something unverified.
 
 Whitelist deliberate exceptions with --exempt (repeatable, substring match), and
 put standing ones in a `.factsignore` next to the article, one per line.
+
+A third state, added 2026-09-16: a claim may be MEASURED EARLIER AND DELIBERATELY
+NOT RE-RUN. Until now that was indistinguishable from memory, so this kit's own
+article failed on a claim its ledger already labelled `LOG -- carried from the
+kit's log with the date it was taken, and NOT re-measured here`. A check that can
+never go green stops being read, and the untraced claim beside it went unfixed for
+a week. So rows under a `## LOG` heading in the article's ledger (`CLAIMS.md` next
+to it, or --ledger) cite a claim instead of proving it. Two guards, because this is
+a hole by design:
+
+  * the row must carry a date, and the claim must appear in it LITERALLY -- not
+    by the digit-normalised match the evidence files get, which "2026-08-30" alone
+    would satisfy for half the counts in an article;
+  * the ledger may not live inside --evidence. It restates every number, so a
+    ledger inside the evidence set traces everything by construction. That is not
+    hypothetical: this article's ledger was first written into `evidence/` and
+    scored a perfect run.
+
+LOG citations are printed, counted separately, and do not fail the run. They are a
+claim about provenance, so they are only ever as good as the ledger.
 """
 
 import argparse
@@ -84,11 +104,40 @@ def load_evidence(paths):
     return blobs
 
 
+DATE = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
+
+
+def load_ledger(path):
+    """Dated rows under the ledger's `## LOG` heading, as (row, date).
+
+    Only that section. The ledger's other tables restate numbers that ARE
+    supposed to trace to an artifact, and letting those cite themselves is the
+    by-construction failure this tool exists to avoid.
+    """
+    rows = []
+    if not path or not path.exists():
+        return rows
+    section = False
+    for ln in path.read_text().splitlines():
+        if ln.startswith("## "):
+            section = re.match(r"##\s+LOG\b", ln) is not None
+            continue
+        if not section or not ln.strip().startswith("|"):
+            continue
+        d = DATE.search(ln)
+        if d:
+            rows.append((ln, d.group(0)))
+    return rows
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("article")
     ap.add_argument("--evidence", nargs="*", default=[])
     ap.add_argument("--exempt", action="append", default=[])
+    ap.add_argument("--ledger", default=None,
+                    help="claim ledger whose `## LOG` rows may cite a dated, "
+                         "not-re-measured claim; default <article dir>/CLAIMS.md")
     ap.add_argument("--warn-only", action="store_true")
     a = ap.parse_args()
 
@@ -126,9 +175,16 @@ def main():
         print(f"\n{len(claims)} claim(s) to trace")
         return 0
 
+    ledger = pathlib.Path(a.ledger) if a.ledger else src.parent / "CLAIMS.md"
+    if a.ledger and not ledger.exists():
+        print(f"  FAIL  ledger does not exist: {ledger}")
+        return 1
+    log_rows = load_ledger(ledger)
+
     missing = [e for e in a.evidence if not pathlib.Path(e).exists()]
     blobs = load_evidence(a.evidence)
-    print(f"{src.name}: {len(claims)} claim(s) against {len(blobs)} evidence file(s)\n")
+    print(f"{src.name}: {len(claims)} claim(s) against {len(blobs)} evidence file(s)"
+          + (f", {len(log_rows)} dated log row(s)" if log_rows else "") + "\n")
 
     # A green run against an evidence path that is not there is the worst result
     # this tool can produce: it reads as "every number traces" when nothing was
@@ -143,7 +199,22 @@ def main():
         print("\nNothing was read, so nothing was checked.")
         return 1
 
-    unverified = []
+    # The trap this kit already fell into, and which a first version of the guard
+    # below did NOT catch: a ledger inside --evidence restates every number, so
+    # every claim traces to it and the run is green by construction. Checking the
+    # --ledger path is not enough -- the ledger arrives as an ordinary evidence
+    # blob whatever it is called. Detect it by shape, in the files actually read.
+    ledgers = [f for f, raw, _ in blobs
+               if f.name == "CLAIMS.md" or re.search(r"^##\s+LOG\b", raw, re.M)]
+    if ledgers:
+        for f in ledgers:
+            print(f"  FAIL  a claim ledger is inside the evidence set: {f}")
+        print("\nA ledger restates the numbers, so every claim would trace to it by "
+              "construction. Keep it beside the article and name it with --ledger, "
+              "outside --evidence.")
+        return 1
+
+    unverified, cited = [], []
     for c, kind in sorted(claims.items()):
         n = norm(c)
         hit = None
@@ -153,11 +224,23 @@ def main():
                 break
         if hit:
             print(f"  ok    {kind:12s} {c:28s} <- {hit}")
+            continue
+        # Literal match only: the digit-normalised one would let a row's own
+        # date stand in for the claim it is supposed to be citing.
+        row = next((r for r in log_rows if c in r[0]), None)
+        if row:
+            print(f"  LOG   {kind:12s} {c:28s} <- {ledger.name} {row[1]}, not re-measured")
+            cited.append((kind, c))
         else:
             print(f"  TRACE {kind:12s} {c:28s} <- nothing")
             unverified.append((kind, c))
 
-    print(f"\n{len(claims) - len(unverified)} traced, {len(unverified)} untraced")
+    traced = len(claims) - len(unverified) - len(cited)
+    print(f"\n{traced} traced, {len(cited)} cited from the log, {len(unverified)} untraced")
+    if cited:
+        print("\nA log citation is a claim about provenance, not a measurement. It "
+              "says the number was taken on that date and deliberately not re-run, "
+              "and it is worth exactly as much as the ledger it came from.")
     if unverified:
         print("\nEach untraced claim is either: measured but the artifact was not "
               "supplied, arithmetic (label it as such in the text), or asserted "

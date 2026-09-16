@@ -268,6 +268,27 @@ Standing exemptions go in a `.factsignore` beside the article, **one per line wi
 the reason written above it**. If you cannot write the reason, the claim needs an
 artifact instead, not an exemption.
 
+**A fourth state, for a claim measured earlier and deliberately not re-run.**
+MEASURED 2026-09-16: collapsing that into "untraced" made this kit's own article
+fail on a figure its ledger already labelled, dated and explained, and a check that
+can never go green stops being read — the genuinely unsourced claim sitting beside
+it went unfixed for a week. So a claim may now *cite* a dated row under a `## LOG`
+heading in the article's ledger (`CLAIMS.md` beside it, or `--ledger`), and the run
+prints it as `LOG <date>, not re-measured` and counts it apart from both traced and
+untraced. It is a claim about provenance, not a measurement, and it is worth
+exactly as much as the ledger it came from.
+
+Two guards, because a fourth state is a hole by design. The row must carry a date,
+and the claim must appear in it **literally** — the digit-only match the evidence
+files get would let a row's own `2026-08-30` stand in for half the counts in an
+article. And **the ledger may not sit inside `--evidence`**: it restates every
+number, so a ledger in the evidence set traces everything by construction. This
+article's ledger was first written into `evidence/` and scored a perfect run, which
+is why the check now refuses a ledger-shaped file there. The first version of that
+guard only checked the `--ledger` path and did not fire on a `CLAIMS.md` copied
+into the evidence directory — the control caught it, which is the whole argument
+for running one.
+
 Two other things a script cannot do, so do them by hand:
 
 - **Check vendor and identity claims**, not just numbers. Archiving the EC2
