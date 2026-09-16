@@ -617,3 +617,112 @@ were all dead ends chased before the WAF was found.
 version and serve stale content, so a reload of one shows an empty body long
 after the save succeeded. Load `/profile/content?tab=draft`, take the
 `/preview/content/<id>?v=<v>` link it gives, and read that.
+
+## Builder Center's tag picker is the mirror image of Medium's
+
+MEASURED 2026-09-15. Medium's topic field ignores a click and takes
+`type → ArrowDown → Return`. Builder Center's tag field is the exact opposite, and
+reaching for Medium's route first costs several wasted attempts.
+
+The control is an `input[role=combobox]` over a virtualised `[role=listbox]`. Rows
+carry **no checkbox element** — selection is `aria-selected` on the row — so an
+audit counting `input[type=checkbox]:checked` reports `0` for a field that visibly
+has chips in it. The handful of checkboxes such a query does find belong to other
+controls entirely.
+
+| route | result |
+|---|---|
+| `element.click()` on the row | nothing; `aria-selected` stays `false` |
+| `Return` with the list filtered to one row | nothing; `aria-activedescendant` is `null`, so no row is formally active |
+| **real mouse click on the filtered row** | **commits** — the row reads `Selected` and a chip appears under the field |
+
+A synthetic click reports success and changes nothing, the same shape as the DOM
+edits Medium discards.
+
+**A click a few pixels off the row tears down the whole control.** Not just the
+list: `input[role=combobox]` and `[role=listbox]` both leave the DOM, so the next
+`box.focus()` throws `Cannot read properties of null`. That exception means the
+dropdown was dismissed, not that the page broke. Re-open by clicking the closed
+field. Committed chips only exist in the DOM while it is open, so read them from
+the field itself, or from a screenshot.
+
+Because the list is virtualised, only the rendered window exists. Probing the whole
+taxonomy for selected rows is meaningless — search the exact slug and read that
+row's `aria-selected`.
+
+**Not every subject has a tag, and a miss looks like a broken control.** `iceberg`
+returns nothing at all. `lakehouse` returns only `amazon-sagemaker-lakehouse`.
+Search the AWS product vocabulary instead: `agents` → `strands-agents`,
+`ai-agents`, `amazon-bedrock-agents`; `analytics` → `data-analytics`; `storage` →
+`object-storage`; `generative` → `generative-ai`.
+
+## `new Response(stream)` is blocked on Builder Center, with nothing on the wire
+
+MEASURED 2026-09-15. The usual way to gunzip a payload inside the page —
+
+```js
+const text = await new Response(blob.stream().pipeThrough(new DecompressionStream("gzip"))).text();
+```
+
+— works on `medium.com` and throws **`TypeError: Failed to fetch`** on
+`builder.aws.com`, while reading a `Blob` that is already in memory. The error is
+word-for-word the cross-origin fetch failure documented above, so it reads as a
+network problem when no request is being made.
+
+Read the stream directly; this works on both:
+
+```js
+const ds = new DecompressionStream("gzip");
+const w = ds.writable.getWriter(); w.write(bytes); w.close();
+const r = ds.readable.getReader();
+const parts = []; let n = 0;
+for (;;) { const {done, value} = await r.read(); if (done) break; parts.push(value); n += value.length; }
+const merged = new Uint8Array(n); let o = 0;
+for (const p of parts) { merged.set(p, o); o += p.length; }
+const text = new TextDecoder().decode(merged);
+```
+
+## Medium's real title block also reports a negative `top`
+
+MEASURED 2026-09-15. This kit already warns that `[contenteditable="true"]` returns
+a hidden 100x100 decoy parked at `x=-9999`. After a long paste there is a second
+way to be fooled: the page is left scrolled ~10,000px down, so **every** element
+above the viewport reports a large negative `top` — the real title block included.
+
+`H3.graf--h3.graf--empty.graf--leading.graf--title` read `rect=497,-9990`, which is
+indistinguishable from the decoy by rect alone. `window.scrollTo(0, 0)` first; it
+then reads `497,88`, is clickable, and accepts the typed title.
+
+Distinguish the two by class, never by position: the decoy carries no `graf`
+classes and is 100x100; the title is `.graf--title` at the editor's full column
+width.
+
+A single `.graf--empty` at the **end** of the document is Medium's normal trailing
+paragraph, not the stray block a dropped `<h1>` leaves at the top. Check where it
+sits before running the Backspace routine at it.
+
+## A cell's height is not its line count
+
+MEASURED 2026-09-15, chasing a table column that wrapped on dev.to. Dividing an
+element's `clientHeight` by its `line-height` measures the **row's tallest cell**,
+not the text's lines, so a one-line cell in a two-line row reports two lines. Three
+"fixes" shipped against that false reading before the measurement was corrected.
+
+`Range.getClientRects().length` returns one rect per rendered line box, and is the
+honest count:
+
+```js
+const n = [...cell.childNodes].find(x => x.nodeType === 3 && x.textContent.trim());
+const rg = document.createRange(); rg.selectNodeContents(n);
+const lines = rg.getClientRects().length;
+```
+
+Cross-check against the width the text needs unbroken, from a `white-space: nowrap`
+clone in the same font. The two agreeing is what makes a negative result mean
+anything.
+
+**The wrap itself:** an auto-layout table column is sized to its *minimum content
+width* — the longest unbreakable word. `Test 1` therefore breaks to `Test` / `1` at
+**every** viewport width, and shortening the label shrinks the column with it, so
+the wrap survives every time. Remove the break opportunity instead: a single token
+(`1`), not shorter text.

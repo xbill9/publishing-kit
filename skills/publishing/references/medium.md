@@ -165,3 +165,19 @@ as unknown, not as dead. The browser also redirected that publication URL to the
 author's `xbill999.medium.com` subdomain — expected, and not a different story. Same shape as dev.to
 answering `Forbidden Bots`. A link checker that reports a published article as
 dead is checking its own headers, not the article.
+
+## `&nbsp;` fixes a dev.to wrap and breaks the Medium table image
+
+MEASURED 2026-09-15. A non-breaking space is the obvious fix for a table cell that
+wraps at its space on dev.to, and it works there. `make-medium.py` rasterises
+tables through a renderer that does **not** decode HTML entities, so the same cell
+reaches Medium as a picture of the literal text `Test&nbsp;1`.
+
+Nothing warns. The markdown is valid, dev.to renders it correctly, the PNG is
+generated without error, and the only way to see it is to open the image.
+
+So a fix aimed at one destination gets checked in the other destinations'
+artifacts before it ships — the same rule as "a property of one destination is
+evidence about that destination only", applied to fixes rather than behaviours.
+Prefer a repair that is plain text in every renderer: a label with no space in it
+needs no entity anywhere.
