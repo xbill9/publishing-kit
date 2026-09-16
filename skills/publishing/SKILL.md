@@ -777,6 +777,15 @@ If you do stage it in the browser: the composer is a plain Quill editor at
 the whole message in at once. Do that rather than typing, because **Enter sends
 in Slack**. Then **press Escape**: the trailing hashtags leave Slack's channel
 picker open, and Enter would insert a channel link instead of sending.
+
+**Attach the cover rather than counting on the unfurl.** MEASURED 2026-09-16: the
+page has exactly one `input[type=file]`, it is in the light DOM, and it needs none
+of the shadow-root work Medium and Builder Center do — it carries no accessible
+name, so give it an `aria-label` and upload straight to it. Attach *after*
+inserting the text; the upload leaves the composer contents alone. **After a
+successful upload `input.files` reads 0**, because Slack consumes the file into
+its own attachment state, so a re-read of the input looks exactly like a failed
+upload — judge it by the thumbnail above the composer toolbar instead.
 `references/slack.md` has the rest.
 
 ## Optional: announcing in the GDE Americas space (Google Chat)
@@ -810,7 +819,17 @@ Enter with it open inserts a notify-everyone. The control is what makes this
 trustworthy: `@` alone and `#` alone both open nothing, so testing only those
 would have produced the opposite rule. Both need a following letter.
 
-The composer is a plain `contenteditable` with no shadow root, so
+**With a thread open there are two composers, and only one of them is a reply.**
+MEASURED 2026-09-16. A `/topic/` URL leaves the space's own stream on the left and
+the thread in a right-hand panel; both are `[contenteditable="true"][role="textbox"]`
+and they are told apart by `aria-label`, not by position or by first match.
+`History is on` is the space's composer and sending there **starts a new top-level
+topic**; `Reply` is the thread's. Getting that wrong is a new conversation in a
+live community space, not a formatting slip. A thread composer can also already
+hold the author's own text, so the emptiness guard refuses — ask before replacing
+it — and after inserting, check the *other* composer is still empty.
+
+Either composer is a plain `contenteditable` with no shadow root, so
 `execCommand("insertText")` puts the message in at once — and it does *not* open
 the pickers that real keystrokes do. Assume Enter sends. `references/gchat.md`
 has the rest.
