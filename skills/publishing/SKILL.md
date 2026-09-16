@@ -207,6 +207,12 @@ Only the two `ai.google.dev` links are confirmed.
   or plain text, including one whose naive cut (`…',`) is dead; filenames in the
   prose that resolve as domains
 
+**The same rule applies to `links.txt`, which it did not until 2026-09-16.** That
+loop failed anything but a 200, so a published Medium URL was a warning as an
+anchor in the body and a build failure as a `links.txt` entry — and Medium answered
+403 on one run and 200 on the next for the same story. One source for the verdict
+now, in both paths.
+
 Fix a flagged `ai.google.dev` link by unlinking it (plain text passed) or by
 linking an equivalent page that does not bounce. Re-run the capture to confirm —
 it is the only answer that is not a guess.

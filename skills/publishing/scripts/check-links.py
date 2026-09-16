@@ -346,8 +346,23 @@ def main():
             elif "temp-slug" in v:
                 warn(f"links.txt {k.strip()}: draft URL, the slug changes on publish")
             else:
-                st, _ = fetch(v, a.timeout)
-                (ok if st == 200 else fail)(f"links.txt {k.strip()}: HTTP {st}")
+                # fetch_chain, not fetch: verdict() reads the final URL and the
+                # hops, and this is the gate's profile -- browser UA, no cookies.
+                st, final, hops = fetch_chain(v, a.timeout)
+                # MEASURED 2026-09-16: this path failed a Medium URL with 403 in
+                # one run and passed it in the next, on the same published story.
+                # scan_article_links() has treated a bot wall as a note since
+                # 332d2a9; links.txt did not, so the same URL was a warning in one
+                # half of the run and a build failure in the other. Same rule, one
+                # source: verdict() decides, here too.
+                v_ = verdict(v, (st, final, hops))
+                if v_ is None:
+                    ok(f"links.txt {k.strip()}: HTTP {st}")
+                elif v_[1]:
+                    warn(f"links.txt {k.strip()}: {v_[0]} -- bot wall, not a broken "
+                         f"link; open it in a browser to confirm")
+                else:
+                    fail(f"links.txt {k.strip()}: {v_[0]}")
 
     print(f"\n{len(FAILS)} fail, {len(WARNS)} warn")
     return 1 if FAILS else 0
