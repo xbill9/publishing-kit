@@ -1,6 +1,6 @@
 {
   "name": "publishing-kit",
-  "description": "A Codex- and Claude Code-compatible skill and toolchain for publishing technical articles to AWS Builder Center, dev.to and Medium.",
+  "description": "A skill and toolchain for publishing technical articles to AWS Builder Center, dev.to, Medium and LinkedIn, at home in Antigravity, Codex and Claude Code.",
   "owner": {
     "name": "xbill9",
     "url": "https://github.com/xbill9"
@@ -9,7 +9,7 @@
     {
       "name": "publishing",
       "source": "./",
-      "description": "Three destinations that disagree about tables, code blocks and cover images — and every disagreement fails silently. Ships the generators, a pre-flight that exits non-zero, and a fact-tracer that reports which claims have no artifact behind them."
+      "description": "Four destinations that disagree about tables, code blocks and cover images — and every disagreement fails silently. Ships the generators, a pre-flight that exits non-zero, and a fact-tracer that reports which claims have no artifact behind them."
     }
   ]
 }
