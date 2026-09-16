@@ -80,3 +80,37 @@ it is reachable straight from the document, like Slack's.
 ## The script does not post
 
 It writes a file. Sending into a shared community space is a person's decision.
+
+## With a thread open there are TWO composers, and only one is a reply
+
+MEASURED 2026-09-16 in **Cloud GDEs** (`chat.google.com/app/chat/AAAAEyXTdUs`) —
+a different space from the GDE Americas room the shape above was read in, so treat
+the conventions as unverified there and the mechanics as the same.
+
+Opening a topic URL (`/topic/<id>`) puts the thread in a right-hand panel and
+leaves the space's own stream on the left. Both have a composer, both are
+`[contenteditable="true"][role="textbox"]`, and **they are told apart by
+`aria-label`, not by position**:
+
+| `aria-label` | what it is | what sending does |
+| --- | --- | --- |
+| `History is on` | the space's main composer | starts a **new top-level topic** |
+| `Reply` | the open thread's composer | replies inside that topic |
+
+Picking the wrong one is not a formatting mistake — it is a new conversation in a
+live community space. Select by `aria-label` explicitly:
+
+```js
+const ed = [...document.querySelectorAll('[contenteditable="true"]')]
+  .filter(visible)
+  .find(e => e.getAttribute('aria-label') === 'Reply');   // or 'History is on'
+```
+
+**A thread composer can already hold the author's own text.** This one held
+`working on a follow up.` — so the emptiness guard the main flow relies on will
+refuse, and clobbering it silently is worse than refusing. Ask which the author
+wants, then replace deliberately: `selectNodeContents` + `execCommand("insertText")`
+overwrites the selection in one step.
+
+After inserting, check the *other* composer is still empty. That is the cheap
+proof that nothing leaked into a new topic.
