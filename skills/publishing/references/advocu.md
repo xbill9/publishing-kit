@@ -189,3 +189,75 @@ measurement and the API knows it exactly.
 take a repository or a video rather than a link to an article. Out of scope here,
 but worth knowing they are separate paths rather than content types inside the
 same form.
+
+## The date picker, measured again on 2026-09-16
+
+Two things made the date field look broken when the cause was elsewhere. The
+existing note above — that a *typed* date passes Next and then fails Submit — still
+holds; these are about driving the picker itself.
+
+**A coordinate from `getBoundingClientRect()` is not a click coordinate.** The
+click frame here was 1568x714 while `window.innerWidth/innerHeight` was 1701x775,
+a factor of **0.92**. Clicking a cell's CSS centre directly landed roughly 70px
+right and 30px down — one row and two columns away — and quietly selected
+**2026-09-25** instead of 2026-09-16, with the form item still reporting
+`ant-form-item-has-success`. Scale every JS-derived point before clicking:
+
+```js
+const sx = 1568 / window.innerWidth, sy = 714 / window.innerHeight;  // read the frame from the screenshot result
+const r = cell.getBoundingClientRect();
+const clickAt = [(r.left + r.width / 2) * sx, (r.top + r.height / 2) * sy];
+```
+
+This is the same gap `browser-publishing.md` records under "The screenshot is not
+in CSS pixels, and the gap is silent". It bites hardest on a calendar, because
+every wrong answer is still a valid date.
+
+**The picker closes between tool calls.** Measuring the cell in one
+`javascript_tool` call and clicking in the next read a panel that no longer
+existed: `.ant-picker-dropdown` count went from 3 to 0, `td[title="2026-09-16"]`
+from present to absent, and the clicks appeared to be ignored. Two coordinate
+clicks and one JS press were all spent on a dead panel.
+
+**Do the whole interaction in one script** — open, wait for the panel, find the
+cell, press it, read the input back:
+
+```js
+press(dateInput);                                   // opens the picker
+let panel = null;
+for (let i = 0; i < 20 && !panel; i++) {
+  await sleep(250);
+  panel = [...document.querySelectorAll('.ant-picker-dropdown')]
+    .find(d => visible(d) && !d.className.includes('hidden') && d.querySelector('td[title]'));
+}
+press(panel.querySelector('td[title="2026-09-16"] .ant-picker-cell-inner'));
+await sleep(1000);
+dateInput.value === '2026-09-16';                   // the only check that counts
+```
+
+Scope the cell lookup **to the open panel**, not to `document`: a bare
+`document.querySelector('td[title=…]')` can return a cell in a stale panel, the
+same first-match trap as Medium's hidden editor.
+
+## Step 2's image input, and what success looks like
+
+Confirms and extends the note above. The input is in the light DOM with
+`accept="image/jpeg,image/png,image/gif,image/webp"` and carries **no accessible
+name**, so `find` cannot see it until one is added:
+
+```js
+document.querySelector('input[type=file]').setAttribute('aria-label', 'Advocu activity image input');
+// then: find "Advocu activity image input" -> ref, file_upload(cover.webp, ref)
+```
+
+**After a successful upload `input.files` reads 0** — the app consumes the file
+into its own state, exactly as Slack does. Judge by the filename appearing in the
+drop zone and a preview thumbnail rendering (200x200 here), never by the input.
+
+"Do you want to make this activity private?" read `false` on arrival, matching the
+earlier run.
+
+**Save as draft is confirmed by the Drafts count, not only the toast.** The toast
+read *"Success! Activity has been saved as draft"* and the **Drafts tab went 7 to
+8** in the same view — a 1200x675 WebP of 13 KB attached, in a visible browser
+window where the lists render.
