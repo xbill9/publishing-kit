@@ -719,10 +719,13 @@ so a file hard-wrapped at ~95 columns renders with a ragged break every ~95
 characters. `serve-body.py` unwraps before serving.
 
 **This was written up as a Builder Center quirk and it is not one.** MEASURED
-2026-08-31: **dev.to renders with hard breaks ON too.** A published article had
-`<br>` in **47 of its 62 paragraphs**, from a source with zero lines ending in the
-two spaces that mean an explicit markdown break. The ragged rendering had been
-shipping for months, in every article, unnoticed.
+2026-08-31, re-measured against the live article 2026-09-16: **dev.to renders with
+hard breaks ON too.** A published article had `<br>` in **47 of its 62**
+paragraph-level blocks — 58 `<p>` and 4 `<li>` — from a source with zero lines
+ending in the two spaces that mean an explicit markdown break. The ragged rendering
+had been shipping for months, in every article, unnoticed. The artifact is
+`articles/publishing-kit-skill/evidence/devto-hardwrap.txt`; it had none until
+2026-09-16, and the kit restated the number in four places meanwhile.
 
 Where each destination stands, all measured 2026-08-31:
 

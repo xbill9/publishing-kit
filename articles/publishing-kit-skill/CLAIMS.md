@@ -40,6 +40,18 @@ Anything that could not be put in one of those two categories was cut.
 | check-facts reads `127.0.0.1` as version `127.0.0` | `toolchain-run.txt`, `.factsignore` |
 | the repo is public and main serves the marketplace manifest (HTTP 200) | `toolchain-run.txt` |
 
+## MEASURED 2026-09-16 — re-measured later, archived here
+
+check-facts gained a `count` pattern on 2026-09-10 and immediately reported the
+kit's own headline number untraced. It had no row in this ledger at all: not
+MEASURED, not LOG, not cut. It does now, against the live article.
+
+| Claim | Artifact |
+| --- | --- |
+| dev.to breaks at every wrap: 47 of 62 paragraph-level blocks (58 `<p>` + 4 `<li>`) carry `<br>` | `devto-hardwrap.txt` |
+| the source asks for none of them: 0 lines end in two spaces | `devto-hardwrap.txt` |
+| the article measured is `.../the-cheapest-cuda-gpu-on-aws-has-an-arm-cpu-...` (4531800), published 2026-08-31 | `devto-hardwrap.txt` |
+
 ## Read from the source, not asserted
 
 | Claim | Where it is verifiable |

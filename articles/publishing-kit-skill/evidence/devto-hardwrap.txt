@@ -1,0 +1,22 @@
+# dev.to renders a hard-wrapped source with a break at every wrap -- re-measured 2026-09-16 19:02 UTC
+# The claim is dated 2026-08-31 and had no artifact until now: it is on this
+# kit's cover, in SKILL.md, bodytext.py and check-article.py, and check-facts
+# reported it untraced. Re-measured against the live article, unchanged since.
+# GET /api/articles/<id> via publish-devto.py's client; body_html as dev.to serves it.
+# 3.14.7 on Linux x86_64
+
+article:   The Cheapest CUDA GPU on AWS Has an Arm CPU — and You Probably Want the Intel One
+url:       https://dev.to/aws-builders/the-cheapest-cuda-gpu-on-aws-has-an-arm-cpu-and-you-probably-want-the-intel-one-325b
+id:        4531800   published: 2026-08-31
+
+MEASURED  paragraph-level blocks in body_html: 58 <p> + 4 <li> = 62
+MEASURED  blocks containing <br>:              47
+MEASURED  total <br> in body_html:             88  (a block wraps more than once)
+CLAIM     47 of 62
+
+CONTROL   source lines ending in two spaces (an explicit markdown break): 0
+          zero, so every <br> above is dev.to breaking at the source's wrap,
+          not the author asking for a line break.
+CONTROL   bodytext.hard_wrapped() on the same source reports 43 multi-line
+          paragraphs -- it skips list items and quoted blocks, which is why it
+          is the smaller number and why the published count is the honest one.
