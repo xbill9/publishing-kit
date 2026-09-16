@@ -112,3 +112,27 @@ timing or Slack-side caching is not. **The rule stands: do not promise an author
 a preview.** What is now established is only that a preview is *possible* here,
 and that when it comes it is the cover image rather than a title-and-blurb card
 — which is one more reason the cover is worth generating properly.
+
+## Attaching the graphic: the composer's file input takes it directly
+
+MEASURED 2026-09-16. Since the unfurl is unreliable (above), attach the cover
+rather than hoping for a preview. Slack needs none of the shadow-root work Medium
+and Builder Center do.
+
+There is exactly one `input[type=file]` on the page, in the **light DOM**,
+`multiple=true`, rendered about 1px wide. It carries no accessible name, so `find`
+cannot see it. Give it one and upload straight to it — no proxy input needed:
+
+```js
+document.querySelector('input[type=file]')
+        .setAttribute('aria-label', 'Slack composer file input');
+// then: find "Slack composer file input" -> ref, and file_upload(cover.jpg, ref)
+```
+
+**After a successful upload `input.files` reads 0.** Slack consumes the file into
+its own attachment state, so re-reading the input looks exactly like a failed
+upload, and a check for `blob:`/`data:` images finds nothing either. Judge it by
+the thumbnail that appears above the composer toolbar.
+
+Attach *after* inserting the text: the upload leaves the composer contents alone —
+1,121 characters and four links before and after.
