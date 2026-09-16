@@ -238,7 +238,11 @@ even for a URL that returns 200 everywhere else. `window.name` does not survive
 the navigation either (see above), so neither route carries bytes in.
 
 **4. What works: a proxy input.** Append a plain `<input type=file>` to the
-*light* DOM (`li.addProxyInput()`); `find` sees it, `file_upload` fills it from
+*light* DOM (`li.addProxyInput()`) carrying
+**`aria-label="Publishing proxy file input"`** — that exact string is what the
+`find` step searches for, and it exists in two places, here and in
+`scripts/browser/linkedin-composer.js`, so renaming it in one is an edit to the
+other. `find` sees it, `file_upload` fills it from
 disk, and `li.moveProxyFileToEditor(expectedBytes)` copies `proxy.files` onto the
 shadow input through a `DataTransfer` and dispatches `input` and `change` with
 `composed: true`. The editor shows a 1200x627 preview and enables Next; Next
