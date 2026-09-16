@@ -44,11 +44,15 @@ article. **A property of one destination is evidence about that destination only
 
 **2. Identity mistaken for freshness.** Three times, in three places. A cover was
 *tracked by git*, so the check passed, while the published URL served an older
-image because it had been regenerated after its commit. `claude plugin update`
-compares *version strings*, so it answered "already at the latest version" for
-content six commits newer. `skill-footprint.py` shipped that same bug on its first
-day. **"Is it the right thing" and "is it the current thing" are different
-questions, and the second one is the one that breaks silently.**
+image because it had been regenerated after its commit. Every host installs this
+skill as a *snapshot*, and the updater measured here compared **version strings**
+rather than content, so it answered "already at the latest version" for a
+worktree six commits newer; assume a host's updater has the same gap until its
+own behaviour is measured. `skill-footprint.py` shipped that same bug on its
+first day, which is why it labels a projection with the version it actually
+measured and only reports the installed snapshot when asked. **"Is it the right
+thing" and "is it the current thing" are different questions, and the second one
+is the one that breaks silently.**
 
 **3. A measurement with no control.** A first read of a published article counted
 23 "bare" fences and looked like proof that dev.to does not relabel them — they
