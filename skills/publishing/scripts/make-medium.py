@@ -496,8 +496,7 @@ def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = No
     h = re.sub(r'<header id="title-block-header".*?</header>\s*', "", h, flags=re.S)
     if desc:
         h = h.replace("</title>",
-                      "</title>\n  <meta name=\"description\" content=\"%s\" />"
-                      % html.escape(desc))
+                      f'</title>\n  <meta name="description" content="{html.escape(desc)}" />')
     # Preview styling only — Medium restyles everything on paste. This just
     # stops the local preview looking like a 1998 pandoc default.
     h = h.replace("</head>", """  <style>

@@ -129,7 +129,7 @@ def links_file(d):
     return out
 
 
-def devto_stats(url, key_path=pathlib.Path.home() / ".devto.key"):
+def devto_stats(url, key_path=None):
     """Reach and publication date, from dev.to rather than from imagination.
 
     Returns (page_views_count, published_at_date) with either half possibly
@@ -137,6 +137,7 @@ def devto_stats(url, key_path=pathlib.Path.home() / ".devto.key"):
     to remember it -- when the API knows it exactly -- is a made-up figure
     waiting to happen, in a form that reports to a program.
     """
+    key_path = key_path or pathlib.Path.home() / ".devto.key"
     key = os.environ.get("DEV_TO_API_KEY") or (
         key_path.read_text().strip() if key_path.exists() else "")
     if not key:

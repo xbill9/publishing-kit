@@ -94,7 +94,7 @@ def legibility_report(out, W):
     """What survives at card width. A cover carries about two things; the rest is
     decoration you paid for and no one can read."""
     scale = CARD_W / W
-    sizes = sorted(set(round(x) for x in USED_PT))
+    sizes = sorted({round(x) for x in USED_PT})
     legible = [x for x in sizes if x * scale >= LEGIBLE_PX]
     lost = [x for x in sizes if x * scale < LEGIBLE_PX]
     print(f"  legibility at a {CARD_W}px feed card:")
@@ -431,6 +431,7 @@ def main():
         print(f"cover_image: {a.url_base.rstrip('/')}/{out.name}")
     if a.mode == "builder" and kb > 2048:
         sys.exit("FAIL: Builder Center caps cover uploads at 2 MB")
+    return 0
 
 
 if __name__ == "__main__":
