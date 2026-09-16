@@ -852,6 +852,20 @@ because it looks sourced.
 The form has **Save as draft**, so an activity parks like everything else here.
 Field list and the two other activity types are in `references/advocu.md`.
 
+## Optional: recording the result in a tracking sheet
+
+Sprints and programs often track published work in a shared Google Sheet, so a run
+can end with "add a row". Do not improvise it: **Google Sheets breaks every
+technique the editors in this kit use**, and the ways it breaks are silent.
+
+The grid is a single `<canvas>` with no readable DOM, so reading means driving the
+Name Box (`#t-name-box`) and reading the formula bar (`#t-formula-bar-input`).
+Writing means a synthetic `paste` of tab-separated values — `computer type` sends
+literal tab characters, not Tab keys, and puts the whole row into one cell.
+
+`references/google-sheets.md` has the code, the timeouts to respect, and the
+read-back check that tells a written row apart from a mangled one.
+
 ## House style
 
 Voice, section order, opener and closing formulas live in
