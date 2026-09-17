@@ -181,3 +181,50 @@ artifacts before it ships — the same rule as "a property of one destination is
 evidence about that destination only", applied to fixes rather than behaviours.
 Prefer a repair that is plain text in every renderer: a label with no space in it
 needs no entity anywhere.
+
+## Pasted images can re-host and then revert to a placeholder on save
+
+MEASURED 2026-09-17, three times, across two drafts and two image hosts. This is
+the failure mode the "7 of 7 images survived" note above does not cover, and it
+is invisible until you reload.
+
+Immediately after dispatching the paste, every figure is correct:
+
+| Checked, right after the paste | Result |
+| --- | --- |
+| figure slots | 9 of 9 |
+| `data-image-id` | 9 distinct, all `0*` — Medium re-hosted all of them |
+| placeholders | 0 |
+
+The editor then shows `Saved`. **Reload, and the images are gone**: 5 figures
+carrying one shared `1*b31hiO4ynbDLRrXWEFF4aQ.png` id and 0 under `0*`. The rest
+of the document is untouched — 138 grafs, 17 `h4` + 1 `h3`, 15 multi-line code
+blocks, opening and closing landmarks each exactly once. **Only the images
+revert.**
+
+What was ruled out, so the next session does not re-run it:
+
+- **Not the image host.** Reproduced with `raw.githubusercontent.com` and with
+  `cdn.jsdelivr.net/gh/...`. All 9 URLs returned 200 with correct content types,
+  and all 9 loaded as `new Image()` **from the medium.com page itself** — the
+  control that proves the URLs are reachable by that browser.
+- **Not a stale or odd URL.** A `main/./medium/img/...` path (what `make-medium.py`
+  derives when the article sits at the repo root) and a clean `main/medium/img/...`
+  behaved identically.
+- **Not re-pasting over a used draft.** Reproduced on a brand-new `/new-story`
+  draft pasted exactly once.
+- **Not the 5xx.** Medium threw a site-wide gateway timeout during the first run,
+  but the failure reproduced twice more after it recovered.
+
+**Counting figures is its own trap here.** `.graf--figure img` and even
+`.graf--figure` are *virtualised* — the editor materialises a rolling ~5 of them,
+so a full scroll can report 5 figures in a 9-figure document, and repeated scans
+return different subsets. The reliable count is FIGURE-tagged entries in
+`[...ed.querySelectorAll('.graf')]`, which stays at 9. A first pass at this
+concluded "4 images were dropped" off the virtualised count, which was wrong.
+
+Unresolved: whether the persisted document ever holds the `0*` ids. Until it is,
+**treat a post-paste image audit as meaningless and re-audit after a reload** —
+and if the images matter, use the import route, where Medium fetches them
+server-side, accepting that `<pre>` is flattened and multi-line code has to be
+rendered as images too.
