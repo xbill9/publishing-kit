@@ -591,15 +591,36 @@ def default_img_base(src: Path) -> str:
 
 
 if __name__ == "__main__":
-    args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    flags = {a.split("=")[0]: a.split("=", 1)[-1]
-             for a in sys.argv[1:] if a.startswith("--")}
+    # Accept both `--flag=value` and `--flag value`. Only the first was parsed, so
+    # MEASURED 2026-09-18 `--cover devto-cover.jpg` read the cover as the string
+    # "--cover", found no such file, and emitted a story with NO cover -- the first
+    # table became Medium's cover art -- while the path fell through as a stray
+    # positional argument. No error either way.
+    argv, args, flags = sys.argv[1:], [], {}
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a.startswith("--") and "=" in a:
+            k, v = a.split("=", 1)
+            flags[k] = v
+        elif a.startswith("--"):
+            if i + 1 >= len(argv) or argv[i + 1].startswith("--"):
+                sys.exit(f"{a} needs a value")
+            flags[a] = argv[i + 1]
+            i += 1
+        else:
+            args.append(a)
+        i += 1
+    if len(args) > 2:
+        sys.exit(f"unexpected arguments: {args[2:]}")
     if not args:
         sys.exit(__doc__)
     src = Path(args[0])
     img_base = flags.get("--img-base") or default_img_base(src)
     outdir = Path(args[1]) if len(args) > 1 else Path("medium")
     cov = flags.get("--cover")
+    if cov and not Path(cov).exists():
+        sys.exit(f"--cover {cov}: no such file")
     cover = Path(cov) if cov else next(
         (c for c in sorted(src.parent.glob("*cover*.jpg")) + sorted(src.parent.glob("*cover*.png"))
          if "builder" not in c.name), None)
