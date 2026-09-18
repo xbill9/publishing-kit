@@ -1,7 +1,7 @@
 {
   "name": "publishing",
   "description": "Publish a technical article to AWS Builder Center, dev.to, Medium and LinkedIn, and announce it in Slack, Google Chat and Advocu, without the silent failures: mandatory cover images, table/code-to-image conversion for Medium's importer, posts whose links must resolve, a pre-flight check that fails the build, and fact-tracing that reports every claim with no artifact behind it. Runs in Antigravity, Codex and Claude Code.",
-  "version": "0.27.0",
+  "version": "0.28.0",
   "author": {
     "name": "xbill9",
     "url": "https://github.com/xbill9"

@@ -917,6 +917,13 @@ read-back check that tells a written row apart from a mangled one.
 
 ## House style
 
+**Read `references/house-style.md` before drafting a single paragraph.** Its
+"Prose" section lists what the author has had to correct in four sessions running
+— narrating the work instead of the finding, "X is not Y" contrast lines, filler
+like "honest" and "actually", and internal jargon — and `check-prose.py`, run by
+`preflight.py`, fails the build on every one of them. Fixing them after the draft
+is the pattern that kept repeating; write them out of the first draft.
+
 Voice, section order, opener and closing formulas live in
 `references/house-style.md`. Swap that one file to retarget this skill to a
 different author or publication; nothing else here depends on it.

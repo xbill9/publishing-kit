@@ -10,6 +10,8 @@ happened to run came back green.
     preflight.py <article>.md [--live] [--repo-root ..] [--evidence evidence/]
 
   check-facts.py    every number traces to an artifact
+  check-prose.py    no banned phrasing: work narrative, contrast lines, filler,
+                    internal jargon (the list is in references/house-style.md)
   check-article.py  cover, geometry, crop, committed, front matter, wraps, links
   check-links.py    --live only: fetch every URL and compare bytes to disk, and
                     every rendered link the way Builder Center's gate checks it
@@ -79,6 +81,8 @@ def main():
 
     results["facts"] = run("check-facts.py — every number traces to an artifact",
                            [str(HERE / "check-facts.py"), art, "--evidence", evidence])
+    results["prose"] = run("check-prose.py — banned phrasing, from references/house-style.md",
+                           [str(HERE / "check-prose.py"), art])
     results["article"] = run("check-article.py — cover, crop, committed, wraps, links",
                              [str(HERE / "check-article.py"), art, "--repo-root", repo_root])
     if a.live:

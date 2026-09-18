@@ -17,6 +17,81 @@ Sections are short and numerous, twenty or more, in **lifecycle order**:
 That order is the point. It stops a validation pass ending at "the model
 answered."
 
+## Prose: what the author has had to correct, repeatedly
+
+These were corrected in four sessions running, each time after an article was
+drafted. `check-prose.py` enforces the list at the bottom of this section, and
+`preflight.py` fails on it. Read this **before** drafting, not after.
+
+**1. Report the finding, never the work.** No drafts, no bugs found, no discarded
+runs, no "the first version", no "what it cost to get here". A method rule is
+stated as a property of the method ("both clients get the same token"), never as
+the story of the run that lacked it. Harness bugs belong in commit messages and
+plan files. The author: *"the finding is the focus not your fumbles."*
+
+**2. No rhetorical contrast or reveal lines.** State the positive fact.
+
+| do not write | write |
+|---|---|
+| This is not a language verdict. | The dominant cost is the HTTP library. |
+| a different request, not a slower client | a different request: the catalog adds a credential |
+| The trade is not speed. | (delete it; the next sentence says what the trade is) |
+| It is not the one with the bigger ratio. | Over the network the ratio falls to about 1x. |
+| Nothing here is about X being broken. | (state the scope as a property, or delete) |
+| One client does X, the other does not | Tip: pyiceberg checks the endpoint list first |
+
+Literal factual negations are fine: "not run", "no TLS feature", "not an Azure VM".
+
+**3. No sincerity or suspense filler.** "honest", "honestly", "actually", "the
+truth", "frankly", "until it didn't", "turns out", "quietly", "silently", "the
+interesting part", "here's the catch".
+
+**4. Plain words, not the harness's vocabulary.** A reader outside the repo does
+not know what "the control", a "probe", "expressible", "separable", "2xSEM", a
+"floor", "loopback", "p50", "vended", "ambient ADC" or a "gate" is. Say "the
+local Polaris catalog", "check", "supported", "bigger than the run-to-run noise",
+"on the same machine", "median", "hands out a storage credential". Tool output in
+code blocks stays verbatim.
+
+**5. Pull the voice from the author's published work first.** dev.to:
+`https://dev.to/api/articles?username=xbill`, then `body_markdown` per id. The
+current house format is `####` headings, `---` between sections, one line per
+paragraph (not hard-wrapped), `Step N —` sections, `🔎 Tip:` sections, a Compare
+and Contrast table, `So, Which One?`, Summary bullets marked 🟢 ❌ ⚠️, one Scope
+paragraph, the closing formula, then `#### References`.
+
+```prose-lint
+# SEVERITY | CATEGORY | regex | what to write instead
+FAIL | narrative | \b(first|earlier|previous|original) (version|draft|attempt|pass)\b | report the result as it stands; no history of the work
+FAIL | narrative | \b(earlier|first|previous|original|older) drafts?\b|\bdraft of this (article|work|paper)\b|\bthe draft (claimed|said|quoted|reported)\b | no history of the writing in the article
+FAIL | narrative | \b(harness|our|my) (bugs?|mistakes?)\b | fix it silently; it goes in the commit message
+FAIL | narrative | \b(runs?|results?) (were|was) (discarded|thrown away|redone)\b | state the method as a property
+FAIL | narrative | \b(we|I) (found|caught|discovered|realized|realised|noticed|missed|fumbled)\b | state the finding, not who found it
+FAIL | narrative | \bcost (a|us|me) (retry|day|rerun|re-run)\b | delete
+FAIL | narrative | \bturn(s|ed) out\b | state the fact
+FAIL | filler | \bhonest(ly)?\b|\bthe truth\b|\bfrankly\b|\bto be fair\b|\bcandid(ly)?\b | delete
+FAIL | filler | \bactually\b|\bgenuinely\b|\bquietly\b|\bsilently\b|\bsurprising(ly)?\b | delete
+FAIL | filler | \buntil it (did|didn'?t|did not)\b|\bhere'?s the (thing|catch)\b|\bthe catch\b|\bspoiler\b | state the fact
+FAIL | filler | \bthe interesting (part|thing)\b|\bwhat matters (is|here)\b | state the fact
+FAIL | contrast | (^|[.!?:]\s+)(this|that|it|they|these|those|the [\w-]+( [\w-]+)?) (is|are|was|were)( not|n'?t) | write the positive fact
+FAIL | contrast | , not (a|an|the) [\w-]+( [\w-]+)?[.:;,] | write the positive fact; drop the foil
+FAIL | contrast | \bnot about\b|\bis about\b[^.]*\bnot\b | write the positive fact
+FAIL | contrast | (^|[.!?]\s+)(neither|nothing here|none of (this|that))\b | write the positive fact
+FAIL | contrast | \bexactly (this|that)\b|\b(that|this) is the (finding|point|check|measurement|answer)\b|\bthe measurement to read\b | delete the pointer; state the result
+FAIL | contrast | ;\s*this is (what|how|why)\b | two plain sentences
+WARN | contrast | \brather than\b | usually a foil; check it is needed
+FAIL | jargon | \bthe control\b|\bcontrol catalog\b | the local <name> catalog
+FAIL | jargon | \bprobes?\b | check / test
+FAIL | jargon | \bexpressible\b | supported
+FAIL | jargon | \bseparable\b|\b2x ?SEM\b|\bSEM\b|\bbootstrap interval\b|\bdifferenced\b|\bcleared? the bound\b | bigger than the run-to-run noise
+FAIL | jargon | \bdominant term\b|\bdecompos(e|ed|es|ition)\b | the biggest part / break down
+FAIL | jargon | \bp(50|90|99)\b | median / 90th percentile
+FAIL | jargon | \bloopback\b | on the same machine
+FAIL | jargon | \bstatic bearer\b|\bambient (ADC|credentials)\b | the gcloud token / the machine's Google login
+FAIL | jargon | \bvend(s|ed|ing)?\b | hands out a storage credential
+WARN | jargon | \bharness\b|\bfixture\b|\binterleav(e|ed|ing)\b|\bfloor\b | a reader outside the repo may not know it
+```
+
 ## Openers
 
 > This article provides a step by step deployment guide for *X* to a *Y* hosted GPU

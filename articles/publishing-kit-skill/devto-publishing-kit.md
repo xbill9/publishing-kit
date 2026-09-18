@@ -12,7 +12,7 @@ cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articl
 > API. This article, its cover and all four of its artifacts were produced by the thing the
 > article is about — dogfooding all the way down. More on that at the end.
 
-Publishing one technical article to four places involves a surprising amount of ceremony: making
+Publishing one technical article to four places involves a lot of ceremony: making
 a cover at whatever size each destination wants, rendering tables to images because Medium's
 importer eats them, stripping emoji for AWS, checking that every number in the piece came from a
 real run, getting a long markdown file into a browser editor that has no API, remembering which
@@ -34,7 +34,7 @@ should not be doing by hand.
 - **Make the cover once:** `make-cover.py --flow --sizes devto,builder` draws the pipeline as an
   illustration and renders it at every geometry the destinations demand, names the file by a hash
   of its own bytes, and reports which type sizes survive a 320px feed card — which is the size a
-  cover is actually met at, and where a diagram with small labels turns to mush.
+  cover is seen at, and where a diagram with small labels turns to mush.
 - **Trace every number:** `check-facts.py` pulls the prices, measurements and versions out of
   your prose and reports which ones appear in no evidence file. It cannot tell you a figure is
   true. It tells you which ones you are asserting from memory.
@@ -104,7 +104,7 @@ draft on every destination and hands back links. Publishing is your keystroke, n
 
 This is the half that surprised me most, and where most of the skill's value ended up.
 
-**The page does not look like the file.** Fetch what the destination actually serves rather than
+**The page does not look like the file.** Fetch what the destination serves rather than
 reasoning about what you pushed:
 
 ```shell
@@ -132,8 +132,8 @@ references real URLs Medium re-hosts, and commit the images first.
 
 **A number in the article has no artifact behind it.** `check-facts.py` will name it. Every
 untraced claim is one of three things: measured but never archived, arithmetic that should be
-labelled as arithmetic, or asserted from memory — and it is always the third one that turns out
-to be wrong.
+labelled as arithmetic, or asserted from memory — and it is always the third one that is
+wrong.
 
 ## Under the hood
 
@@ -162,7 +162,7 @@ The two numbers on the cover are real, and both were found by using the kit on i
 | Medium, images pasted as data URIs | **0 of 4** survived; from real URLs, 4 of 4 |
 
 The first one had been happening to my articles for months. The second cost a full re-do the
-first time it happened. Neither is in the docs of either destination, and both are now checks.
+first time it happened. Both are missing from the destinations' docs, and both are now checks.
 
 The run also found five faults in the kit itself, which is the point of eating your own cooking:
 `make-medium.py` had another project's repo hardcoded as its default image base;
