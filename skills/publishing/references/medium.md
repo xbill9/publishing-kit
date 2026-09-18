@@ -47,6 +47,14 @@ produce a positive, so the ten empties are real. This file previously said alt
 "survives", which holds for **import** and was generalised to paste without
 being checked.
 
+**Setting it headlessly works, even in a hidden tab.** MEASURED 2026-09-18:
+dispatch `pointerdown/mousedown/pointerup/mouseup/click` on the figure's `img` (the
+figure gains `is-mediaFocused`), `.click()` the visible `[data-action="alt"]`
+button, select the contents of `.overlay .js-textAreaEditor`, then
+`execCommand("insertText", …)` and `.click()` `[data-action="overlay-submit"]`.
+All four alts survived to `/p/<id>`. Do one figure per `javascript_tool` call: three
+in one script timed out at 45 s in a hidden tab, although two of them had saved.
+
 So on the paste route the alt in your HTML buys nothing, and a table rendered
 to PNG reaches Medium with no text at all behind it. Either add the alt in the
 editor by hand (click the image, then the alt button), or accept that the
@@ -223,8 +231,23 @@ return different subsets. The reliable count is FIGURE-tagged entries in
 `[...ed.querySelectorAll('.graf')]`, which stays at 9. A first pass at this
 concluded "4 images were dropped" off the virtualised count, which was wrong.
 
-Unresolved: whether the persisted document ever holds the `0*` ids. Until it is,
-**treat a post-paste image audit as meaningless and re-audit after a reload** —
-and if the images matter, use the import route, where Medium fetches them
-server-side, accepting that `<pre>` is flattened and multi-line code has to be
-rendered as images too.
+**Resolved 2026-09-18: the persisted document does hold the `0*` ids, and the
+reloaded editor was the thing lying.** A fresh `/new-story`, title and body each
+put in by synthetic paste, 4 figures re-hosted as `0*`. After `Saved` and a reload
+the editor showed the same symptom as above: `1*b31hiO4ynbDLRrXWEFF4aQ.png` on two
+figures, no id on the other two. The draft's rendered view, `medium.com/p/<id>`
+(which redirects to `<handle>.medium.com/<id>`), served all 4 under the exact `0*`
+ids the paste produced, cover first. The control is that the same check can
+fail: the page's own `1*` chrome image shows up in it, so the absence of the
+placeholder there means something.
+
+So **audit images on `/p/<id>`, never in a reloaded editor.** The editor's `1*b31…`
+figure is a lazy-load placeholder rather than lost data. The paste route keeps its
+images, and there is no reason to fall back to import for them. What the 2026-09-17
+runs showed on `/p/<id>` was never recorded; if that view ever shows the
+placeholder too, this does not hold.
+
+**Typing into the title fails in a hidden tab; a paste works.** MEASURED
+2026-09-18 with `visibilityState === "hidden"`: `computer type` reported success
+and the Title stayed empty. Collapsing a `Range` into `.graf--title` and
+dispatching a `text/plain` paste filled it, and it survived the reload.
