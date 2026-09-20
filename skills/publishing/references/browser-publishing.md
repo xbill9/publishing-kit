@@ -420,6 +420,27 @@ reads `NONE` afterwards — which is how a stray keystroke reaches the page and 
 paywall/notify checkboxes. The keyboard route keeps focus in the field for the
 next topic.
 
+**MEASURED 2026-09-20: the keyboard route failed here and a synthetic mouse
+sequence worked — the reverse of the run above.** Publishing paper 4 of
+`lakehouse-iceberg-2026`, `type -> ArrowDown -> Return` left the suggestion list
+open and scrolled the dialog instead of committing; no chip appeared. What
+worked, three topics out of three, was dispatching `pointerdown, mousedown,
+pointerup, mouseup, click` as `MouseEvent`s on the option row (`el.closest('li')
+|| el`) — the same route line 623 records for Builder Center's tag picker, which
+that section calls Medium's exact opposite. A bare `Return` with no `ArrowDown`
+did commit the **first** topic, with focus still in the field from the click that
+opened it, and then failed for the next three. One trial of each route, so this
+is a contradiction to explain rather than a new rule to follow.
+
+Two consequences. Neither route can be assumed, so read the chips back after
+every topic rather than trusting either — `Add a topic...` -> `Add more topics...`
+is still the acceptance signal. And a failed commit leaves focus in the field
+while swallowing the term: three `type` calls in one batch concatenated into
+`mcppythondata engineering` in the input rather than landing on the page, so the
+checkbox hazard above did not fire that time. It is the same hazard either way;
+re-read the checkbox states before Publish, which is what caught the difference
+here.
+
 ## An assertion inside a batch cannot gate the batch
 
 MEASURED 2026-09-09, and it is the mechanism behind the checkbox hazard above.
