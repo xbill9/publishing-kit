@@ -124,6 +124,8 @@ RESERVED = "|{}@[]()<>#\\*_~"
 # Two dev.to entries routed to two organizations are two different URLs. Labelling
 # both of them "dev.to" ships a post with the same word against two links.
 LABELS = {
+    "devto": "dev.to",
+    "live": "Live demo",
     "devto-gde": "dev.to (Google Developer Experts)",
     "devto-aws": "dev.to (AWS Community Builders)",
     "builder": "AWS Builder Center",
@@ -286,16 +288,16 @@ def build(article, links, hook_override, template, section="Summary"):
     hook = hook_override or title
     bullets = summary_bullets(text, section=section)
 
-    ordered = [k for k in ("devto-gde", "devto-aws", "builder", "medium",
-                           "devcommunity", "repo") if k in links]
+    ordered = [k for k in ("devto", "devto-gde", "devto-aws", "builder", "medium",
+                           "devcommunity", "live", "repo") if k in links]
     # A key the ordering does not know is silently dropped from {links}, while the
     # resolver above still counts it as "resolved" -- so a typo like devto_gde for
     # devto-gde ships a post missing two of its four destinations and reports ok.
     unknown = [k for k in links if k not in ordered]
     if unknown:
         fail(f"link key(s) not in the render order, so they would be dropped: "
-             f"{', '.join(sorted(unknown))}. Known keys: devto-gde, devto-aws, "
-             f"builder, medium, devcommunity, repo.")
+             f"{', '.join(sorted(unknown))}. Known keys: devto, devto-gde, devto-aws, "
+             f"builder, medium, devcommunity, live, repo.")
 
     values = {
         "hook": hook,
