@@ -119,9 +119,27 @@ def drop_emptied_first_column(body):
     return "".join(out)
 
 
+# An emoji at the start of a line, or immediately after a list marker, is
+# followed by a space that belongs to it. Removing only the glyph leaves that
+# space behind: MEASURED 2026-09-21, "- 🟢 Five read-only MCP tools" became
+# "-  Five read-only MCP tools" and "🔎 Tip: answer initialize" became " Tip:
+# answer initialize", through every bullet and tip of an article. Markdown
+# renders both, so nothing downstream reports it, and the source arrives
+# indented in a way its author did not write -- one space short of the three
+# that turn a list continuation into a code block. Same shape as the arrows
+# bug above: the character goes, its spacing does not.
+LEADING_EMOJI_RE = re.compile(
+    r"^([ \t]*(?:[-*+]|\d+\.)?[ \t]*)"      # indent and any list marker, kept
+    r"(?:" + EMOJI_RE.pattern + r")"          # the emoji run, removed
+    r"[ \t]*",                                # and the space that followed it
+    flags=re.M,
+)
+
+
 def convert(src_text, title, subtitle):
     body = strip_front_matter(src_text)
-    body = EMOJI_RE.sub("", body)
+    body = LEADING_EMOJI_RE.sub(r"\1", body)          # glyph and its space
+    body = EMOJI_RE.sub("", body)                     # inline ones, glyph only
     body = re.sub(r"[ \t]+$", "", body, flags=re.M)   # trailing space where one was
     # a row that only ever compared emoji support compares nothing without them
     body = re.sub(r"^\| Emoji \|.*\n", "", body, flags=re.M)
