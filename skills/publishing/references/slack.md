@@ -80,6 +80,19 @@ still present exactly once.
 The hashtags themselves are fine: as long as no suggestion is accepted they post
 as plain text, which is what the author's earlier posts in the channel show.
 
+### Navigating the tab away loses the text and keeps the file
+
+MEASURED 2026-09-20. A composer staged with `insertText` and a cover attached was
+left for the author to review; the same tab was then navigated to another site and
+back. The channel came back with **`texty_input` empty — 0 characters, no links —
+while the uploaded file was still attached** above the toolbar. Slack's per-channel
+draft did not hold the scripted text.
+
+So a staged message is not parked state: **open a second tab for anything else**
+rather than reusing the one holding it. Recovering costs one `insertText` and one
+re-verify, and the attachment must not be uploaded twice — check the thumbnail
+before re-attaching, because a second upload posts two copies of the image.
+
 ## What the posted message actually looked like
 
 MEASURED 2026-09-01, reading the sent message back out of the channel.
