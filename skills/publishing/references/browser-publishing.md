@@ -367,6 +367,29 @@ about that button, MEASURED 2026-08-30:
   checks pass, and the URL changes from `/preview/content/<id>?v=…` to
   `/content/<id>/<slug>`. That URL change is the confirmation; there is no banner.
 
+**A hidden tab does not stop a publish, and a coordinate click does not start
+one.** MEASURED 2026-09-21, `document.visibilityState === "hidden"` on the
+preview page: two coordinate clicks on `Publish`, several seconds apart, did
+nothing at all — no dialog, no gate traffic, no URL change. `window.focus()`
+from the page did not make the tab visible either.
+
+The same button then took the **`pointerdown → mousedown → pointerup → mouseup
+→ click`** sequence — `bc.press(el)`, the route this file already records for
+LinkedIn's buttons and for Builder Center's own code-block menu — on the first
+try: the dialog opened, the gate ran, `reviewStatus` came back `PASSED`, and the
+URL moved to `/content/<id>/<slug>`.
+
+So the "first click does nothing" note above holds for a *visible* tab. On a
+hidden one every coordinate click does nothing, and the difference between the
+two cases is invisible from the click result, which is the same in both: a
+success line and an unchanged page. **Read `document.visibilityState` before
+concluding a button swallows clicks**, and reach for `press` rather than asking
+the author to move a window.
+
+A gate capture is not needed to publish. Hook `submit-review` and
+`review-status` only when the gate has already refused — a passing gate
+publishes on its own, so a capture run on a draft that might pass ships it.
+
 **"Broken Links" / "Malicious Links" come from that gate, and its API names the
 links.** MEASURED 2026-09-15: Publish sends `POST
 https://api.builder.aws.com/cs/v2/content/submit-review` and then polls

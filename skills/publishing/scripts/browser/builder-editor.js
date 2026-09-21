@@ -10,6 +10,10 @@
 //     every text edit below goes through `pasteOver`, never through typing.
 //   - Coordinate clicks race the page's own scrolling: a click aimed at one
 //     paragraph put the caret in another. Place the caret with a Range instead.
+//   - On a hidden tab a coordinate click does nothing at all, including on the
+//     preview page's Publish button (MEASURED 2026-09-21: two clicks, no dialog,
+//     no gate traffic). `press` published it on the first try. Check
+//     document.visibilityState before believing a button swallows clicks.
 //   - Code blocks are non-editable widgets. Their text is edited in an
 //     "Edit code block" dialog that hosts an Ace editor; `setValue` on it works.
 //   - "Insert image" rejects external URLs ("Invalid image URL") and the body
