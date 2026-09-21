@@ -377,6 +377,46 @@ It is what the `/create/content/<id>` trap leaves behind, and it is a full copy 
 article with its own id, so nothing about it looks broken from the drafts list. Compare
 ids before touching either: the published piece and its orphan differ only in id.
 
+### Editing an already-published Builder Center article, measured
+
+MEASURED 2026-09-20, adding a cover to a piece published minutes earlier. The
+route in SKILL.md works and leaves no orphan: on the published page, the article's
+own **vertical-dots menu -> Edit** lands on `/edit/content/<id>` -- note `/edit/`,
+not the `/create/` URL that duplicates the article. The id in the URL is the
+published article's, which is the thing to check before typing anything.
+
+Two things about that editor:
+
+- **It saves into a draft revision, not into the live article.** The cover upload
+  autosaved with `Saved to your drafts` while the published page still showed no
+  hero image. The edit only reaches readers after **Publish**, which republishes
+  in place: same content id, same slug, no second article, and the gate runs again.
+- **The Publish button swallows the first click here too**, and the page scrolls
+  between the screenshot and the click often enough that a stale coordinate misses
+  silently. Re-read the button's rect immediately before each attempt and judge by
+  the URL returning to `/content/<id>/<slug>`, never by the click result.
+
+The cover upload itself is as documented: `find` the file input, `file_upload` to
+its ref. The widget then shows a preview card with the filename and size, which is
+the confirmation -- the published page's `img` reporting `naturalWidth` 1200 is the
+proof it went live.
+
+### A scripted 200 proves nothing on builder.aws.com
+
+MEASURED 2026-09-20, when the extension disconnected mid-publish and the obvious
+move was to check the URL with `curl`. Both the article URL and its bare
+`/content/<id>` form returned **200** -- and so did `/content/ZZZZnotarealcontentid0000`,
+and so did a known-published article. Builder Center is a single-page app that
+answers 200 for any path under `/content/`, so a fetched status cannot tell a
+published article from one that never existed.
+
+The control is the whole point: run the bogus id **before** believing the real
+one. Publication state comes from the browser -- the URL moving from
+`/preview/content/<id>?v=…` (or `/edit/content/<id>`) to `/content/<id>/<slug>` --
+or from the drafts list. The same caution applies to the Medium copy for a
+different reason: Cloudflare answers `curl` with **403 Attention Required**, which
+is equally uninformative about whether the story is live.
+
 ## The screenshot is not in CSS pixels, and the gap is silent
 
 MEASURED 2026-09-09 on Medium. `window.innerWidth` was **1673**; screenshots come

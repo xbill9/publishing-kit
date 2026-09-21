@@ -342,6 +342,24 @@ python3 scripts/make-cover.py --out builder-cover.jpg --mode builder
 
 `--mode builder` defaults to `--no-text` to respect AWS's guidance.
 
+**What `--no-text` actually draws is two abstract bars, and `--flow` does not
+apply in that mode.** MEASURED 2026-09-20: `--mode builder --ratio 24:4` and the
+same run with a full `--flow` description (`--source`, seven `--dest`, a
+`--legend`) produced **the identical two-bar image**, and the script's own
+legibility line reported `FAIL nothing on this cover is readable in a feed card`.
+
+Two bars are a comparison. On an article that does not compare two things, that
+cover asserts something the piece does not say, so it is worse than shipping no
+cover at all. When the subject has a shape rather than a magnitude -- one source
+fanning out to seven destinations, a pipeline, a before-and-after -- draw it and
+keep it textless, which is what AWS asks for anyway; the covers for papers 1 to 3
+in `lakehouse-iceberg-2026` are illustrations for this reason.
+
+**`make-cover.py` and `make-linkedin.py` both need Pillow**, and nothing warns you
+until a run dies on `ModuleNotFoundError: No module named 'PIL'` -- `check-article.py`
+merely degrades to `WARN Pillow not installed; skipped geometry check`, so a cover
+can pass the pre-flight without its geometry ever being looked at.
+
 ### Name the cover by its bytes
 
 **A cover URL is a mutable name, and dev.to treats it as permanent.** MEASURED

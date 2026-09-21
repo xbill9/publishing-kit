@@ -271,6 +271,25 @@ the original hosts. Verify by the title, the bullets and the link **labels**, no
 by URLs or image dimensions. An 800x199 image on the same page is the profile
 banner, not the post.
 
+## "Start a post" is no longer a button
+
+MEASURED 2026-09-20. `li.openComposer()` refused with `no Start a post button
+(signed out, or not on the feed)` on a signed-in feed with the composer sitting
+in plain view. The control had changed shape: "Start a post" is a bare `<p>` with
+no `role`, no `aria-label`, and **no button or `[role=button]` ancestor**, so the
+helper's `button,[role=button]` scan cannot see it at all. The refusal reads as a
+session problem and is a selector problem.
+
+Pressing that `<p>` directly with the same `pointerdown -> mousedown -> pointerup
+-> mouseup -> click` sequence opened the composer on the first try, and everything
+downstream -- Add media, the shadow-root upload input, the proxy input, Next,
+`insertText` -- was unchanged. `openComposer` now falls back to the text node's
+own element when no button matches.
+
+The general shape, worth applying to the next one of these: **a helper's refusal
+names the precondition it checked, not the truth.** Before believing "signed out",
+look for the control by its text.
+
 ## The shape that actually gets posted
 
 MEASURED 2026-09-09, by diffing what `make-linkedin.py` emitted against the post

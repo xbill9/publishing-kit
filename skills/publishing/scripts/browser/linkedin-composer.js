@@ -44,8 +44,11 @@ window.li = (() => {
 
   async function openComposer() {
     if (editor()) return { editor: true, already: true };
-    const b = deepAll(document, "button,[role=button]").filter(visible).find((x) => /start a post/i.test(label(x)));
-    if (!b) return { refused: "no Start a post button (signed out, or not on the feed)" };
+    // MEASURED 2026-09-20: "Start a post" is now a bare <p> with no role and no
+    // button ancestor, so the button scan alone refuses on a perfectly good feed.
+    let b = deepAll(document, "button,[role=button]").filter(visible).find((x) => /start a post/i.test(label(x)));
+    if (!b) b = deepAll(document, "p,span,div").filter(visible).find((x) => x.children.length === 0 && /^start a post$/i.test((x.innerText || "").trim()));
+    if (!b) return { refused: "no Start a post control by button or by text (signed out, or not on the feed)" };
     press(b);
     for (let i = 0; i < 15 && !editor(); i++) await sleep(700);
     return { editor: !!editor(), empty: editor() ? editor().innerText.trim().length === 0 : null };
