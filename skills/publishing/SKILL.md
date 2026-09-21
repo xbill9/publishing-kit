@@ -826,7 +826,11 @@ asterisks, `<url|label>` for links — so the script strips markdown rather than
 translating it, matching what the existing posts do.
 
 **It does not post.** It writes a file. The channel had 656 members, and nobody
-who has read a message unreads it.
+who has read a message unreads it — and a script cannot send it anyway. MEASURED
+2026-09-21: Slack accepts `insertText` and the cover upload, then clears the
+composer and posts nothing for both a synthetic click on `texty_send_button` and
+a synthetic Enter. Stage it and hand it over; `references/slack.md` has the
+routine and what each failed attempt costs.
 
 If you do stage it in the browser: the composer is a plain Quill editor at
 `[data-qa="texty_input"]` — no shadow root — so `execCommand("insertText")` puts

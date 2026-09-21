@@ -51,6 +51,45 @@ means a labelled link is not available without hand-editing in the composer.
 It writes a file. A shared channel had 656 members when this was measured, and
 there is no edit that the ones who already read it will see. Paste it yourself.
 
+### And the composer will not be sent from a script
+
+MEASURED 2026-09-21 in `#boost-ai-engineering`. Slack takes scripted text and
+refuses a scripted send, which is a firmer reason for the rule above than the
+size of the channel.
+
+Everything upstream worked exactly as this file describes: `insertText` put
+1,014 characters in, Escape closed the hashtag picker, the light-DOM file input
+took the cover once it was given an `aria-label`, and the `files-tmb` thumbnail
+confirmed Slack had the image. `texty_send_button` was present and enabled.
+
+| send route | result |
+|---|---|
+| `[data-qa="texty_send_button"]` with `pointerdown → mousedown → pointerup → mouseup → click` | composer cleared 1014 → 1, **nothing posted** |
+| `keydown`/`keypress`/`keyup` Enter on `[data-qa="texty_input"]` | composer cleared 1014 → 1, **nothing posted** |
+
+Both were confirmed by a full page reload, not by the view: the channel's last
+message was unchanged and the composer came back empty. Nothing double-posted
+and nothing reached another channel.
+
+**Inferred and not confirmed:** the send reads Slack's own model, and a
+synthetic event tears the composer down without committing what `execCommand`
+wrote into the DOM. A real keypress carries `isTrusted`, which is the difference
+between this run and the 2026-09-01 one, where a person pressed Send on text a
+script had inserted. The tab was `hidden` throughout here; whether a visible tab
+sends is **not** established, and hidden-ness alone does not explain it, because
+the same synthetic press sequence published a Builder Center article from a
+hidden tab the same day.
+
+**A failed send costs an upload.** Each attempt clears the attachment along with
+the text, and the file stays in the workspace's storage with no message attached
+to it. Three attempts left two orphans in Files. So re-stage *and* re-attach
+after any failed send, and check the thumbnail before re-attaching — the earlier
+warning about a second upload posting two copies of the image applies here too.
+
+**The routine, then:** stage the text, close the picker, attach the cover, read
+all four back, and hand the composer to the author with one thing left to press.
+Do not spend attempts on the send; they are not free.
+
 ## Driving the composer, if you do it in a browser
 
 MEASURED 2026-09-01 in that channel.
