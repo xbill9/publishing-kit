@@ -108,6 +108,14 @@ look first. So, before touching a destination's editor:
 | LinkedIn composer | `scripts/browser/linkedin-composer.js` (`window.li`) | `references/linkedin.md` → "Attaching the cover and posting" |
 | Medium | — | `references/browser-publishing.md` → "Medium" and `references/medium.md` |
 
+**On Medium, do not open the publish dialog on a draft.** Its topic field is
+inside that dialog, so "set the topics" and "publish the story" are one journey,
+and the dialog's default action is the irreversible one. MEASURED 2026-09-21: a
+draft published because the topic field refused focus and the typed topic
+reached the page with `Publish` still focused. Topics after publishing, or leave
+them to Medium — `references/browser-publishing.md` → "Opening Medium's publish
+dialog to set topics can publish the story".
+
 Quirks that apply to every editor, all measured:
 
 - **Assume the tab is hidden.** Check `document.visibilityState`. When it is

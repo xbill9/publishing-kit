@@ -291,6 +291,35 @@ acting, which is a real guard — unlike an assertion inside a `browser_batch`.
 - **Closing a tab can dissolve the extension's tab group**, leaving the other tab
   outside it and uncontrollable. Close the tab you are still using last.
 
+### The cover upload's file input is replaced as you use it
+
+MEASURED 2026-09-21, create-article form. `find` returned the cover input as
+`ref_963`; `file_upload` to it reported `Uploaded 1 file(s)` and **nothing
+happened** — no thumbnail, no error text on the page, and the input's own
+`files` read `0`. A `scroll_to` on the same ref then failed with *"No element
+found with reference"*: React had replaced the node between the find and the
+upload.
+
+Re-running `find` gave `ref_1024`, and the identical upload to that ref
+attached the file: a thumbnail with name, size and timestamp appeared within
+four seconds, and the page began autosaving.
+
+So **find the input immediately before uploading**, and judge the result by the
+thumbnail rather than by the tool's success line or by `input.files`. Nothing in
+either reports that the ref went stale.
+
+A successful upload also gives the audit a landmark: the chip carries
+`aria-label="file 1, <name>"`, which `bc.tagChips()` filters out and a cover
+check can look for.
+
+### Starting a new Builder Center article without the "+" menu
+
+MEASURED 2026-09-21. With no drafts in the account, `/profile/content?tab=draft`
+renders a **Create an article** button in the empty state, and it lands on the
+same `/create/content/<id>?v=<v>` editor the top-bar "+" → Article does. One
+click from a URL that can be navigated to directly, rather than two through a
+menu that has to be found on screen.
+
 ### Auditing a Builder Center paste: there are no `<pre>` elements
 
 MEASURED 2026-09-09. A clean paste of a 9-code-block article reports
@@ -438,6 +467,18 @@ Two rules, and the second is the one that actually saves time:
 The same session's Builder Center clicks all landed first time, because those
 coordinates were read from screenshots throughout.
 
+**The gap is vertical too, and on Builder Center.** MEASURED 2026-09-21, tag
+picker, `window.innerWidth` 1469: a click at a row's reported centre committed
+**the row below it** — aimed at `cost-optimization` (rect centre y=656),
+committed `cost-savings` (rect centre y=691). The rows are ~34px apart, so the
+error was one row, consistently: `reported_y - 35` hit the intended row every
+time afterwards, and clicking a reported centre hit its neighbour every time.
+
+An offset of exactly one row is the expensive kind, because the result is a
+plausible tag rather than a missed click, and the only signal is the chip's
+name. Read the row off a screenshot, which is what the last two tags in that
+session used, and read the chip back before moving on.
+
 ## Medium's Publish button also swallows the first click
 
 MEASURED 2026-09-09. Documented above for Builder Center; it is true on Medium too.
@@ -445,6 +486,77 @@ The first click on `Publish` scrolled the page to the top and opened nothing. Th
 second, on the same element, opened the story-preview dialog. Judge by the dialog,
 never by the click result — and re-screenshot before the second click, because the
 first one moves the button.
+
+## Opening Medium's publish dialog to set topics can publish the story
+
+MEASURED 2026-09-21, on a draft that was meant to stay a draft. **It published.**
+
+Medium keeps the topic field inside the story-preview dialog, and the only way
+to that dialog is the Publish button. So "set the topics" and "publish" are the
+same journey, and the dialog's default action is the irreversible one.
+
+The sequence, all of it documented behaviour arriving in an order nobody had
+written down:
+
+1. Click `Publish`. The dialog opens. Focus stays on the button that opened it.
+2. Click the topic field. **It does not take focus** — the same failure this
+   file already records for that control, one step earlier than the commit
+   routes it describes.
+3. Type the topic. The field's `value` stays empty, so the keystrokes went to
+   the page, where the focused element is still `Publish`.
+4. The story goes out, with its `?postPublishedType=initial` URL, and the
+   notification email with it.
+
+The email cannot be recalled. The story can be reverted to a draft and keeps
+its id and URL, so the link survives; the 230 subscribers who were emailed do
+not un-receive it.
+
+**So do not open that dialog on a draft.** Topics are worth less than an
+unintended publish. Set them after publishing, when the dialog is the story
+settings rather than a launch button, or leave them to Medium, which inferred
+five reasonable ones by itself on the story above (`claude`, `mcp-server`,
+`tools-and-resources`, `aws`, `cloud-billing`).
+
+**If the dialog is already open, read the checkboxes with JS and believe them
+over the screenshot.** Both read `checked: true` — Paywall and Notify — while
+rendering unticked at 0.5 scale in the same second. The kit's existing advice
+to read them back is right and the reason is stronger than "a stray keystroke
+toggles them": the rendering is not evidence of the state at all.
+
+**And the paywall checkbox did not decide the paywall.** It read `checked: true`
+and the story published **not** paywalled — the RSS item carried the full
+15,264-character body with no members-only marker. A checkbox that reads true
+and does not take effect is worth knowing about before trusting either sense of
+it: check the published story, not the dialog.
+
+## Medium: a paste displaces a title typed before it
+
+MEASURED 2026-09-21. Title typed into `.graf--title`, caret then placed in the
+body by **clicking** the `Tell your story…` paragraph, then a `text/html` paste
+of a 21,576-character document. Immediately after, the title block read
+correctly. After a reload it was **empty**, and the 70 characters of title text
+had been appended to the last list item of the references section, with no
+separator: `…API_pricing_GetProducts.htmlPut the Arithmetic in the Tool: …`.
+
+The payload carried no `<h1>` — the body began with a `<figure>` — so this is
+Medium reflowing around the insert point rather than a heading in the paste.
+
+The fix is this file's own re-paste routine, and the step that matters is the
+`Return`: `ctrl+a`, `Delete`, type the title, **`Return`**, then paste. Placing
+the caret in the body with a click instead of letting `Return` create the body
+block is what produced the displacement. Same document, same payload, same
+checksum, second attempt: title intact through a reload.
+
+## Medium blocks a reload for minutes after it says "Saved"
+
+MEASURED 2026-09-21. `beforeunload` stays registered for the life of the editor,
+so `navigate` to the draft's own URL is refused with a "Leave site?" dialog even
+when the header reads **Draft · Saved** and the content is on the server.
+
+Read the save state from the header — zoom the top strip, it is the word beside
+`Draft` — and then navigate with `force: true`. Both times that was done here
+the reloaded document was complete. `window.name` survives the forced reload, so
+the payload does not have to be carried in again.
 
 ## Medium's topic picker: clicking a suggestion does nothing
 
@@ -685,11 +797,17 @@ MEASURED 2026-09-15. Medium's topic field ignores a click and takes
 `type → ArrowDown → Return`. Builder Center's tag field is the exact opposite, and
 reaching for Medium's route first costs several wasted attempts.
 
-The control is an `input[role=combobox]` over a virtualised `[role=listbox]`. Rows
-carry **no checkbox element** — selection is `aria-selected` on the row — so an
-audit counting `input[type=checkbox]:checked` reports `0` for a field that visibly
-has chips in it. The handful of checkboxes such a query does find belong to other
-controls entirely.
+The control is an `input[role=combobox]` over a virtualised `[role=listbox]`.
+Selection is `aria-selected` on the row, and `bc.tagChips()` reads the committed
+chips.
+
+**Correction, MEASURED 2026-09-21: the rows do render a checkbox.** Each option
+in the create-article form drew one, unchecked, and the checked row's box filled
+blue — visible in a screenshot and matching the chip that appeared. This file
+previously said rows carry no checkbox element, from a 2026-09-15 run on the
+same control. Whether the difference is the form (create rather than edit) or a
+change to the component is not established, so read `aria-selected` either way:
+it was correct in both runs, and a checkbox audit is correct in neither.
 
 | route | result |
 |---|---|
@@ -716,6 +834,21 @@ the list and returns the **point to click with a real mouse** (it does not click
 because a synthetic one selects nothing), `bc.tagStatus(slug)` reads that row's
 `aria-selected`, and `bc.tagChips()` reads the committed chips. Both refuse, rather
 than throwing, when the control has been torn down by an off-row click.
+
+**A search that returns nothing is usually a collapsed field, not a missing
+tag.** MEASURED 2026-09-21: `mcp`, `generative` and `agent` each returned zero
+rows and read as absent from the vocabulary. All three were typed into a control
+that had torn itself down when the previous tag committed — `document.activeElement`
+was `BODY`, and there was no `input[role=combobox]` in the DOM at all. Re-opening
+the field and typing `mcp` returned five rows: `mcp`, `mcp-server`,
+`mcp-integration`, `aws-mcp-server`, `aws-knowledge-mcp`.
+
+**The field collapses after every commit**, so a tag loop has to re-open it each
+time, and the field *moves* as it goes: chips render **below** the input, so each
+committed tag pushes nothing down but grows a row under it that a stale
+coordinate then lands in — a click meant for the field hit a chip's Remove
+button instead. Read the field's position again before every re-open, and read
+the chips back after every commit rather than after the loop.
 
 **Not every subject has a tag, and a miss looks like a broken control.** `iceberg`
 returns nothing at all. `lakehouse` returns only `amazon-sagemaker-lakehouse`.

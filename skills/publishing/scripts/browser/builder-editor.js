@@ -16,10 +16,22 @@
 //     silently drops markdown images on save. Images must be uploaded through the
 //     dialog's own <input type=file> (find it, then `file_upload` with its ref).
 //   - The tag picker commits on a REAL mouse click only (MEASURED 2026-09-15).
-//     element.click() and Return both report success and select nothing, and its
-//     rows carry no checkbox, so a checked-checkbox audit reads 0 on a field that
-//     visibly has chips. The tag helpers below therefore filter the list and hand
-//     back a point to click; they never claim to have selected anything.
+//     element.click() and Return both report success and select nothing. The tag
+//     helpers below therefore filter the list and hand back a point to click;
+//     they never claim to have selected anything.
+//   - That point is a CSS-pixel rect and the click lands elsewhere. MEASURED
+//     2026-09-21: a click at a row's reported centre committed the row BELOW it,
+//     consistently, one row out (~35px at innerWidth 1469). An off-by-one-row
+//     click commits a plausible wrong tag, so read the row off a SCREENSHOT and
+//     verify with tagStatus/tagChips before moving on.
+//   - The control tears itself down after every commit, so a loop must re-open
+//     the field each time. Typing into the collapsed field returns zero rows and
+//     reads exactly like a tag that does not exist (MEASURED 2026-09-21: "mcp"
+//     looked absent three times, then returned five rows once the field was
+//     re-opened).
+//   - Rows DO carry a checkbox in the create-article form (MEASURED 2026-09-21),
+//     against the 2026-09-15 note that they carry none. Read aria-selected, which
+//     was right in both runs.
 //
 // Paste this whole file once per page load (it only defines functions on
 // window.bc), then call e.g. `await bc.replaceText("old", "new")`.
@@ -213,7 +225,7 @@ window.bc = (() => {
       slug,
       selected: row.getAttribute("aria-selected") === "true",
       click: { x: Math.round(b.left + b.width / 2), y: Math.round(b.top + b.height / 2) },
-      note: "click that point with a real mouse, then bc.tagStatus(slug) -- a synthetic click reports success and selects nothing",
+      note: "click that point with a real mouse, then bc.tagStatus(slug) -- a synthetic click reports success and selects nothing. The y is a CSS-pixel rect: MEASURED 2026-09-21 it landed one row low, so prefer a screenshot coordinate and always read the chip back",
     };
   }
 
