@@ -19,15 +19,16 @@
 //   - "Insert image" rejects external URLs ("Invalid image URL") and the body
 //     silently drops markdown images on save. Images must be uploaded through the
 //     dialog's own <input type=file> (find it, then `file_upload` with its ref).
-//   - The tag picker commits on a REAL mouse click only (MEASURED 2026-09-15).
-//     element.click() and Return both report success and select nothing. The tag
-//     helpers below therefore filter the list and hand back a point to click;
-//     they never claim to have selected anything.
-//   - That point is a CSS-pixel rect and the click lands elsewhere. MEASURED
-//     2026-09-21: a click at a row's reported centre committed the row BELOW it,
-//     consistently, one row out (~35px at innerWidth 1469). An off-by-one-row
-//     click commits a plausible wrong tag, so read the row off a SCREENSHOT and
-//     verify with tagStatus/tagChips before moving on.
+//   - The tag picker takes `press`, not element.click(). MEASURED 2026-09-21:
+//     five tags committed first time from a HIDDEN tab with no coordinate click
+//     anywhere, so bc.tagAdd is the route to prefer -- it needs no screenshot,
+//     no visible tab, and cannot land on the wrong row. element.click() and
+//     Return still select nothing (MEASURED 2026-09-15).
+//   - tagSearch's point is a CSS-pixel rect and a click there lands elsewhere.
+//     MEASURED 2026-09-21: a click at a row's reported centre committed the row
+//     BELOW it, one row out (~35px at innerWidth 1469), which commits a
+//     plausible wrong tag. Use that point only when pressing the row has failed,
+//     and then read it off a SCREENSHOT.
 //   - The control tears itself down after every commit, so a loop must re-open
 //     the field each time. Typing into the collapsed field returns zero rows and
 //     reads exactly like a tag that does not exist (MEASURED 2026-09-21: "mcp"
@@ -39,6 +40,9 @@
 //
 // Paste this whole file once per page load (it only defines functions on
 // window.bc), then call e.g. `await bc.replaceText("old", "new")`.
+//
+//   await bc.tagAdd("cost-optimization")  -> {committed:true, chips:[...]}
+//   bc.setField(titleTextarea, "...")     -> {value, len}
 // Every mutating helper verifies its precondition and RETURNS {refused: ...}
 // instead of acting when it does not hold -- a guard inside one script is a real
 // guard, unlike an assertion inside a browser_batch.
@@ -242,6 +246,45 @@ window.bc = (() => {
     return { slug, selected: row.getAttribute("aria-selected") === "true", chips: tagChips() };
   }
 
-  return { editor, dialog, pasteOver, press, replaceText, replaceBlock, caretBefore, caretSlot, openInsertImage, replaceInCodeBlock, audit, tagChips, tagSearch, tagStatus };
+  // Write a React-controlled field. MEASURED 2026-09-21: assigning .value is
+  // discarded on the next render, and computer type drops keystrokes on a
+  // hidden tab. The prototype's own setter plus an input event is what the
+  // component sees. Works for Title, Description and the tag filter box.
+  function setField(el, text) {
+    const proto = el.tagName === "TEXTAREA" ? HTMLTextAreaElement : HTMLInputElement;
+    Object.getOwnPropertyDescriptor(proto.prototype, "value").set.call(el, text);
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+    return { value: el.value, len: el.value.length };
+  }
+
+  // tagBox above matches input[role=combobox]; in the create-article form the
+  // same control was found by aria-expanded, so try both before refusing.
+  const anyTagBox = () => tagBox() || [...document.querySelectorAll("input")].find((i) => visible(i) && i.getAttribute("aria-expanded") !== null) || null;
+  const tagFieldControl = () => [...document.querySelectorAll("div,span")].find((e) => visible(e) && e.childElementCount === 0 && /choose tags|add more/i.test(e.textContent)) || null;
+
+  // Commit one tag without a coordinate click. MEASURED 2026-09-21: five of five
+  // first time, on a hidden tab. Re-opens the field only when it is closed --
+  // pressing it while the listbox is open dismisses the control.
+  async function tagAdd(slug) {
+    if (!anyTagBox()) {
+      const f = tagFieldControl();
+      if (!f) return { refused: "no tag field" };
+      press(f);
+      await sleep(1200);
+    }
+    const box = anyTagBox();
+    if (!box) return { refused: "combobox did not open" };
+    setField(box, slug);
+    await sleep(1800);
+    const rows = [...document.querySelectorAll('[role="option"]')].filter(visible);
+    const row = rows.find((o) => o.innerText.trim().split("\n")[0] === slug);
+    if (!row) return { refused: `no exact row for "${slug}"`, offered: rows.map((o) => o.innerText.trim().split("\n")[0]).slice(0, 10) };
+    press(row);
+    await sleep(1500);
+    return { slug, committed: tagChips().includes(slug), chips: tagChips() };
+  }
+
+  return { editor, dialog, pasteOver, press, setField, replaceText, replaceBlock, caretBefore, caretSlot, openInsertImage, replaceInCodeBlock, audit, tagChips, tagSearch, tagStatus, tagAdd };
 })();
 Object.keys(window.bc);

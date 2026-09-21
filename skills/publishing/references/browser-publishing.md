@@ -312,6 +312,23 @@ A successful upload also gives the audit a landmark: the chip carries
 `aria-label="file 1, <name>"`, which `bc.tagChips()` filters out and a cover
 check can look for.
 
+### Title and Description take a React value setter, not keystrokes
+
+MEASURED 2026-09-21 on a hidden tab, where `computer type` drops keystrokes.
+Both fields are `<textarea>` elements under React, so writing `.value` directly
+is discarded on the next render. Going through the prototype's own setter and
+dispatching `input` is what the component sees:
+
+```js
+const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set;
+setter.call(field, text);
+field.dispatchEvent(new Event("input", { bubbles: true }));
+field.dispatchEvent(new Event("change", { bubbles: true }));
+```
+
+Title 62 characters and Description 206 both landed and autosaved this way, with
+the tab never brought to the front. Read the lengths back off `.value`.
+
 ### Starting a new Builder Center article without the "+" menu
 
 MEASURED 2026-09-21. With no drafts in the account, `/profile/content?tab=draft`
@@ -836,10 +853,35 @@ it was correct in both runs, and a checkbox audit is correct in neither.
 |---|---|
 | `element.click()` on the row | nothing; `aria-selected` stays `false` |
 | `Return` with the list filtered to one row | nothing; `aria-activedescendant` is `null`, so no row is formally active |
-| **real mouse click on the filtered row** | **commits** — the row reads `Selected` and a chip appears under the field |
+| real mouse click on the filtered row | **commits** — the row reads `Selected` and a chip appears under the field |
+| **`press(row)`: `pointerdown → mousedown → pointerup → mouseup → click`** | **commits** (MEASURED 2026-09-21) |
 
-A synthetic click reports success and changes nothing, the same shape as the DOM
-edits Medium discards.
+**`press` commits it, and that changes the whole loop.** MEASURED 2026-09-21:
+five tags committed first time, from a `hidden` tab, with no coordinate click
+anywhere — which removes both of the things that made this control expensive.
+The one-row click offset below cannot happen, because nothing is aimed at a
+pixel; and the tab does not have to be brought to the front, so there is no
+step that needs the author.
+
+`element.click()` alone still selects nothing, so the row wants the pointer and
+mouse events before it. That is the same sequence Medium's topic picker needed
+in its 2026-09-20 run and the same one Builder Center's own Publish button
+needs on a hidden tab — three controls, one route, and worth trying first on
+the fourth.
+
+The whole tag loop then scripts, with two conditions it has to keep: re-open the
+field only when no `input[role=combobox]` is present (pressing the field while
+the control is already open closes it), and write the filter through the input's
+React value setter rather than typing it:
+
+```js
+const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+setter.call(box, slug);
+box.dispatchEvent(new Event("input", { bubbles: true }));
+```
+
+Then filter the rendered rows for an exact slug match, `press` that row, and read
+the chips back before the next one.
 
 **A click a few pixels off the row tears down the whole control.** Not just the
 list: `input[role=combobox]` and `[role=listbox]` both leave the DOM, so the next
