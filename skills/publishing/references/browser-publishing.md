@@ -136,6 +136,38 @@ view, not the editor.** The editor decorates an empty code block with an
 `Auto (TypeScript)` label, so its `innerText` is not empty and a naive
 "is it blank?" test in the editor misses all 18.
 
+### A paste is not saved when the paste returns — wait for `Saved`
+
+MEASURED 2026-09-22. A 31,472-character paste into a new Medium draft audited
+clean in the editor immediately afterwards — 28 headings, the `References`
+section present — and came back one section short after a reload, ending at the
+`Summary` heading. The header read `Saving…` for **more than 20 seconds** after
+the paste on a document this size, and the reload happened at ~7 s.
+
+So the editor DOM right after a paste is not evidence that anything was stored.
+Poll the header's save state and do not navigate until it reads `Saved`:
+
+```js
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const hdr = () => (document.querySelector('header')||document.body).innerText.split("\n")[1] || "";
+let s = hdr();
+for (let i = 0; i < 12 && /Saving/.test(s); i++) { await sleep(2500); s = hdr(); }
+s   // "DraftSaved"
+```
+
+**Appending the missing section afterwards does not repair it.** Placing the
+caret at the end of the document put it inside the final summary `<li>`, and a
+paste there is taken as list continuation: the `<h4>References</h4>` was
+flattened into the preceding bullet's text (`…what references themReferences`)
+and its eight links became summary bullets. A paste of an empty payload over a
+selection is a no-op, so that damage cannot be undone from JS either.
+
+What repairs it is re-pasting the whole body: select from the **empty paragraph
+that follows the title block** (`.graf` index 1, a `<p>`, so the paste context is
+not a list) to the last `.graf`, and dispatch the paste over that selection. The
+title block is outside the range and survives, so it does not have to be retyped,
+and the draft keeps its id and link.
+
 ### Re-pasting over an existing draft
 
 Import cannot update a draft, but paste can, and it keeps the id and the link:
