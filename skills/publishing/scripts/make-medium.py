@@ -476,13 +476,23 @@ def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = No
     # cover becomes whatever table happened to render first -- a screenshot of a
     # price table -- while the actual cover art, which only ever lived in dev.to
     # front matter, never reaches Medium at all. Nothing warns you.
+    #
+    # House layout: title, then the one-paragraph summary, then the cover. The
+    # summary carries no image, so the cover is still the first image and still
+    # becomes the story's cover art. An article that opens with anything but a
+    # paragraph gets the cover at the top instead.
     if cover and cover.exists():
         dst = outdir / "img" / cover.name
         dst.parent.mkdir(parents=True, exist_ok=True)
         if cover.resolve() != dst.resolve():
             dst.write_bytes(cover.read_bytes())
-        h = h.replace("<body>", f'<body>\n<figure><img src="img/{cover.name}" '
-                                f'alt="{html.escape(title)}" /></figure>', 1)
+        fig = f'<figure><img src="img/{cover.name}" alt="{html.escape(title)}" /></figure>'
+        h = re.sub(r'<header id="title-block-header".*?</header>\s*', "", h, flags=re.S)
+        m = re.search(r"<body>\s*<p>.*?</p>", h, flags=re.S)
+        if m:
+            h = h[:m.end()] + "\n" + fig + h[m.end():]
+        else:
+            h = h.replace("<body>", f"<body>\n{fig}", 1)
 
     # pandoc repeats the title in a header block; Medium supplies its own.
     #
