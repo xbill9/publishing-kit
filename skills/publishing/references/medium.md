@@ -252,16 +252,6 @@ images, and there is no reason to fall back to import for them. What the 2026-09
 runs showed on `/p/<id>` was never recorded; if that view ever shows the
 placeholder too, this does not hold.
 
-**`/p/<id>` can show the placeholder too, for a few seconds after `Saved`.**
-MEASURED 2026-09-22, hidden tab, 6 figures: the editor held 6 distinct `0*` ids
-and read `Draft · Saved`, yet `/p/<id>` opened right after showed
-`1*b31hiO4ynbDLRrXWEFF4aQ.png` on all 6 figures and no `0*` id anywhere in the
-page's state. The editor still had all 6 `0*` images loaded at full width. A
-fresh load of the same `/p/<id>` about 30 s later served all 6 `0*` ids and no
-placeholder. So `Saved` can be reported before the save that carries the
-re-hosted ids lands. Wait, then reload `/p/<id>` before concluding images were
-lost -- and still never audit in a reloaded editor.
-
 **Typing into the title fails in a hidden tab; a paste works.** MEASURED
 2026-09-18 with `visibilityState === "hidden"`: `computer type` reported success
 and the Title stayed empty. Collapsing a `Range` into `.graf--title` and
