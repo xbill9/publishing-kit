@@ -615,11 +615,17 @@ composer, which does have drafts.
 python3 scripts/make-linkedin.py devto-<slug>.md --api
 ```
 
-It reads `links.txt` beside the article — `key = url`, one per line — and writes
+It reads `<article>.links.txt` beside the article, falling back to `links.txt` —
+`key = url`, one per line — and writes
 `linkedin-<slug>.txt`, plus **`linkedin-<slug>-cover.jpg`** — the article's own
 cover fitted to 1200x627 for the post's image, attached in the composer as an
 upload. A missing cover fails the run (`--no-cover` opts out). Six checks, exits
 non-zero:
+
+The per-article name exists because a directory can hold two articles: part 1
+and part 2 of a series side by side would otherwise share one `links.txt`, and
+the same file feeds `make-slack.py`, `make-gchat.py`, `make-advocu.py`,
+`check-links.py` and the pre-flight.
 
 1. **Every link resolves.** `PENDING` is written into the file as a visible
    placeholder *and* fails the run, so a post with an unpublished link cannot go

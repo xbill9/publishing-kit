@@ -75,6 +75,8 @@ import sys
 import urllib.error
 import urllib.request
 
+from bodytext import links_path
+
 # Empty on purpose. A manufactured "just posting in case this helps..." line was
 # the default here for exactly one post, and the author cut it before sending:
 # that opening belongs to a help-someone-out post, not to an article
@@ -128,9 +130,9 @@ def strip_markdown(s):
     return re.sub(r"\s+", " ", s.replace("`", "")).strip()
 
 
-def links_file(d):
+def links_file(src):
     out = {}
-    f = d / "links.txt"
+    f = links_path(src)
     if f.exists():
         for ln in f.read_text().splitlines():
             ln = ln.strip()
@@ -181,7 +183,7 @@ def main():
     src = pathlib.Path(a.article).resolve()
     d = src.parent
     text = src.read_text()
-    links = links_file(d)
+    links = links_file(src)
     out = pathlib.Path(a.out) if a.out else d / f"gchat-{src.stem}.txt"
 
     print(f"\n{src.name} -> {out.name}")

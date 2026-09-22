@@ -26,6 +26,8 @@ import pathlib
 import subprocess
 import sys
 
+from bodytext import links_path
+
 HERE = pathlib.Path(__file__).resolve().parent
 
 
@@ -91,7 +93,7 @@ def main():
             argv.append("--pinned")
         results["links"] = run("check-links.py — what the destination actually fetches", argv)
 
-    linkedin = pathlib.Path(art).parent / "links.txt"
+    linkedin = links_path(art)
     if linkedin.exists():
         # --no-write: a check that rebuilds the artifact it is checking will
         # quietly replace it with whatever the DEFAULT flags produce, which is how

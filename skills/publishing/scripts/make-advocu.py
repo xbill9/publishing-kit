@@ -80,6 +80,8 @@ import sys
 import urllib.error
 import urllib.request
 
+from bodytext import links_path
+
 TYPES = ["Articles", "Books", "Code contribution", "Demos",
          "Newsletters", "Podcasts", "Videos"]
 
@@ -117,8 +119,8 @@ def field(fm, key):
     return m.group(1) if m else ""
 
 
-def links_file(d):
-    f = d / "links.txt"
+def links_file(src):
+    f = links_path(src)
     out = {}
     if f.exists():
         for ln in f.read_text().splitlines():
@@ -208,7 +210,7 @@ def main():
     desc = field(fm, "description")
     tags = [t.strip() for t in field(fm, "tags").split(",") if t.strip()]
 
-    links = links_file(d)
+    links = links_file(src)
     link = a.link or links.get("devto-gde") or ""
 
     out = pathlib.Path(a.out) if a.out else d / f"advocu-{src.stem}.md"

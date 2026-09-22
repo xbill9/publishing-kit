@@ -52,6 +52,8 @@ import sys
 import urllib.error
 import urllib.request
 
+from bodytext import links_path
+
 FAILS, WARNS = [], []
 # The link verdict lives in check-links.py, and this file asks it rather than
 # keeping a second copy. MEASURED 2026-09-22: the loop below fetched with the bare
@@ -107,9 +109,9 @@ def strip_markdown(s):
     return re.sub(r"\s+", " ", s.replace("`", "")).strip()
 
 
-def links_file(d):
+def links_file(src):
     out = {}
-    f = d / "links.txt"
+    f = links_path(src)
     if f.exists():
         for ln in f.read_text().splitlines():
             ln = ln.strip()
@@ -157,7 +159,7 @@ def main():
     src = pathlib.Path(a.article).resolve()
     d = src.parent
     text = src.read_text()
-    links = links_file(d)
+    links = links_file(src)
     out = pathlib.Path(a.out) if a.out else d / f"slack-{src.stem}.txt"
 
     print(f"\n{src.name} -> {out.name}")
