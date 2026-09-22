@@ -311,3 +311,25 @@ details**, **2 Additional information**, with `Save as draft` available on both.
 
 A saved draft moves the sidebar count: `Drafts (0)` became `Drafts (1)` and the
 toast read `Activity has been saved as draft`. Submitting is the author's call.
+
+## Two readings that lie on the Regular form
+
+MEASURED 2026-09-22, filing a draft with every field and the WebP cover.
+
+- **`ant-form-item-has-success` is on every field before anything is typed.**
+  All seven step-1 items carried it with Content type still empty, so it says
+  nothing about whether a field took. Read each value back instead: the input's
+  `value`, the Quill editor's `innerText`, and for the two selects the
+  `.ant-select-selector` text and the `.ant-select-selection-item` chips.
+- **A select's dropdown outlives the pick, and a document-wide option search
+  reads the wrong list.** The Content type panel stayed open after `Articles`
+  was chosen, so typing `Gemma` into Tags and then searching every
+  `.ant-select-dropdown` returned the seven content types and no tag. Scope the
+  search to the dropdown that is not the content-type list (it opens with
+  `AI`, `AI - Agent Development Kit (ADK)`, ...), then press the option; that
+  committed `AI - Gemma` first time. Content type still read `Articles`
+  afterwards -- check it anyway, since both selects share the overlay.
+
+The save itself matched the note above: the toast rendered twice, the Drafts
+count went 0 to 1 once, and a fresh load of the Activity Stream still read
+`Drafts (1)` with the Activities count unchanged.
