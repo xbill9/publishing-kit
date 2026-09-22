@@ -68,6 +68,7 @@ It writes a file. Sending into a shared community space is a person's decision.
 """
 
 import argparse
+import importlib.util
 import pathlib
 import re
 import sys
@@ -79,6 +80,26 @@ import urllib.request
 # that opening belongs to a help-someone-out post, not to an article
 # announcement, which earns its place with the first line of the article itself.
 # Pass --lede when a particular piece actually needs a why-I-am-posting line.
+# The link verdict lives in check-links.py, and this file asks it rather than
+# keeping a second copy. MEASURED 2026-09-22: the loop below fetched with the bare
+# "publishing-kit" User-Agent and failed anything but 2xx, so a published Medium
+# story -- which answers 403 to a UA-less client, exactly as dev.to does -- was a
+# build failure here while being a warning in check-links.py. One source for the
+# verdict, in every path.
+_CL = pathlib.Path(__file__).resolve().parent / "check-links.py"
+_spec = importlib.util.spec_from_file_location("check_links", _CL)
+cl = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(cl)
+
+
+def link_verdict(url, timeout=20):
+    """(status, note, walled) -- walled means a dev.to/Medium bot wall, not a break."""
+    v = cl.verdict(url, cl.fetch_chain(url, timeout))
+    if v is None:
+        return "ok", "HTTP 200", False
+    return ("warn" if v[1] else "fail"), v[0], v[1]
+
+
 DEFAULT_LEDE = ""
 
 FAILS, WARNS = [], []
@@ -170,21 +191,26 @@ def main():
     for key, label in ORDER:
         v = links.get(key, "")
         if not v or v.upper() == "PENDING":
-            fail(f"{label} link is PENDING")
+            # Only the dev.to copy is required -- it is the one this room is for.
+            # A piece that never went to Builder Center or Medium still gets
+            # announced; its line drops out of the template instead of failing
+            # the run. MEASURED 2026-09-22 on a Google Cloud article with no
+            # Builder Center version, which could not be announced at all.
+            (fail if key == "devto-gde" else warn)(f"{label} link is absent; its line is dropped")
+            v = ""
         elif "temp-slug" in v:
             fail(f"{label} link is an unpublished draft URL: {v}")
         elif not v.startswith("https://"):
             fail(f"{label} link is not https: {v}")
         else:
-            try:
-                req = urllib.request.Request(v, headers={"User-Agent": "publishing-kit"})
-                with urllib.request.urlopen(req, timeout=20) as r:
-                    ok(f"{label}: HTTP {r.status}")
-            except urllib.error.HTTPError as e:
-                fail(f"{label}: HTTP {e.code}")
-            except Exception as e:
-                warn(f"{label}: could not reach it ({e})")
-        resolved[key] = v or "PENDING"
+            kind, note, _ = link_verdict(v)
+            if kind == "ok":
+                ok(f"{label}: {note}")
+            elif kind == "warn":
+                warn(f"{label}: {note} (dev.to/Medium bot wall, not a broken link)")
+            else:
+                fail(f"{label}: {note}")
+        resolved[key] = v
 
     # The mirror of make-slack.py's check, and it fires on the opposite error.
     aws = links.get("devto-aws", "")
@@ -203,10 +229,18 @@ def main():
     ctx = (pathlib.Path(a.context).read_text().strip() if a.context
            else "\n\n".join(context_lines(text)))
     lede = a.lede if a.lede is not None else DEFAULT_LEDE
-    post = load_template().format(
+    template = load_template()
+
+    def block(m):
+        return m.group(2) if values.get(m.group(1), "").strip() else ""
+
+    values = dict(
         lede=lede, context=ctx, devto=resolved.get("devto-gde", ""),
         medium=resolved.get("medium", ""), builder=resolved.get("builder", ""),
-        linkedin=resolved.get("linkedin", "")).strip()
+        linkedin=resolved.get("linkedin", ""))
+    post = re.sub(r"\[\[(\w+)\]\](.*?)\[\[/\1\]\]", block, template, flags=re.S)
+    post = post.format(**values).strip()
+    post = re.sub(r"\n{3,}", "\n\n", post)      # no gap where a link line dropped
     post = re.sub(r"\A\n+", "", post)          # no gap where an empty lede was
     if a.hashtags:
         warn("--hashtags: in Google Chat a # opens the People/Files picker, "
