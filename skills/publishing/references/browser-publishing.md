@@ -175,6 +175,27 @@ then navigate, reload or audit. Reloading early is what silently truncates a
 draft: an earlier run in this session lost its whole `References` section that
 way and, on a second attempt, cut a 137-block draft down to 39 permanently.
 
+**A stable paragraph count is not a stable image set either.** MEASURED
+2026-09-22, 122-block draft with 6 images. The count held at 122 across four
+reads while five of the six image paragraphs carried the same placeholder id,
+`1*b31hiO4ynbDLRrXWEFF4aQ.png` — a `1*` id, Medium's own asset, not an upload.
+The editor DOM already showed all six re-hosted `0*` ids, and the draft's
+`/p/<id>` view rendered six figures with an empty `miro.medium.com/v2/` source.
+About 30 seconds later the model's ids matched the editor's. So after the count
+settles, also poll until every type-4 paragraph's `metadata.id` equals the
+`data-image-id` on the matching editor `<img>`, before closing the tab:
+
+```js
+const want=[...document.querySelectorAll('.postArticle-content figure img')].map(i=>i.getAttribute('data-image-id'));
+// ...fetch ?format=json as above...
+ps.filter(p=>p.type===4).map(p=>p.metadata?.id).every((x,k)=>x===want[k])
+```
+
+**The empty body paragraph on `new-story` is not empty to `innerText`.** It
+holds a `span.defaultValue` reading `Tell your story…`, so an emptiness guard on
+`innerText` refuses a correct paste. Test the paragraph's children with that
+span excluded.
+
 ### Do not repair a draft by re-pasting over a selection
 
 MEASURED 2026-09-22. Selecting the body (from the empty `<p>` after the title to
