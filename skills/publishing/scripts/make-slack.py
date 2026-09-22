@@ -45,13 +45,36 @@ and there is no undo that the other 656 members will not have already seen.
 """
 
 import argparse
+import importlib.util
 import pathlib
 import re
 import sys
 import urllib.error
 import urllib.request
 
+from bodytext import links_path
+
 FAILS, WARNS = [], []
+# The link verdict lives in check-links.py, and this file asks it rather than
+# keeping a second copy. MEASURED 2026-09-22: the loop below fetched with the bare
+# "publishing-kit" User-Agent and failed anything but 2xx, so a published Medium
+# story -- which answers 403 to a UA-less client, exactly as dev.to does -- was a
+# build failure here while being a warning in check-links.py. One source for the
+# verdict, in every path.
+_CL = pathlib.Path(__file__).resolve().parent / "check-links.py"
+_spec = importlib.util.spec_from_file_location("check_links", _CL)
+cl = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(cl)
+
+
+def link_verdict(url, timeout=20):
+    """(status, note, walled) -- walled means a dev.to/Medium bot wall, not a break."""
+    v = cl.verdict(url, cl.fetch_chain(url, timeout))
+    if v is None:
+        return "ok", "HTTP 200", False
+    return ("warn" if v[1] else "fail"), v[0], v[1]
+
+
 ORDER = [("builder", "Builder Center"), ("medium", "Medium"),
          ("devto-aws", "Dev.to (aws-builders)"), ("linkedin", "LinkedIn")]
 
@@ -86,9 +109,9 @@ def strip_markdown(s):
     return re.sub(r"\s+", " ", s.replace("`", "")).strip()
 
 
-def links_file(d):
+def links_file(src):
     out = {}
-    f = d / "links.txt"
+    f = links_path(src)
     if f.exists():
         for ln in f.read_text().splitlines():
             ln = ln.strip()
@@ -136,7 +159,7 @@ def main():
     src = pathlib.Path(a.article).resolve()
     d = src.parent
     text = src.read_text()
-    links = links_file(d)
+    links = links_file(src)
     out = pathlib.Path(a.out) if a.out else d / f"slack-{src.stem}.txt"
 
     print(f"\n{src.name} -> {out.name}")
@@ -152,23 +175,16 @@ def main():
         elif not v.startswith("https://"):
             fail(f"{label} link is not https: {v}")
         else:
-            try:
-                req = urllib.request.Request(v, headers={"User-Agent": "publishing-kit"})
-                with urllib.request.urlopen(req, timeout=20) as r:
-                    ok(f"{label}: HTTP {r.status}")
-            except urllib.error.HTTPError as e:
-                # Medium answers any non-browser client with 403 -- documented in
-                # references/browser-publishing.md, which says to verify a published
-                # Medium article with get_page_text in the browser and not from the
-                # shell. Treating that as a broken link fails the run on a link that
-                # is fine, which is worse than not checking it.
-                if e.code == 403 and "medium.com" in v:
-                    warn(f"{label}: HTTP 403, which is what Medium answers every "
-                         f"non-browser client. Verify it in the browser, not here.")
-                else:
-                    fail(f"{label}: HTTP {e.code}")
-            except Exception as e:
-                warn(f"{label}: could not reach it ({e})")
+            # The Medium-403 exemption used to be written out here and nowhere
+            # else, so dev.to -- which answers a UA-less client the same way --
+            # was still a hard failure. link_verdict covers both.
+            kind, note, _ = link_verdict(v)
+            if kind == "ok":
+                ok(f"{label}: {note}")
+            elif kind == "warn":
+                warn(f"{label}: {note} (dev.to/Medium bot wall, not a broken link)")
+            else:
+                fail(f"{label}: {note}")
         resolved[key] = v or "PENDING"
 
     gde = links.get("devto-gde", "")

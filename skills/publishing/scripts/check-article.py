@@ -201,8 +201,16 @@ def main():
     # *cover*.jpg for make-medium.py's alphabetical fallback to choose wrongly
     # from. Nothing here checked it, and this repo shipped three covers for one
     # article without a single check going red.
+    # A version of this article carries this article's title. A directory can
+    # also hold a different article -- part 1 and part 2 of a series side by
+    # side -- and that one is entitled to its own cover.
+    def title_of(t):
+        tm = re.search(r"^title:\s*[\"']?(.*?)[\"']?\s*$", front_matter(t), re.M)
+        return tm.group(1) if tm else None
+    my_title = title_of(text)
     siblings = sorted(x for x in d.glob("*.md")
-                      if x != src and re.search(r"^cover_image:", x.read_text(), re.M))
+                      if x != src and re.search(r"^cover_image:", x.read_text(), re.M)
+                      and title_of(x.read_text()) == my_title)
     if siblings and m:
         mine = m.group(1).rstrip("/").split("/")[-1]
         others = {}

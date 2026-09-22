@@ -41,6 +41,8 @@ import sys
 import urllib.error
 import urllib.request
 
+from bodytext import links_path
+
 FAILS, WARNS = [], []
 
 
@@ -333,7 +335,7 @@ def main():
 
     scan_article_links(text, a.timeout)
 
-    links = d / "links.txt"
+    links = links_path(a.article)
     if links.exists():
         for ln in links.read_text().splitlines():
             ln = ln.strip()

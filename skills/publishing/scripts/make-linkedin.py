@@ -102,6 +102,8 @@ import re
 import statistics
 import sys
 
+from bodytext import links_path
+
 # LinkedIn image-share geometry. Third-party consensus and LinkedIn's ad-spec
 # pages agree on 1.91:1 at 1200x627; not measured against a live post.
 LI_W, LI_H = 1200, 627
@@ -322,7 +324,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("article")
     ap.add_argument("--out")
-    ap.add_argument("--links", default="links.txt")
+    ap.add_argument("--links", help="default: <article>.links.txt beside it, else links.txt")
     ap.add_argument("--url", action="append", default=[])
     ap.add_argument("--hook")
     ap.add_argument("--template", help="post shape; defaults to templates/linkedin-post.txt")
@@ -354,8 +356,9 @@ def main():
                 ln = ln.strip()
                 if ln.startswith("bullets-from"):
                     a.bullets_from = ln.split("=", 1)[1].strip()
-    links = read_links(src.parent / a.links if not pathlib.Path(a.links).is_absolute()
-                       else a.links, a.url)
+    lf = (links_path(src) if not a.links else
+          src.parent / a.links if not pathlib.Path(a.links).is_absolute() else a.links)
+    links = read_links(lf, a.url)
     # "linkedin" is this post's own URL, which make-slack.py and make-gchat.py read
     # out of the same links.txt. A post cannot link to itself and the URL does not
     # exist until it is posted, so the key is neither rendered nor required here.

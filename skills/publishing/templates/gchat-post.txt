@@ -4,8 +4,9 @@
 
 Dev.to is here: {devto}
 
-Medium is here: {medium}
+[[medium]]Medium is here: {medium}
 
-Builder Center article is here: {builder}
+[[/medium]][[builder]]Builder Center article is here: {builder}
 
-My LinkedIn post is here: {linkedin}
+[[/builder]][[linkedin]]My LinkedIn post is here: {linkedin}
+[[/linkedin]]

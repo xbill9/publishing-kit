@@ -261,3 +261,75 @@ earlier run.
 read *"Success! Activity has been saved as draft"* and the **Drafts tab went 7 to
 8** in the same view — a 1200x675 WebP of 13 KB attached, in a visible browser
 window where the lists render.
+
+## Tags are Google's product taxonomy, not the article's tags
+
+MEASURED 2026-09-22. `make-advocu.py` writes the dev.to front matter's tags into
+the sheet's **Tags** field -- `googlecloud, python, devops, opensource` for one
+article. **Advocu's Tags field takes none of them.** It is a fixed vocabulary of
+Google product areas: `AI - Gemini`, `AI - TPU`, `Cloud - Compute, Networking,
+Storage`, `Cloud - Operations & Management`, `Cloud - Security`, `Google Cloud`,
+`Open Source`, and so on. A free-text tag is simply not selectable.
+
+So treat the sheet's Tags line as a prompt to go and choose, not as a value to
+copy across. What that article took in the end:
+
+    Google Cloud
+    Cloud - Compute, Networking, Storage
+    Cloud - Operations & Management
+    Open Source
+
+**The picker is virtualised**, exactly as Builder Center's is. With nothing typed
+the DOM holds only the first alphabetical page -- every option read back was
+`AI - *`, and a search for anything containing "cloud" over that DOM returned
+nothing, which reads as "there is no Cloud tag". Type the term first, then read
+the options.
+
+## Driving the Regular form
+
+MEASURED 2026-09-22. The form is Ant Design and it is two steps: **1 Content
+details**, **2 Additional information**, with `Save as draft` available on both.
+
+- **Text fields need the native value setter**, not `el.value = x`: React does
+  not see a plain assignment. `Object.getOwnPropertyDescriptor(HTMLInputElement
+  .prototype, "value").set.call(el, v)` then `input` and `change` events.
+- **"What was it about?" is a rich-text `contenteditable`**, not an input.
+  `execCommand("insertText")` fills it.
+- **Content type and Tags render their selection outside the input** -- the
+  input's own `value` stays empty after a pick, so read the ancestor's text or
+  the chips instead of concluding nothing happened.
+- **Date published is an `ant-picker`.** The cell to click carries
+  `ant-picker-cell-in-view`; the same day number also appears as a greyed
+  adjacent-month cell, so match on that class rather than on the number alone.
+  Click `.ant-picker-cell-inner`.
+- **The image is an `ant-upload` dragger and its input is hidden.** `file_upload`
+  to a light-DOM proxy input, then copy `files` across with a `DataTransfer` and
+  dispatch `change`. **The dragger keeps its "Drop image here or click to select"
+  prompt visible after a successful attach**, so that text is not evidence the
+  upload failed -- look for an `.ant-upload-list-item` carrying the filename, and
+  check it has no `error` class.
+
+A saved draft moves the sidebar count: `Drafts (0)` became `Drafts (1)` and the
+toast read `Activity has been saved as draft`. Submitting is the author's call.
+
+## Two readings that lie on the Regular form
+
+MEASURED 2026-09-22, filing a draft with every field and the WebP cover.
+
+- **`ant-form-item-has-success` is on every field before anything is typed.**
+  All seven step-1 items carried it with Content type still empty, so it says
+  nothing about whether a field took. Read each value back instead: the input's
+  `value`, the Quill editor's `innerText`, and for the two selects the
+  `.ant-select-selector` text and the `.ant-select-selection-item` chips.
+- **A select's dropdown outlives the pick, and a document-wide option search
+  reads the wrong list.** The Content type panel stayed open after `Articles`
+  was chosen, so typing `Gemma` into Tags and then searching every
+  `.ant-select-dropdown` returned the seven content types and no tag. Scope the
+  search to the dropdown that is not the content-type list (it opens with
+  `AI`, `AI - Agent Development Kit (ADK)`, ...), then press the option; that
+  committed `AI - Gemma` first time. Content type still read `Articles`
+  afterwards -- check it anyway, since both selects share the overlay.
+
+The save itself matched the note above: the toast rendered twice, the Drafts
+count went 0 to 1 once, and a fresh load of the Activity Stream still read
+`Drafts (1)` with the Activities count unchanged.

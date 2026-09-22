@@ -154,3 +154,17 @@ def hard_wrapped(text: str):
     if count > 1:
         found.append((start + offset + 1, lines[start].strip()[:60]))
     return found
+
+
+def links_path(article):
+    """The links file for ARTICLE: ``<stem>.links.txt`` beside it, else ``links.txt``.
+
+    A directory can hold two articles -- part 1 and part 2 of a series -- and a
+    single ``links.txt`` would hand one article's URLs to the other's
+    announcement. The per-article name wins when it exists; a directory with one
+    article keeps working unchanged.
+    """
+    import pathlib
+    src = pathlib.Path(article)
+    own = src.with_name(f"{src.stem}.links.txt")
+    return own if own.exists() else src.with_name("links.txt")

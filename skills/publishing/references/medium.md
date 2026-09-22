@@ -39,6 +39,11 @@ Each of these looks like your fix simply did not work.
 Images. Medium fetches them, rehosts at 800px, and takes `<figcaption>` as the
 caption. **The first image in the body becomes the story's cover.**
 
+**Layout: title, the one-paragraph summary, then the cover.** The author's
+preference, and `make-medium.py`'s default: the cover goes after the opening
+paragraph, not above it. The summary has no image, so the cover is still the
+first image and still becomes the story's cover art.
+
 **Alt text does NOT survive a paste.** MEASURED 2026-09-08, pasting a hosted
 HTML file whose ten `<img>` each carried a distinct `alt`: every figure in the
 draft came back `alt=""`. The control that makes this mean something is the

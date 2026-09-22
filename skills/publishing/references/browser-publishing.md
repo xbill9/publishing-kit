@@ -136,6 +136,85 @@ view, not the editor.** The editor decorates an empty code block with an
 `Auto (TypeScript)` label, so its `innerText` is not empty and a naive
 "is it blank?" test in the editor misses all 18.
 
+### Audit a Medium draft from `?format=json`, never from the DOM
+
+MEASURED 2026-09-22, after three wrong verdicts in one session. Neither view in
+the browser tells you what Medium stored:
+
+- **The editor DOM lies.** A 31,472-character paste left a document with 28
+  headings and 6 figures in the DOM, `Saved` in the header — and 39 blocks with
+  no images in the model. The kit already says Medium discards DOM edits; it
+  discards a paste it did not commit the same way, and the audit reads clean.
+- **The story view (`/p/<id>`) windows its DOM.** The same draft reported 17
+  headings on one pass and 29 on another, scrolling the whole document each
+  time. Counts off it are a lower bound, not a count.
+
+The model itself is one fetch, same-origin from any Medium page:
+
+```js
+const r = await fetch(`https://medium.com/p/${id}?format=json`, {credentials:"include", cache:"no-store"});
+const j = JSON.parse((await r.text()).replace(/^[^{]*/, ""));   // strip the anti-JSON prefix
+const ps = j.payload.value.content.bodyModel.paragraphs;
+({n: ps.length, headings: ps.filter(p=>p.type===13).length, images: ps.filter(p=>p.type===4).length})
+```
+
+Paragraph `type`: **1** text, **3** title, **4** image, **8** code, **9** list
+item, **13** heading. Check the count, the image count and the last block's text
+against the source before believing a paste landed.
+
+### `Saved` is not the end of the commit — poll the model until it stops growing
+
+MEASURED 2026-09-22. Medium fills the body model **progressively** after a large
+paste, and the header reads `DraftSaved` while it is still going. On a 137-block
+document the model read **48 blocks and 2 of 6 images** at the moment the header
+said `Saved`, and reached 137 blocks and 6 images about a minute later.
+
+So `Saved` is a starting gun, not a finish line. After a paste, poll
+`?format=json` until the paragraph count is stable across three reads, and only
+then navigate, reload or audit. Reloading early is what silently truncates a
+draft: an earlier run in this session lost its whole `References` section that
+way and, on a second attempt, cut a 137-block draft down to 39 permanently.
+
+**A stable paragraph count is not a stable image set either.** MEASURED
+2026-09-22, 122-block draft with 6 images. The count held at 122 across four
+reads while five of the six image paragraphs carried the same placeholder id,
+`1*b31hiO4ynbDLRrXWEFF4aQ.png` — a `1*` id, Medium's own asset, not an upload.
+The editor DOM already showed all six re-hosted `0*` ids, and the draft's
+`/p/<id>` view rendered six figures with an empty `miro.medium.com/v2/` source.
+About 30 seconds later the model's ids matched the editor's. So after the count
+settles, also poll until every type-4 paragraph's `metadata.id` equals the
+`data-image-id` on the matching editor `<img>`, before closing the tab:
+
+```js
+const want=[...document.querySelectorAll('.postArticle-content figure img')].map(i=>i.getAttribute('data-image-id'));
+// ...fetch ?format=json as above...
+ps.filter(p=>p.type===4).map(p=>p.metadata?.id).every((x,k)=>x===want[k])
+```
+
+**The empty body paragraph on `new-story` is not empty to `innerText`.** It
+holds a `span.defaultValue` reading `Tell your story…`, so an emptiness guard on
+`innerText` refuses a correct paste. Test the paragraph's children with that
+span excluded.
+
+### Do not repair a draft by re-pasting over a selection
+
+MEASURED 2026-09-22. Selecting the body (from the empty `<p>` after the title to
+the last `.graf`) and pasting the whole document over it **rendered correctly in
+the editor and never reached the model** — the draft was left at 39 blocks with
+its images gone, and the damage does not undo: an empty payload pasted over a
+selection is a no-op, and the tab had no keyboard focus for `Ctrl+Z`.
+
+Appending to the end does not work either. The caret lands inside the final
+`<li>`, so the paste is taken as list continuation: an `<h4>` is flattened into
+the preceding bullet's text (`…what references themReferences`) and the new
+items join that list.
+
+**Build a fresh story instead** (`medium.com/new-story`): paste the title as
+`text/plain` into `h3.graf--title`, paste the body as `text/html` into the empty
+`p.graf--p`, wait out the progressive commit, and verify from `?format=json`.
+That route produced a complete 137-block, 28-heading, 6-image draft. The old
+draft has to be deleted by hand, which is the cost of it being the reliable one.
+
 ### Re-pasting over an existing draft
 
 Import cannot update a draft, but paste can, and it keeps the id and the link:
