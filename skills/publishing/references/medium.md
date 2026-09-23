@@ -59,6 +59,10 @@ button, select the contents of `.overlay .js-textAreaEditor`, then
 `execCommand("insertText", …)` and `.click()` `[data-action="overlay-submit"]`.
 All four alts survived to `/p/<id>`. Do one figure per `javascript_tool` call: three
 in one script timed out at 45 s in a hidden tab, although two of them had saved.
+Verify from the model, not the DOM: each type-4 paragraph in `?format=json` carries
+the alt as `metadata.alt`, absent until set. MEASURED 2026-09-23 on a six-image
+paste: all six read absent, the first one set this way read back within four
+seconds, which is the positive control, and all six then held across four reads.
 
 So on the paste route the alt in your HTML buys nothing, and a table rendered
 to PNG reaches Medium with no text at all behind it. Either add the alt in the

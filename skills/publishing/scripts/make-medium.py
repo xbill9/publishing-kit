@@ -158,9 +158,11 @@ def table_alt(header: list[str], body: list[list[str]]) -> str:
 
     A table that becomes an image has no text left for a screen reader, and
     "table" -- what this used to emit for every one of them -- describes
-    nothing. Medium keeps alt text through import and paste, so it is the only
-    accessible form these tables have. Falls back to the first column's labels
-    when the header row is empty, which is how a transposed table is shaped.
+    nothing. Medium keeps alt text through import but drops it on paste, where
+    it has to be set again in the editor (references/medium.md); either way it
+    is the only accessible form these tables have. Falls back to the first
+    column's labels when the header row is empty, which is how a transposed
+    table is shaped.
     """
     # \u25cf is demoji()'s stand-in for a medal; it is a visual marker in the
     # rendered table and pure noise read aloud, so it does not belong in alt.
