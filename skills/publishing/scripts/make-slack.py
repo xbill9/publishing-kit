@@ -49,8 +49,6 @@ import importlib.util
 import pathlib
 import re
 import sys
-import urllib.error
-import urllib.request
 
 from bodytext import links_path
 

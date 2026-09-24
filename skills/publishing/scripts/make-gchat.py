@@ -72,8 +72,6 @@ import importlib.util
 import pathlib
 import re
 import sys
-import urllib.error
-import urllib.request
 
 from bodytext import links_path
 
@@ -236,10 +234,10 @@ def main():
     def block(m):
         return m.group(2) if values.get(m.group(1), "").strip() else ""
 
-    values = dict(
-        lede=lede, context=ctx, devto=resolved.get("devto-gde", ""),
-        medium=resolved.get("medium", ""), builder=resolved.get("builder", ""),
-        linkedin=resolved.get("linkedin", ""))
+    values = {
+        "lede": lede, "context": ctx, "devto": resolved.get("devto-gde", ""),
+        "medium": resolved.get("medium", ""), "builder": resolved.get("builder", ""),
+        "linkedin": resolved.get("linkedin", "")}
     post = re.sub(r"\[\[(\w+)\]\](.*?)\[\[/\1\]\]", block, template, flags=re.S)
     post = post.format(**values).strip()
     post = re.sub(r"\n{3,}", "\n\n", post)      # no gap where a link line dropped
