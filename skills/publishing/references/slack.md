@@ -188,3 +188,14 @@ the thumbnail that appears above the composer toolbar.
 
 Attach *after* inserting the text: the upload leaves the composer contents alone —
 1,121 characters and four links before and after.
+
+**Correction, MEASURED 2026-09-24: attach FIRST, then insert.** In
+`#boost-ai-engineering` the text read back intact (934 characters, all three
+links) immediately after `file_upload`, and five seconds later the composer was
+`ql-blank` with the thumbnail still attached. Drafts & sent showed the channel
+draft as the image with "No message": the `insertText` had reached the DOM but
+not Slack's own draft, and the upload's re-render restored the draft. Nothing was
+sent or scheduled. Re-inserting with the file already attached held. So read the
+composer back *several seconds* after the upload, not immediately, and prefer
+upload-then-insert. A "Your message will be sent on …" banner above the composer
+belongs to an existing scheduled message in that channel, not to anything staged.

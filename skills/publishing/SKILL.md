@@ -847,8 +847,10 @@ picker open, and Enter would insert a channel link instead of sending.
 **Attach the cover rather than counting on the unfurl.** MEASURED 2026-09-16: the
 page has exactly one `input[type=file]`, it is in the light DOM, and it needs none
 of the shadow-root work Medium and Builder Center do — it carries no accessible
-name, so give it an `aria-label` and upload straight to it. Attach *after*
-inserting the text; the upload leaves the composer contents alone. **After a
+name, so give it an `aria-label` and upload straight to it. **Attach *before*
+inserting the text** — MEASURED 2026-09-24, an upload after `insertText` blanked
+the composer a few seconds later, because the scripted text never reached Slack's
+draft (`references/slack.md`). **After a
 successful upload `input.files` reads 0**, because Slack consumes the file into
 its own attachment state, so a re-read of the input looks exactly like a failed
 upload — judge it by the thumbnail above the composer toolbar instead.
