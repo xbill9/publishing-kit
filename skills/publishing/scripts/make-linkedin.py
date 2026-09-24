@@ -133,6 +133,7 @@ LABELS = {
     "builder": "AWS Builder Center",
     "medium": "Medium",
     "devcommunity": "AMD Developer Community",
+    "companion": "Companion article",
     "repo": "Source",
 }
 
@@ -291,7 +292,7 @@ def build(article, links, hook_override, template, section="Summary"):
     bullets = summary_bullets(text, section=section)
 
     ordered = [k for k in ("devto", "devto-gde", "devto-aws", "builder", "medium",
-                           "devcommunity", "live", "repo") if k in links]
+                           "devcommunity", "companion", "live", "repo") if k in links]
     # A key the ordering does not know is silently dropped from {links}, while the
     # resolver above still counts it as "resolved" -- so a typo like devto_gde for
     # devto-gde ships a post missing two of its four destinations and reports ok.
@@ -299,7 +300,7 @@ def build(article, links, hook_override, template, section="Summary"):
     if unknown:
         fail(f"link key(s) not in the render order, so they would be dropped: "
              f"{', '.join(sorted(unknown))}. Known keys: devto, devto-gde, devto-aws, "
-             f"builder, medium, devcommunity, live, repo.")
+             f"builder, medium, devcommunity, companion, live, repo.")
 
     values = {
         "hook": hook,
