@@ -632,7 +632,10 @@ def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = No
 #
 # The repository, branch and path are all knowable from the article's own
 # location, so ask git rather than remember.
-def default_img_base(src: Path) -> str:
+def default_img_base(src: Path, outdir: Path) -> str:
+    # The images are written to <outdir>/img, so that is the path the URLs
+    # must name. MEASURED 2026-09-24: an outdir other than ./medium still got
+    # .../medium/img/ URLs, which 404 every image once pushed.
     d = src.resolve().parent
     try:
         def g(*args):
@@ -644,8 +647,8 @@ def default_img_base(src: Path) -> str:
             raise RuntimeError("not a git checkout with an origin remote")
         slug = re.sub(r"^git@github\.com:|^https://github\.com/", "", url)
         slug = re.sub(r"\.git$", "", slug)
-        rel = d.relative_to(Path(root))
-        return f"https://raw.githubusercontent.com/{slug}/{branch}/{rel}/medium/img/"
+        rel = (outdir.resolve() / "img").relative_to(Path(root))
+        return f"https://raw.githubusercontent.com/{slug}/{branch}/{rel}/"
     except Exception as e:
         sys.exit(f"cannot derive --img-base from git ({e}). Pass --img-base "
                  f"explicitly: a wrong base 404s every image in the hosted "
@@ -678,8 +681,8 @@ if __name__ == "__main__":
     if not args:
         sys.exit(__doc__)
     src = Path(args[0])
-    img_base = flags.get("--img-base") or default_img_base(src)
     outdir = Path(args[1]) if len(args) > 1 else Path("medium")
+    img_base = flags.get("--img-base") or default_img_base(src, outdir)
     cov = flags.get("--cover")
     if cov and not Path(cov).exists():
         sys.exit(f"--cover {cov}: no such file")
