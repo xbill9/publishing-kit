@@ -183,6 +183,16 @@ author's `xbill999.medium.com` subdomain — expected, and not a different story
 answering `Forbidden Bots`. A link checker that reports a published article as
 dead is checking its own headers, not the article.
 
+## Wide tables are wrapped, not shrunk
+
+MEASURED 2026-09-24: a five-row comparison table with sentence-length cells rendered
+4,319 px wide. Medium shows a story image at most ~700 CSS px wide, so the type in it
+would have been about 5 px tall. `render_table` now caps a table at `MAX_TABLE_W`
+(1,600 px at 2x) and wraps cells at word boundaries, never narrower than a column's
+longest word, so a wide table grows down instead of out. Tables that already fit
+render exactly as before. Open the PNG after generating: a column whose longest word
+is itself long (a checkpoint name, a URL) still sets a floor on the width.
+
 ## `&nbsp;` fixes a dev.to wrap and breaks the Medium table image
 
 MEASURED 2026-09-15. A non-breaking space is the obvious fix for a table cell that

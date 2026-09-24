@@ -174,12 +174,21 @@ def table_alt(header: list[str], body: list[list[str]]) -> str:
     return f"Table: {label}"[:180] if label else "table"
 
 
+# Medium shows a story image at most ~700 CSS px wide, and these PNGs are drawn at
+# SCALE. A table wider than MAX_TABLE_W is shrunk to fit, so its type shrinks with
+# it: MEASURED 2026-09-24, a five-row comparison table rendered 4,319 px wide, which
+# at 700 px is type about 5 px tall. Cells wrap at word boundaries instead, so the
+# table grows down rather than out and the type stays near body size.
+MAX_TABLE_W = 1600
+
+
 def render_table(header: list[str], body: list[list[str]], path: Path) -> None:
     fs = 15
     f_reg, f_bold = font(SANS, fs), font(SANS_B, fs)
     f_ital, f_bi = font(SANS_I, fs), font(SANS_BI, fs)
     f_mono, f_mono_b = font(MONO, fs - 1), font(MONO_B, fs - 1)
     pad_x, pad_y = 14 * SCALE, 10 * SCALE
+    line_h = int((fs + 7) * SCALE)
 
     probe = Image.new("RGB", (1, 1))
     d = ImageDraw.Draw(probe)
@@ -196,50 +205,91 @@ def render_table(header: list[str], body: list[list[str]], path: Path) -> None:
     def run_w(text: str, bold: bool, mono: bool, ital: bool = False) -> int:
         return int(d.textlength(text, font=pick(bold, mono, ital)))
 
-    def cell_w(cell: str, hdr: bool = False) -> int:
-        # header cells render bold, which is wider than the regular face —
-        # measure them the way they'll actually be drawn or the last column clips
-        return sum(run_w(t, b or hdr, m, i) for t, b, m, i in runs(cell))
+    def pieces(cell: str, hdr: bool):
+        # words with their trailing space, each carrying its run's style;
+        # header cells render bold, so they are measured bold
+        out = []
+        for text, b, m, i in runs(cell):
+            for w in re.findall(r"\S+\s*|\s+", text):
+                out.append((w, b or hdr, m, i))
+        return out
+
+    def natural(cell: str, hdr: bool) -> int:
+        return sum(run_w(t, b, m, i) for t, b, m, i in pieces(cell, hdr))
+
+    def longest_word(cell: str, hdr: bool) -> int:
+        return max([run_w(t.rstrip(), b, m, i) for t, b, m, i in pieces(cell, hdr)] or [0])
+
+    def wrap(cell: str, hdr: bool, width: int):
+        lines, cur, cur_w = [], [], 0
+        for t, b, m, i in pieces(cell, hdr):
+            w = run_w(t, b, m, i)
+            if cur and cur_w + run_w(t.rstrip(), b, m, i) > width:
+                lines.append(cur)
+                cur, cur_w = [], 0
+                t = t.lstrip()
+                w = run_w(t, b, m, i)
+                if not t:
+                    continue
+            cur.append((t, b, m, i))
+            cur_w += w
+        if cur:
+            lines.append(cur)
+        return lines or [[]]
 
     ncols = len(header)
     grid = [header] + body
-    widths = [
-        max(
-            [cell_w(header[i], True) if i < len(header) else 0]
-            + [cell_w(r[i]) if i < len(r) else 0 for r in body]
-        )
-        + 2 * pad_x
-        for i in range(ncols)
-    ]
-    row_h = int((fs + 12) * SCALE)
+    cell = lambda r, i: r[i] if i < len(r) else ""
+    nat = [max(natural(cell(r, i), ri == 0) for ri, r in enumerate(grid)) for i in range(ncols)]
+    floor_w = [max(longest_word(cell(r, i), ri == 0) for ri, r in enumerate(grid)) for i in range(ncols)]
+    budget = MAX_TABLE_W - 2 * pad_x * ncols
+    text_w = list(nat)
+    if sum(nat) > budget:
+        # cap the widest columns at one common width, never below a column's longest word
+        lo, hi = 0, max(nat)
+        while hi - lo > 1:
+            mid = (lo + hi) // 2
+            if sum(max(min(n, mid), f) for n, f in zip(nat, floor_w)) > budget:
+                hi = mid
+            else:
+                lo = mid
+        text_w = [max(min(n, lo), f) for n, f in zip(nat, floor_w)]
+    widths = [w + 2 * pad_x for w in text_w]
+
+    wrapped = [[wrap(cell(r, i), ri == 0, text_w[i]) for i in range(ncols)] for ri, r in enumerate(grid)]
+    row_h = int((fs + 12) * SCALE)  # one-line row, as before wrapping existed
+    heights = [row_h + (max(len(c) for c in row) - 1) * line_h for row in wrapped]
     W = sum(widths)
-    H = row_h * len(grid) + 2 * SCALE
+    H = sum(heights) + 2 * SCALE
 
     img = Image.new("RGB", (W, H), BG)
     dr = ImageDraw.Draw(img)
 
     y = 0
-    for ri, row in enumerate(grid):
+    for ri, row in enumerate(wrapped):
         is_hdr = ri == 0
+        rh = heights[ri]
         if is_hdr:
-            dr.rectangle([0, y, W, y + row_h], fill=HDR_BG)
+            dr.rectangle([0, y, W, y + rh], fill=HDR_BG)
         elif ri % 2 == 0:
-            dr.rectangle([0, y, W, y + row_h], fill=ALT_BG)
+            dr.rectangle([0, y, W, y + rh], fill=ALT_BG)
         x = 0
         for ci in range(ncols):
-            cell = row[ci] if ci < len(row) else ""
-            cx = x + pad_x
-            for text, bold, mono, ital in runs(cell):
-                fnt = pick(bold or is_hdr, mono, ital)
-                col = MUTED if (mono and not is_hdr and not bold) else FG
-                dr.text((cx, y + pad_y - 1 * SCALE), text, font=fnt, fill=col)
-                cx += int(dr.textlength(text, font=fnt))
+            ly = y + pad_y - 1 * SCALE
+            for line in row[ci]:
+                cx = x + pad_x
+                for text, bold, mono, ital in line:
+                    fnt = pick(bold, mono, ital)
+                    col = MUTED if (mono and not is_hdr and not bold) else FG
+                    dr.text((cx, ly), text, font=fnt, fill=col)
+                    cx += int(dr.textlength(text, font=fnt))
+                ly += line_h
             x += widths[ci]
         dr.line([0, y, W, y], fill=RULE, width=SCALE)
-        y += row_h
+        y += rh
     dr.line([0, y, W, y], fill=RULE, width=SCALE)
     # header underline, heavier
-    dr.line([0, row_h, W, row_h], fill=(150, 150, 150), width=SCALE)
+    dr.line([0, heights[0], W, heights[0]], fill=(150, 150, 150), width=SCALE)
 
     img.save(path)
 
