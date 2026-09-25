@@ -1070,3 +1070,22 @@ width* — the longest unbreakable word. `Test 1` therefore breaks to `Test` / `
 **every** viewport width, and shortening the label shrinks the column with it, so
 the wrap survives every time. Remove the break opportunity instead: a single token
 (`1`), not shorter text.
+
+## Medium: pasting a URL over a selection relinks it and keeps the old text
+
+MEASURED 2026-09-25, replacing a linked URL inside a pasted draft (read back from
+`?format=json`, not the DOM). Selecting the anchor's text and dispatching a paste
+whose payload is a URL (`text/plain` URL, with or without a `text/html` anchor)
+**changes the markup's `href` and leaves the selected text as it was**. Medium
+treats a URL pasted over a selection as "link this text". The draft then shows the
+old URL as its text while pointing somewhere else.
+
+Two pastes do the replacement, both of which reach the model:
+
+1. Select the old text and paste **plain, non-URL text** (a label such as the
+   linked article's title). That replaces the characters.
+2. Select the label and paste the new URL. That links the label.
+
+Match the anchor by its text, not by `a.href`: Medium rewrites hrefs in the editor
+to `https://medium.com/r/?url=<encoded>`, so an `href === url` test finds nothing.
+The model keeps the real URL in `markups[].href`.
