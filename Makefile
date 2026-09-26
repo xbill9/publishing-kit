@@ -9,7 +9,7 @@ SCRIPTS    := $(SKILL_DIR)/scripts
 DOGFOOD    := articles/publishing-kit-skill/devto-publishing-kit.md
 DIST_DIR   := dist
 
-.PHONY: all help lint test live pinned manifest footprint install skill-install skill-package clean
+.PHONY: all help deps lint test live pinned manifest footprint install skill-install skill-package clean
 
 all: help
 
@@ -18,6 +18,7 @@ help:
 	@echo " Publishing Kit - Root Makefile"
 	@echo "========================================================="
 	@echo "Available commands:"
+	@echo "  make deps          - check dependencies; pip-install Pillow and ruff if missing"
 	@echo "  make lint          - ruff on scripts/, node --check on browser helpers,"
 	@echo "                       bash -n on hooks, manifest copy check"
 	@echo "  make test          - preflight against the dogfood article (local state only)"
@@ -31,6 +32,24 @@ help:
 	@echo "  make skill-package - build $(DIST_DIR)/$(SKILL_NAME)-skill.zip"
 	@echo "  make clean         - remove $(DIST_DIR)/, __pycache__ and .ruff_cache"
 	@echo "========================================================="
+
+# Dependencies are declared nowhere machine-readable (see CLAUDE.md), so this
+# is the list. Python packages go into the interpreter already on PATH; system
+# packages need root, so they are reported with the apt line rather than run.
+FONTS := $(addprefix /usr/share/fonts/truetype/,dejavu/DejaVuSansMono.ttf \
+	liberation/LiberationMono-Regular.ttf liberation/LiberationMono-Bold.ttf \
+	liberation/LiberationSans-Regular.ttf liberation/LiberationSans-Bold.ttf \
+	liberation/LiberationSans-Italic.ttf liberation/LiberationSans-BoldItalic.ttf)
+
+deps:
+	@python3 -c 'import PIL' 2>/dev/null || python3 -m pip install Pillow
+	@command -v ruff >/dev/null || python3 -m pip install ruff
+	@missing=""; \
+	for c in pandoc git; do command -v $$c >/dev/null || missing="$$missing $$c"; done; \
+	for f in $(FONTS); do [ -f $$f ] || { missing="$$missing fonts-liberation fonts-dejavu-core"; break; }; done; \
+	command -v node >/dev/null || echo "node not found (optional: browser helper syntax check in make lint)"; \
+	if [ -n "$$missing" ]; then echo "missing system packages; run: sudo apt install$$missing"; exit 1; fi
+	@echo "deps OK: Pillow $$(python3 -c 'import PIL; print(PIL.__version__)'), $$(pandoc --version | head -1), $$(ruff --version), fonts present"
 
 lint: manifest
 	@command -v ruff >/dev/null || { echo "ruff not found; install with: pip install ruff"; exit 1; }
