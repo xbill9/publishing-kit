@@ -80,6 +80,14 @@ sends is **not** established, and hidden-ness alone does not explain it, because
 the same synthetic press sequence published a Builder Center article from a
 hidden tab the same day.
 
+**A trusted click sends. MEASURED 2026-09-26** in `#boost-ai-engineering`:
+with the cover attached first and the text re-inserted after the upload's
+re-render cleared it (see below), one `computer left_click` on the send
+button's screen coordinates posted the message and its image, exactly once.
+That click is a CDP input event, so `isTrusted` is true, unlike the two routes
+above. The channel view went blank for several seconds afterwards; only a
+reload showed the message, so confirm by reloading rather than by the view.
+
 **A failed send costs an upload.** Each attempt clears the attachment along with
 the text, and the file stays in the workspace's storage with no message attached
 to it. Three attempts left two orphans in Files. So re-stage *and* re-attach
