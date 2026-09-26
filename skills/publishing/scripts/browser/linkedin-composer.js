@@ -134,14 +134,18 @@ window.li = (() => {
   }
 
   // Publishes. The toast's "View post" link is the only place the URL shows up.
+  // MEASURED 2026-09-26: with no toast rendered, the first post link on the feed
+  // was someone else's post, so only a link absent before the press counts.
   async function post() {
     const p = button("Post");
     if (!p || p.disabled || p.getAttribute("aria-disabled") === "true") return { refused: "no enabled Post button" };
+    const postLink = /\/feed\/update\/urn:li:(share|activity|ugcPost):/;
+    const before = new Set(deepAll(document, "a").map((a) => a.getAttribute("href") || "").filter((h) => postLink.test(h)));
     press(p);
     let url = null, toast = "";
     for (let i = 0; i < 25; i++) {
       await sleep(1000);
-      const link = deepAll(document, "a").filter(visible).find((a) => /\/feed\/update\/urn:li:(share|activity|ugcPost):/.test(a.getAttribute("href") || ""));
+      const link = deepAll(document, "a").filter(visible).find((a) => postLink.test(a.getAttribute("href") || "") && !before.has(a.getAttribute("href")));
       if (link) url = link.href;
       toast = deepAll(document, "[role=alert],[role=status],.artdeco-toast-item").filter(visible).map((t) => t.innerText.replace(/\s+/g, " ").trim()).join(" | ");
       if (!editor() && url) break;

@@ -264,6 +264,15 @@ closes and a toast reads `Post successful. View post`; its link is
 appears — keep it (for `links.txt` key `linkedin`), because the API that could
 list posts needs `r_member_social`.
 
+**No toast, and the first post link on the feed is someone else's.** MEASURED
+2026-09-26: the post went out, the composer closed, no toast rendered in the
+hidden tab, and `li.post()` returned a `urn:li:share:` link that opened a
+different author's post. The helper now ignores links present before the press.
+When it returns no URL, open `linkedin.com/in/<vanity>/recent-activity/all/`
+(`/in/me/` there shows "Nothing to see for now"): the newest
+`urn:li:activity:<id>` is the post, and `/feed/update/urn:li:activity:<id>/`
+opens it. Check the title on that page before recording the URL.
+
 **7. The published post looks different, and is fine.** On the post page the
 cover is served downscaled (**535x279**, same 1.91:1 ratio), the body is ~430
 characters shorter because every URL became `lnkd.in`, and no anchor points at
