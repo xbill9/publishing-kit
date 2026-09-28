@@ -107,6 +107,7 @@ look first. So, before touching a destination's editor:
 | AWS Builder Center — publish gate | `scripts/browser/builder-gate.js` (`window.gate`) | `SKILL.md` → "Links" and `references/browser-publishing.md` → "Publishing runs a gate" |
 | LinkedIn composer | `scripts/browser/linkedin-composer.js` (`window.li`) | `references/linkedin.md` → "Attaching the cover and posting" |
 | Medium | — | `references/browser-publishing.md` → "Medium" and `references/medium.md` |
+| Kaggle benchmark page | `scripts/browser/kaggle-benchmark.js` (`window.kg`) | `references/kaggle.md` |
 
 **On Medium, do not open the publish dialog on a draft.** Its topic field is
 inside that dialog, so "set the topics" and "publish the story" are one journey,
@@ -426,6 +427,21 @@ cover_image: https://raw.githubusercontent.com/<user>/<repo>/main/<dir>/devto-co
 **Unwrap paragraphs before posting.** dev.to renders with hard breaks on, so a
 hard-wrapped source publishes with a line break at every wrap. `publish-devto.py`
 unwraps on the way out and leaves the repo copy readable; `--no-unwrap` opts out.
+
+### Challenge entries: publishing is the submission
+
+MEASURED 2026-09-28 on the dev.to Kaggle Benchmarking Challenge:
+
+- **The required headings are behind the challenge page's "Submission Template"
+  link**, a `dev.to/new?prefill=<urlencoded markdown>` URL. Decode its `prefill`
+  query value to get the template (front matter, the submission line, the `##`
+  headings with their prompts) instead of guessing from the page text.
+- **Publishing the draft submits the entry**, and the rules allow one submission
+  per participant. To proofread, open the draft URL `publish-devto.py --update`
+  prints (it contains `-temp-slug-`), and publish only on the author's word.
+- **The article's main link can be a page that is not public yet.** A Kaggle
+  benchmark returned 404 signed out for about 15 minutes after being made public;
+  `check-links.py` reports it until then (`references/kaggle.md`).
 
 ### Post it with the API, never the browser
 
