@@ -75,6 +75,14 @@ editor by hand (click the image, then the alt button), or accept that the
 Medium copy is less accessible than the dev.to and Builder Center ones, where
 the tables are still real tables.
 
+## Published text rewrites hyphens in dates as en dashes
+
+MEASURED 2026-09-28 on a published story: every ISO date in body prose,
+`2026-09-25`, read back from the story page as `2026–09–25` (U+2013), while the
+same dates inside code blocks kept their hyphens. Medium's typography pass does
+this after the paste; the source and the dev.to copy are unaffected. Keep a date
+that must stay copyable inside inline code, or accept the dashes.
+
 ## Hard-wrapped source is safe here, unlike dev.to
 
 MEASURED 2026-08-31 in Medium's own editor, by dispatching a paste with a
