@@ -666,6 +666,26 @@ the caret in the body with a click instead of letting `Return` create the body
 block is what produced the displacement. Same document, same payload, same
 checksum, second attempt: title intact through a reload.
 
+### In a hidden tab: paste first, then set the title with `insertText`
+
+MEASURED 2026-09-28, `document.visibilityState === "hidden"` on
+`medium.com/new-story`. The routine above needs a real `Return`, and in a hidden
+tab it went wrong: the title set with `execCommand("insertText")`, then
+`execCommand("insertParagraph")`, left the caret in the title; a `Return` key
+from the browser tool then split the title into **two title blocks**, the
+second showing the `Title` placeholder. That page was abandoned for a fresh
+`new-story` (it had no `/p/<id>` yet).
+
+What worked, in order, with no click and no key: put the caret in the empty body
+paragraph with the Selection API (`setStart(bodyGraf, 0)`), dispatch the
+`text/html` paste, wait for the URL to become `/p/<id>/edit`, then select the
+title block's contents collapsed to the start and `execCommand("insertText",
+false, TITLE)`. The title block kept its `graf--empty` class in the DOM, but
+`?format=json` returned the title in `payload.value.title` and as the type-3
+first paragraph, with the 97 body blocks, 5 re-hosted `0*` images and 7
+multi-line code blocks all in place on two reads 10 s apart. Judge it by the
+model, never by the class.
+
 ## Medium blocks a reload for minutes after it says "Saved"
 
 MEASURED 2026-09-21. `beforeunload` stays registered for the life of the editor,
