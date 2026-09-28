@@ -64,6 +64,11 @@ the alt as `metadata.alt`, absent until set. MEASURED 2026-09-23 on a six-image
 paste: all six read absent, the first one set this way read back within four
 seconds, which is the positive control, and all six then held across four reads.
 
+MEASURED 2026-09-28 on a five-image paste: the same route stored alts of 99,
+203, 368, 571 and 1,297 characters exactly, so a table image can carry its whole
+table as alt text. The two set last read back empty on the first `?format=json`
+read and complete on the next, about 16 s later; poll rather than re-set.
+
 So on the paste route the alt in your HTML buys nothing, and a table rendered
 to PNG reaches Medium with no text at all behind it. Either add the alt in the
 editor by hand (click the image, then the alt button), or accept that the
