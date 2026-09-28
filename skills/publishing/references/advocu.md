@@ -333,3 +333,22 @@ MEASURED 2026-09-22, filing a draft with every field and the WebP cover.
 The save itself matched the note above: the toast rendered twice, the Drafts
 count went 0 to 1 once, and a fresh load of the Activity Stream still read
 `Drafts (1)` with the Activities count unchanged.
+
+## Opening the selects, and how long the save takes
+
+MEASURED 2026-09-28, filing a draft in a hidden tab.
+
+- **A synthetic `mousedown` on `.ant-select-selector` did not open Content
+  type** this time: no option rendered and the selection stayed empty, although
+  the earlier notes record that route working. The full `pointerdown ->
+  mousedown -> pointerup -> mouseup -> click` press on the select's
+  `nz-select-top-control` opened it, and pressing the `nz-option-item` reading
+  `Articles` committed it. Tags opened the same way; typing into its input and
+  pressing the matching `nz-option-item` committed **two** tags, `AI - Kaggle`
+  and `AI - Gemma`, both read back as chips.
+- **Advocu has `AI - Kaggle`**, for a Kaggle benchmark or competition piece.
+- **The save confirms late.** Four seconds after pressing `Save as draft` there
+  was no toast and `Drafts (0)`; about three seconds later the toast read
+  `Activity has been saved as draft` and the count read `Drafts (1)`. Poll for
+  seven seconds or more before concluding it failed, and never press Save twice.
+
