@@ -1,7 +1,4 @@
-wrote cover.8a6ca645.jpg  1376x578  61 KB
-wrote cover-builder.ebbc48ba.jpg  1200x675  52 KB
-  https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes/cover.8a6ca645.jpg
-  https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes/cover-builder.ebbc48ba.jpg
-
-AWS's editor says text in images is not recommended. This is one cover at two sizes
-by choice: a different picture per destination is a third thing to keep in step.
+wrote cover.168992c6.jpg  1376x578  44 KB
+wrote cover-builder.712a395f.jpg  1200x675  39 KB
+  https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes/cover.168992c6.jpg
+  https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes/cover-builder.712a395f.jpg

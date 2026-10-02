@@ -193,7 +193,7 @@ article to dev.to, Medium, AWS Builder Center and LinkedIn with
 publishing-kit, an agent skill for Claude Code, Codex and Antigravity.
 The article you are reading was published with it, and every command
 output below comes from that run.</p>
-<figure><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes/medium/img/cover.8a6ca645.jpg" alt="Write Markdown Once, Publish It Everywhere: dev.to, Medium, AWS Builder Center and LinkedIn" /></figure>
+<figure><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes/medium/img/cover.168992c6.jpg" alt="Write Markdown Once, Publish It Everywhere: dev.to, Medium, AWS Builder Center and LinkedIn" /></figure>
 <p><a
 href="https://github.com/xbill9/publishing-kit">https://github.com/xbill9/publishing-kit</a></p>
 <p><strong>One markdown file goes in. A dev.to draft, a Medium story, a
@@ -314,7 +314,7 @@ title: &quot;Write Markdown Once, Publish It Everywhere: dev.to, Medium, AWS Bui
 published: false
 description: &quot;Markdown is easy to write and hard to publish. ...&quot;
 tags: writing, markdown, devtools, ai
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes/cover.8a6ca645.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes/cover.168992c6.jpg
 ---</code></pre>
 <p><code>published: false</code> stays in the file. Going live is a
 separate command, so a routine update never publishes by accident.</p>
@@ -323,16 +323,20 @@ another article that explains what this skill does, step through how to
 use it and publish it, and dogfood the article with the kit."</em></p>
 <hr />
 <h4 id="step-3--make-the-cover">Step 3 — Make the Cover</h4>
-<pre class="shell"><code>python3 make-cover.py --out cover.jpg --sizes devto,builder --flow \
-  --source &quot;article.md|one markdown file&quot; \
-  --dest &quot;dev.to|REST API|blue&quot; --dest &quot;Medium|browser|orange&quot; \
-  --dest &quot;Builder Center|browser|orange&quot; --dest &quot;LinkedIn|composer|muted&quot; \
-  --headline &quot;Write once|publish everywhere&quot; \
+<pre class="shell"><code>python3 make-cover.py --out cover.jpg --sizes devto,builder --flow --no-text \
+  --dest &quot;dev.to||blue&quot; --dest &quot;Medium||orange&quot; \
+  --dest &quot;Builder Center||orange&quot; --dest &quot;LinkedIn||muted&quot; \
   --content-address --url-base &quot;https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes&quot;
-wrote cover.8a6ca645.jpg  1376x578  61 KB
-wrote cover-builder.ebbc48ba.jpg  1200x675  52 KB
-  https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes/cover.8a6ca645.jpg
-  https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes/cover-builder.ebbc48ba.jpg</code></pre>
+wrote cover.168992c6.jpg  1376x578  44 KB
+wrote cover-builder.712a395f.jpg  1200x675  39 KB
+  https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes/cover.168992c6.jpg
+  https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes/cover-builder.712a395f.jpg</code></pre>
+<p>The cover is an illustration with no text: one page, with light
+fanning out of it to one shape per destination, each in that
+destination's colour. A cover is first seen as a small card in a feed,
+where labels and numbers are too small to read and only shape and colour
+carry. Builder Center's editor also advises against text in cover
+images.</p>
 <p>One design, two sizes: 1376x578 for dev.to, which is exactly the
 2.381:1 shape it displays, and 1200x675 for Builder Center's upload. The
 hash in each filename means a regenerated cover is a new URL, so no
@@ -401,10 +405,10 @@ way out. The result is a draft.</p>
 <hr />
 <h4 id="step-7--build-the-medium-version">Step 7 — Build the Medium
 Version</h4>
-<pre class="shell"><code>python3 make-medium.py devto-markdown-publishing-woes.md medium --cover=cover.8a6ca645.jpg
+<pre class="shell"><code>python3 make-medium.py devto-markdown-publishing-woes.md medium --cover=cover.168992c6.jpg
 devto-markdown-publishing-woes.md: 2 tables, 0 diagrams
    USE THIS   -&gt; medium/devto-markdown-publishing-woes-hosted.html  (paste or import; needs medium/img committed AND pushed)
-   not this   -&gt; medium/devto-markdown-publishing-woes-embed.html   (223 KB; data: URIs, Medium drops them all on paste)
+   not this   -&gt; medium/devto-markdown-publishing-woes-embed.html   (201 KB; data: URIs, Medium drops them all on paste)
    Medium never fills its Title field from pasted content -- set the title separately.</code></pre>
 <p>Both tables in this article are now PNGs under
 <code>medium/img/</code>, rendered at twice the display size.
@@ -510,7 +514,7 @@ because neither offers a publishing API.</li>
 waits in a file until you paste it.</li>
 </ul>
 <p>Scope: one article, published on 2026-10-02 with publishing-kit
-0.29.0 from Claude Code on Linux, to the dev.to <code>gde</code> and
+0.30.0 from Claude Code on Linux, to the dev.to <code>gde</code> and
 <code>aws-builders</code> organizations, Medium, AWS Builder Center and
 LinkedIn. Destination behaviour described above comes from the dated
 measurements recorded in the kit's skill and reference files.</p>

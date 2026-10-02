@@ -12,7 +12,7 @@ Every factual claim in this article and what it traces to.
 | Claim | Artifact |
 | --- | --- |
 | cover sizes 1376x578 and 1200x675, filenames and URLs | `make-cover.txt` |
-| skill directory and version 0.29.0 | `install.txt` |
+| skill directory and version 0.30.0 | `install.txt` |
 | Medium API "no longer supported", repo archived, last push 2023 | `medium-api.txt` |
 | 2 tables rendered for Medium; hosted vs embed | `make-medium.txt` |
 | Builder version: no emoji, 5 columns, no disclaimer | `make-builder.txt` |
@@ -29,3 +29,5 @@ Every factual claim in this article and what it traces to.
 | Builder Center publish step flags plain-text URLs, UI names none | 2026-09-15 |
 | LinkedIn Posts API accepts only `PUBLISHED` on creation | documented by LinkedIn |
 | typing into a hidden tab inserts nothing; upload inputs in shadow roots | 2026-09-15 |
+| a cover is met as a ~320px feed card where small type is unreadable | 2026-08-31 |
+| Builder Center's editor: "Text in images is not recommended" | 2026-08-30 |

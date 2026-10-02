@@ -111,7 +111,7 @@ title: "Write Markdown Once, Publish It Everywhere: dev.to, Medium, AWS Builder 
 published: false
 description: "Markdown is easy to write and hard to publish. ..."
 tags: writing, markdown, devtools, ai
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes/cover.8a6ca645.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes/cover.168992c6.jpg
 ---
 ```
 
@@ -124,20 +124,20 @@ The prompt that started this article was one sentence: *"write another article t
 #### Step 3 — Make the Cover
 
 ```shell
-python3 make-cover.py --out cover.jpg --sizes devto,builder --flow \
-  --source "article.md|one markdown file" \
-  --dest "dev.to|REST API|blue" --dest "Medium|browser|orange" \
-  --dest "Builder Center|browser|orange" --dest "LinkedIn|composer|muted" \
-  --headline "Write once|publish everywhere" \
+python3 make-cover.py --out cover.jpg --sizes devto,builder --flow --no-text \
+  --dest "dev.to||blue" --dest "Medium||orange" \
+  --dest "Builder Center||orange" --dest "LinkedIn||muted" \
   --content-address --url-base "https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes"
 ```
 
 ```text
-wrote cover.8a6ca645.jpg  1376x578  61 KB
-wrote cover-builder.ebbc48ba.jpg  1200x675  52 KB
-  https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes/cover.8a6ca645.jpg
-  https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes/cover-builder.ebbc48ba.jpg
+wrote cover.168992c6.jpg  1376x578  44 KB
+wrote cover-builder.712a395f.jpg  1200x675  39 KB
+  https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes/cover.168992c6.jpg
+  https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/markdown-publishing-woes/cover-builder.712a395f.jpg
 ```
+
+The cover is an illustration with no text: one page, with light fanning out of it to one shape per destination, each in that destination's colour. A cover is first seen as a small card in a feed, where labels and numbers are too small to read and only shape and colour carry. Builder Center's editor also advises against text in cover images.
 
 One design, two sizes: 1376x578 for dev.to, which is exactly the 2.381:1 shape it displays, and 1200x675 for Builder Center's upload. The hash in each filename means a regenerated cover is a new URL, so no cache can serve the old picture.
 
@@ -225,13 +225,13 @@ created 4788689
 #### Step 7 — Build the Medium Version
 
 ```shell
-python3 make-medium.py devto-markdown-publishing-woes.md medium --cover=cover.8a6ca645.jpg
+python3 make-medium.py devto-markdown-publishing-woes.md medium --cover=cover.168992c6.jpg
 ```
 
 ```text
 devto-markdown-publishing-woes.md: 2 tables, 0 diagrams
    USE THIS   -> medium/devto-markdown-publishing-woes-hosted.html  (paste or import; needs medium/img committed AND pushed)
-   not this   -> medium/devto-markdown-publishing-woes-embed.html   (223 KB; data: URIs, Medium drops them all on paste)
+   not this   -> medium/devto-markdown-publishing-woes-embed.html   (201 KB; data: URIs, Medium drops them all on paste)
    Medium never fills its Title field from pasted content -- set the title separately.
 ```
 
@@ -338,7 +338,7 @@ The goal of this article was to explain why publishing markdown to more than one
 - **Medium and Builder Center still need a browser**, because neither offers a publishing API.
 - **LinkedIn cannot hold an API draft**; the post waits in a file until you paste it.
 
-Scope: one article, published on 2026-10-02 with publishing-kit 0.29.0 from Claude Code on Linux, to the dev.to `gde` and `aws-builders` organizations, Medium, AWS Builder Center and LinkedIn. Destination behaviour described above comes from the dated measurements recorded in the kit's skill and reference files.
+Scope: one article, published on 2026-10-02 with publishing-kit 0.30.0 from Claude Code on Linux, to the dev.to `gde` and `aws-builders` organizations, Medium, AWS Builder Center and LinkedIn. Destination behaviour described above comes from the dated measurements recorded in the kit's skill and reference files.
 
 The strategy for publishing one markdown article to four destinations with an agent skill was validated with an incremental step by step approach.
 
