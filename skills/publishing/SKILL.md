@@ -364,6 +364,19 @@ fanning out to seven destinations, a pipeline, a before-and-after -- draw it and
 keep it textless, which is what AWS asks for anyway; the covers for papers 1 to 3
 in `lakehouse-iceberg-2026` are illustrations for this reason.
 
+**Correction.** The paragraph above said `--flow` does not apply under
+`--no-text`. MEASURED 2026-10-02 after a change to `make-cover.py`: the same
+`--mode builder --ratio 24:4` run with seven `--dest` now draws a textless
+fan-out — one page, light to one shape per destination in its colour — and its
+bytes differ from the two-bar run of the same command without `--flow`
+(sha256 `9a131515…` against `0c8e26d2…`). `--sizes` also keeps `--no-text` now;
+it used to force text back on at every size. The two-bar image is still what
+`--no-text` draws without `--flow`.
+
+**Which cover to draw is the author's choice, not the kit's.** The house style
+sets the default (`references/house-style.md` → "Covers"); for this author it is
+abstract and textless.
+
 **`make-cover.py` and `make-linkedin.py` both need Pillow**, and nothing warns you
 until a run dies on `ModuleNotFoundError: No module named 'PIL'` -- `check-article.py`
 merely degrades to `WARN Pillow not installed; skipped geometry check`, so a cover

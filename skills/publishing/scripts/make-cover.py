@@ -128,6 +128,12 @@ def render(a):
         d.rectangle([i * S, i * S, (W - i) * S, (H - i) * S],
                     outline=(SURFACE[0] + v, SURFACE[1] + v, SURFACE[2] + v), width=S)
 
+    if a.no_text and a.flow:
+        img = render_flow_abstract(img, a, W, H)
+        img = img.resize((W, H), Image.LANCZOS)
+        img.save(a.out, "JPEG", quality=92, optimize=True)
+        return W, H
+
     if a.no_text:
         # Builder Center discourages text in cover images, so this says the same
         # thing with marks: a bar pair anchored to a baseline reads as "two
@@ -347,6 +353,100 @@ def render_flow(d, a, W, H, k_unused):
         T((pad, 548 * k), a.footer, f(MONO, 17 * k), INK_3)
 
 
+def render_flow_abstract(img, a, W, H):
+    """The --flow subject with no type at all: one page, light fanning out of it,
+    one shape per --dest in that destination's colour.
+
+    `--no-text` used to ignore --flow and draw the two comparison bars, which
+    asserts a comparison an article about a shape does not make. The author's
+    default cover is abstract (references/house-style.md -> Covers), so the
+    subject's shape has to be drawable without a single label.
+    """
+    from PIL import ImageFilter
+
+    u = min(W / 1376.0, H / 578.0) * S          # one unit, in supersampled px
+    cy = H * S / 2
+    dests = (a.dest or ["|", "|", "|", "|"])[:8]
+    n = len(dests)
+    cols = [COLOURS.get((d.split("|") + ["", "", ""])[2], INK_3) if
+            (d.split("|") + ["", "", ""])[2] != "muted" else INK_3 for d in dests]
+
+    # ---- geometry -----------------------------------------------------------
+    pw, ph = 150 * u, 196 * u                   # the source page
+    px0 = W * S * 0.16
+    py0 = cy - ph / 2
+    sx, sy = px0 + pw, cy                       # where the light leaves the page
+    tx = W * S * 0.80                           # destination column
+    span = min(H * S * 0.62, n * 120 * u)
+    ys = [cy - span / 2 + span * i / max(n - 1, 1) for i in range(n)] if n > 1 else [cy]
+    r = min(46 * u, span / max(n, 1) * 0.36)
+
+    def bez(p0, p1, p2, p3, steps=90):
+        out = []
+        for i in range(steps + 1):
+            t = i / steps
+            mt = 1 - t
+            out.append((mt ** 3 * p0[0] + 3 * mt * mt * t * p1[0] + 3 * mt * t * t * p2[0] + t ** 3 * p3[0],
+                        mt ** 3 * p0[1] + 3 * mt * mt * t * p1[1] + 3 * mt * t * t * p2[1] + t ** 3 * p3[1]))
+        return out
+
+    # ---- ribbons, drawn twice: a blurred glow layer, then crisp strands -------
+    glow = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    gd = ImageDraw.Draw(glow)
+    lines = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    ld = ImageDraw.Draw(lines)
+    for y, col in zip(ys, cols):
+        for s in range(-3, 4):                  # a ribbon is a bundle of strands
+            off = s * 5 * u
+            p0 = (sx, sy + off * 0.4)
+            p3 = (tx - r * 1.3, y + off * 0.6)
+            midx = (p0[0] + p3[0]) / 2
+            pts = bez(p0, (midx, p0[1]), (midx, p3[1]), p3)
+            alpha = 150 - abs(s) * 35
+            ld.line(pts, fill=col + (alpha,), width=max(1, int(1.6 * u)))
+            gd.line(pts, fill=col + (90,), width=int(10 * u))
+    glow = glow.filter(ImageFilter.GaussianBlur(14 * u))
+    img = Image.alpha_composite(img.convert("RGBA"), glow)
+    img = Image.alpha_composite(img, lines)
+    d = ImageDraw.Draw(img)
+
+    # ---- destination shapes: one per --dest, alternating forms ---------------
+    for i, (y, col) in enumerate(zip(ys, cols)):
+        halo = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        ImageDraw.Draw(halo).ellipse([tx - r * 1.6, y - r * 1.6, tx + r * 1.6, y + r * 1.6],
+                                     fill=col + (70,))
+        img = Image.alpha_composite(img, halo.filter(ImageFilter.GaussianBlur(18 * u)))
+        d = ImageDraw.Draw(img)
+        box = [tx - r, y - r, tx + r, y + r]
+        form = i % 4
+        if form == 0:
+            d.ellipse(box, fill=TILE_BG, outline=col, width=int(4 * u))
+        elif form == 1:
+            d.rounded_rectangle(box, radius=int(10 * u), fill=TILE_BG, outline=col, width=int(4 * u))
+        elif form == 2:
+            d.regular_polygon((tx, y, r * 1.08), 6, fill=TILE_BG, outline=col, width=int(4 * u))
+        else:
+            d.regular_polygon((tx, y, r * 1.2), 4, rotation=45, fill=TILE_BG, outline=col, width=int(4 * u))
+        d.ellipse([tx - r * 0.22, y - r * 0.22, tx + r * 0.22, y + r * 0.22], fill=col)
+
+    # ---- the source page, on top of where the ribbons start ------------------
+    halo = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    ImageDraw.Draw(halo).rounded_rectangle([px0 - 20 * u, py0 - 20 * u, px0 + pw + 20 * u, py0 + ph + 20 * u],
+                                           radius=int(30 * u), fill=(230, 230, 220, 60))
+    img = Image.alpha_composite(img, halo.filter(ImageFilter.GaussianBlur(26 * u)))
+    d = ImageDraw.Draw(img)
+    fold = 34 * u
+    d.polygon([(px0, py0), (px0 + pw - fold, py0), (px0 + pw, py0 + fold),
+               (px0 + pw, py0 + ph), (px0, py0 + ph)], fill=(236, 235, 228))
+    d.polygon([(px0 + pw - fold, py0), (px0 + pw - fold, py0 + fold), (px0 + pw, py0 + fold)],
+              fill=(196, 195, 186))
+    for j, frac in enumerate((0.55, 0.78, 0.66, 0.82, 0.48, 0.70)):
+        ly = py0 + 44 * u + j * 22 * u
+        d.rounded_rectangle([px0 + 22 * u, ly, px0 + 22 * u + (pw - 44 * u) * frac, ly + 7 * u],
+                            radius=int(3 * u), fill=(170, 169, 160))
+    return img.convert("RGB")
+
+
 def main():
     p = argparse.ArgumentParser(description="Render an article cover image")
     p.add_argument("--out", required=True)
@@ -373,7 +473,7 @@ def main():
     p.add_argument("--source", default="", help="--flow: 'file|caption'")
     p.add_argument("--step", action="append", help="--flow: a build step, repeatable")
     p.add_argument("--dest", action="append",
-                   help="--flow: 'name|note|blue|orange|muted', repeatable")
+                   help="--flow: 'name|note|blue|orange|muted', repeatable; with --no-text, one shape per --dest in its colour")
     p.add_argument("--legend", default="", help="--flow: 'label|colour' pairs, comma separated")
     p.add_argument("--content-address", action="store_true",
                    help="name the file by a hash of its bytes, so a regenerated "
@@ -395,8 +495,10 @@ def main():
             sub = argparse.Namespace(**vars(a))
             sub.sizes = None
             sub.mode = mode
-            sub.with_text = True          # one design means text at every size
-            sub.no_text = False
+            # one design means the same choice at every size: text everywhere,
+            # or (--no-text, the author's default) nowhere
+            sub.with_text = not a.no_text
+            sub.no_text = a.no_text
             sub.out = str(base if mode == "devto"
                           else base.with_name(f"{base.stem}-{mode}{base.suffix}"))
             w, h = render(sub)
@@ -410,9 +512,10 @@ def main():
         if a.url_base:
             for o in outs:
                 print(f"  {a.url_base.rstrip('/')}/{pathlib.Path(o).name}")
-        print("\nAWS's editor says text in images is not recommended. This is one "
-              "cover at two sizes\nby choice: a different picture per destination "
-              "is a third thing to keep in step.")
+        if not a.no_text:
+            print("\nAWS's editor says text in images is not recommended. This is one "
+                  "cover at two sizes\nby choice: a different picture per destination "
+                  "is a third thing to keep in step.")
         return 0
 
     if a.mode == "builder" and not a.with_text:
@@ -426,7 +529,8 @@ def main():
 
     kb = os.path.getsize(a.out) // 1024
     print(f"wrote {a.out}  {w}x{h}  {kb} KB")
-    legibility_report(a.out, w)
+    if not a.no_text:
+        legibility_report(a.out, w)
     if a.url_base:
         print(f"cover_image: {a.url_base.rstrip('/')}/{out.name}")
     if a.mode == "builder" and kb > 2048:
