@@ -1,0 +1,7 @@
+# Medium API status, fetched 2026-10-02T18:37Z
+# curl https://raw.githubusercontent.com/Medium/medium-api-docs/master/README.md | head -3
+> **Warning**
+> **The Medium API is no longer supported.** We do not recommend using it.
+
+# curl https://api.github.com/repos/Medium/medium-api-docs -> archived, pushed_at
+archived: True  pushed_at: 2023-03-02T22:00:44Z
