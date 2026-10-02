@@ -123,6 +123,31 @@ toolchain has, how many artifacts a run produces. State those where they are che
 to regenerate, or derive them from a script, and keep them out of headlines,
 covers and openers.
 
+## Covers: abstract by default
+
+Stated by the author 2026-10-02, after a wireframe cover (headline, eyebrow,
+four labelled cards, a footer URL) was rejected as trash: **a cover is an
+abstract illustration with graphics, not text and not hard-coded numbers.**
+
+- **No type and no figures on the cover by default.** Draw the article's
+  subject as a shape — a source fanning out, a pipeline, two things side by
+  side — and let colour carry identity. The title, numbers and claims live in
+  the article and its title field, where they can be read and kept current.
+- **Use `make-cover.py --no-text`**, with `--flow` when the subject has a
+  shape: it draws one page with light fanning to one shape per `--dest`, in
+  that destination's colour. `--sizes devto,builder` keeps the same textless
+  design at both sizes.
+- **Do not use the two-bar `--no-text` cover unless the article compares two
+  quantities.** Without `--flow` it draws a comparison, and a cover that
+  asserts something the article does not say is worse than a plain one.
+- Text and stat tiles (`--headline`, `--tile`) only when the author asks for
+  them on that article.
+
+The reasons are the destinations' own: a cover is met as a ~320px feed card,
+where labels and numbers shrink below readable size, and Builder Center's
+editor says text in images is not recommended. A number on a cover is also a
+number that goes stale and cannot be fixed without a new image.
+
 ## Summary formula
 
 > The goal of this article was to *X*. The key to the solution was *Y*.
