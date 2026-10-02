@@ -218,7 +218,7 @@ python3 make-medium.py devto-markdown-publishing-woes.md medium --cover=cover.8a
 ```text
 devto-markdown-publishing-woes.md: 2 tables, 0 diagrams
    USE THIS   -> medium/devto-markdown-publishing-woes-hosted.html  (paste or import; needs medium/img committed AND pushed)
-   not this   -> medium/devto-markdown-publishing-woes-embed.html   (220 KB; data: URIs, Medium drops them all on paste)
+   not this   -> medium/devto-markdown-publishing-woes-embed.html   (223 KB; data: URIs, Medium drops them all on paste)
    Medium never fills its Title field from pasted content -- set the title separately.
 ```
 
