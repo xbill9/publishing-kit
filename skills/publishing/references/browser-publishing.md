@@ -697,6 +697,28 @@ Read the save state from the header — zoom the top strip, it is the word besid
 the reloaded document was complete. `window.name` survives the forced reload, so
 the payload does not have to be carried in again.
 
+## Medium's Publish now opens a submission PAGE, not a dialog
+
+MEASURED 2026-10-02. Clicking `[data-action="show-prepublish"]` on a draft
+**navigated the tab** to
+`medium.com/p/<id>/submission?…&submitType=publishing-post&postPublishedType=initial`,
+which killed the running `javascript_tool` call mid-evaluation ("Inspected target
+navigated or closed"). The page carries the story preview, topics, publication,
+and the same two checkboxes, **both `checked: true` by default** (Paywall and
+`Notify your <n> subscribers`), then `Publish` and `Schedule for later`.
+
+What worked, all by JS in a hidden tab: read the checkboxes by label, `.click()`
+the paywall input to clear it, re-read both after 2 s and throw if either is
+wrong, then `.click()` the visible `Publish` button **from a `setTimeout`** so the
+call returns before the navigation. One click published — this page did not
+swallow it. Confirm from `?format=json`: `firstPublishedAt` non-zero,
+`isSubscriptionLocked: false`, and `mediumUrl` is the canonical link. The tab
+lands on `<handle>.medium.com/...?postPublishedType=initial`, where
+`get_page_text` still works.
+
+Do not put a sleep after the click that opens this page; a call that spans the
+navigation dies.
+
 ## Medium's topic picker: clicking a suggestion does nothing
 
 MEASURED 2026-09-09. Typing `Linux` in the story-preview dialog's topic field
