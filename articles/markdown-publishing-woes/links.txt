@@ -4,3 +4,5 @@ devto-gde  = PENDING
 medium     = PENDING
 builder    = PENDING
 repo       = https://github.com/xbill9/publishing-kit
+devto-aws  = PENDING
+linkedin   = PENDING

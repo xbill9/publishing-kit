@@ -211,6 +211,19 @@ created 4788671
   routed to gde (11939)
 ```
 
+The same file goes to a second community with a second `--create`. This article is also published under AWS Community Builders, and the two copies are byte-identical; only the organization differs:
+
+```shell
+python3 publish-devto.py --create devto-markdown-publishing-woes.md --org-slug aws-builders
+```
+
+```text
+created 4788689
+   4788689  draft      org=-               Write Markdown Once, Publish It Everywhere: dev.to, 
+            https://dev.to/xbill/write-markdown-once-publish-it-everywhere-devto-medium-aws-builder-center-and-linkedin-314p-temp-slug-1345346
+  routed to aws-builders (2794)
+```
+
 `--create` runs the article checks first and refuses on any failure. The front matter is part of the payload, so the title, tags and cover arrive with the body, and the paragraphs are unwrapped on the way out. The result is a draft.
 
 ---
@@ -331,7 +344,7 @@ The goal of this article was to explain why publishing markdown to more than one
 - ⚠️ **Medium and Builder Center still need a browser**, because neither offers a publishing API.
 - ❌ **LinkedIn cannot hold an API draft**; the post waits in a file until you paste it.
 
-Scope: one article, published on 2026-10-02 with publishing-kit 0.29.0 from Claude Code on Linux, to the dev.to `gde` organization, Medium, AWS Builder Center and LinkedIn. Destination behaviour described above comes from the dated measurements recorded in the kit's skill and reference files.
+Scope: one article, published on 2026-10-02 with publishing-kit 0.29.0 from Claude Code on Linux, to the dev.to `gde` and `aws-builders` organizations, Medium, AWS Builder Center and LinkedIn. Destination behaviour described above comes from the dated measurements recorded in the kit's skill and reference files.
 
 The strategy for publishing one markdown article to four destinations with an agent skill was validated with an incremental step by step approach.
 

@@ -385,6 +385,15 @@ created 4788671
    4788671  draft      org=-               Write Markdown Once, Publish It Everywhere: dev.to, 
             https://dev.to/xbill/write-markdown-once-publish-it-everywhere-devto-medium-aws-builder-center-and-linkedin-48m7-temp-slug-1340266
   routed to gde (11939)</code></pre>
+<p>The same file goes to a second community with a second
+<code>--create</code>. This article is also published under AWS
+Community Builders, and the two copies are byte-identical; only the
+organization differs:</p>
+<pre class="shell"><code>python3 publish-devto.py --create devto-markdown-publishing-woes.md --org-slug aws-builders
+created 4788689
+   4788689  draft      org=-               Write Markdown Once, Publish It Everywhere: dev.to, 
+            https://dev.to/xbill/write-markdown-once-publish-it-everywhere-devto-medium-aws-builder-center-and-linkedin-314p-temp-slug-1345346
+  routed to aws-builders (2794)</code></pre>
 <p><code>--create</code> runs the article checks first and refuses on
 any failure. The front matter is part of the payload, so the title, tags
 and cover arrive with the body, and the paragraphs are unwrapped on the
@@ -501,10 +510,10 @@ because neither offers a publishing API.</li>
 waits in a file until you paste it.</li>
 </ul>
 <p>Scope: one article, published on 2026-10-02 with publishing-kit
-0.29.0 from Claude Code on Linux, to the dev.to <code>gde</code>
-organization, Medium, AWS Builder Center and LinkedIn. Destination
-behaviour described above comes from the dated measurements recorded in
-the kit's skill and reference files.</p>
+0.29.0 from Claude Code on Linux, to the dev.to <code>gde</code> and
+<code>aws-builders</code> organizations, Medium, AWS Builder Center and
+LinkedIn. Destination behaviour described above comes from the dated
+measurements recorded in the kit's skill and reference files.</p>
 <p>The strategy for publishing one markdown article to four destinations
 with an agent skill was validated with an incremental step by step
 approach.</p>
