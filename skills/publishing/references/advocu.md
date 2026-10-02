@@ -352,3 +352,25 @@ MEASURED 2026-09-28, filing a draft in a hidden tab.
   `Activity has been saved as draft` and the count read `Drafts (1)`. Poll for
   seven seconds or more before concluding it failed, and never press Save twice.
 
+
+## Public speaking takes the same two routes, with its own fields
+
+MEASURED 2026-10-02, filing a DevFest talk as a draft in a hidden tab.
+`Add new activity` -> `New activity` -> **Public speaking** offers the same
+AI-link route and Regular form. Step 1 is "Talk details":
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| What was the title of your talk? | yes | the agenda's title, not the article's |
+| What was it about? | yes | Quill editor, `insertText` |
+| Tags | no | same Google taxonomy (`AI - Gemma`) |
+| How many people attended your session in total? | yes | the **session's** count; a gdg.community.dev page's `total_attendees` is the whole event |
+| Select event format | yes | `In-Person`, `Virtual`, `Hybrid` |
+| Date of your talk | yes | ant-picker; click the cell, as for content |
+| Share the event link | yes | for a GDG event, the `gdg.community.dev/events/details/...` URL |
+
+Step 2 is the same image drop zone and private switch. **A second form in the
+same page load leaves the first form's hidden `input[type=file]` in the DOM**,
+so labelling every file input and calling `find` returned two refs. Label only
+the input inside the visible modal. The session count is the author's to give;
+ask rather than estimate.
