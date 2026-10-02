@@ -1,0 +1,2 @@
+This is the tool I use to publish my AI papers to AWS Builder Center. publishing-kit is an agent skill for Claude Code, Codex and Antigravity: one markdown file goes in, and it builds the Builder Center, dev.to, Medium and LinkedIn versions, checks every link and number before anything ships, and drives the Builder Center editor, which has no publishing API.
+The write-up walks through publishing an article with it, step by step, and was published with the kit itself.

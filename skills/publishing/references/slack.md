@@ -207,3 +207,14 @@ sent or scheduled. Re-inserting with the file already attached held. So read the
 composer back *several seconds* after the upload, not immediately, and prefer
 upload-then-insert. A "Your message will be sent on …" banner above the composer
 belongs to an existing scheduled message in that channel, not to anything staged.
+
+**Re-measured 2026-10-02, same channel, and the first insert still does not
+hold.** Cover attached first, thumbnail confirmed, then one `insertText`: the
+composer read 869 characters six seconds later, and a screenshot moments after
+showed it `ql-blank` with only the image. A second `insertText` into the empty
+composer, with an `input` event after it, held across four reads five seconds
+apart and in a screenshot, and one `computer left_click` on Send posted text and
+image once, confirmed by reloading the channel. So: insert, wait, **screenshot**,
+and insert again if the box is empty. A DOM read alone passed the copy Slack
+was about to discard.
+

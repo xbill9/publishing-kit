@@ -5,4 +5,5 @@ medium     = SKIP
 builder    = https://builder.aws.com/content/3K9PQgwGcFuCfWznrEHpVg3Krfx/write-markdown-once-publish-it-everywhere-devto-medium-aws-builder-center-and-linkedin
 repo       = https://github.com/xbill9/publishing-kit
 devto-aws  = https://dev.to/aws-builders/write-markdown-once-publish-it-everywhere-devto-medium-aws-builder-center-and-linkedin-kbl
-linkedin   = PENDING
+# not posted when the Slack announcement went out; replace SKIP with the URL if it is
+linkedin   = SKIP
