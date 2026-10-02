@@ -1,0 +1,22 @@
+
+devto-markdown-publishing-woes.md
+  ok    cover present: cover.8a6ca645.jpg
+  ok    cover.8a6ca645.jpg is committed and matches HEAD
+  ok    cover.8a6ca645.jpg hash matches its bytes
+  ok    geometry 1376x578 is dev.to's displayed 2.381:1; nothing is cropped
+  ok    published: false
+  ok    title present
+  ok    description present
+  ok    tags present
+  ok    devto-markdown-publishing-woes-hosted.html image URLs resolve to markdown-publishing-woes
+  ok    3 medium/img image(s) committed and matching HEAD
+  ok    no hard-wrapped paragraphs
+  ok    no stale counts of the kit's own parts
+  ok    no empty link targets
+
+0 fail, 0 warn
+
+created 4788671
+   4788671  draft      org=-               Write Markdown Once, Publish It Everywhere: dev.to, 
+            https://dev.to/xbill/write-markdown-once-publish-it-everywhere-devto-medium-aws-builder-center-and-linkedin-48m7-temp-slug-1340266
+  routed to gde (11939)

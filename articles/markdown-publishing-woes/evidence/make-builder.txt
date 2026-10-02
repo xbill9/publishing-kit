@@ -1,4 +1,4 @@
-devto-markdown-publishing-woes.md -> builder-markdown-publishing-woes.md  13,561 chars, 299 lines
+devto-markdown-publishing-woes.md -> builder-markdown-publishing-woes.md  16,054 chars, 340 lines
   ok    no emoji
   ok    widest table is 5 columns
   ok    no duplicate AWS disclaimer (the platform adds its own)

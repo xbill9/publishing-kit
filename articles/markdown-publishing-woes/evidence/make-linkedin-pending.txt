@@ -1,0 +1,20 @@
+
+devto-markdown-publishing-woes.md -> linkedin-devto-markdown-publishing-woes.txt
+  FAIL  3 link(s) still PENDING: builder, devto-gde, medium
+  ok    no draft URLs; every slug is settled
+  ok    hook fits the fold: 91 chars
+  ok    post is 832 chars of 3000
+  ok    no markdown left; LinkedIn renders none of it
+  ok    no template scaffolding left
+  ok    no Unicode pseudo-bold
+  ok    cover found: cover.8a6ca645.jpg (linkedin-devto-markdown-publishing-woes-cover.jpg not written)
+  ok    checked without writing (linkedin-devto-markdown-publishing-woes.txt left alone)
+
+--- above the fold (140 chars) ---
+Write Markdown Once, Publish It Everywhere: dev.to, Medium, AWS Builder Center and LinkedIn
+
+Markdown is easy to write and hard to publish. 
+
+1 fail, 0 warn
+
+The file was written so you can read it. It is not postable.

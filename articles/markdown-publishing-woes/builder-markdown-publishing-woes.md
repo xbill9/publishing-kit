@@ -94,7 +94,7 @@ python3 skills/publishing/scripts/skill-footprint.py --where
 ```
 
 ```text
-OUTPUT_WHERE
+/home/xbill/publishing-kit/skills/publishing
 ```
 
 Most of the time you do not run the scripts yourself. You ask the agent to publish, and it runs them.
@@ -162,8 +162,19 @@ python3 preflight.py devto-markdown-publishing-woes.md --live
 ```
 
 ```text
-OUTPUT_PREFLIGHT
+==============================================================
+SUMMARY
+==============================================================
+  PASS  facts
+  PASS  prose
+  PASS  article
+  PASS  links
+  FAIL  linkedin
+
+1 check(s) failed: linkedin
 ```
+
+At this point the only failure is the LinkedIn post, because its links to the Medium and Builder Center versions are still `PENDING`. Everything the dev.to draft needs has passed.
 
 `--live` fetches every published URL and compares the served bytes with the file on disk, and fetches every link in the article the way Builder Center's publish step does. Without it the checks reason only about local files.
 
@@ -176,7 +187,22 @@ python3 publish-devto.py --create devto-markdown-publishing-woes.md --org-slug g
 ```
 
 ```text
-OUTPUT_DEVTO
+  ok    published: false
+  ok    title present
+  ok    description present
+  ok    tags present
+  ok    devto-markdown-publishing-woes-hosted.html image URLs resolve to markdown-publishing-woes
+  ok    3 medium/img image(s) committed and matching HEAD
+  ok    no hard-wrapped paragraphs
+  ok    no stale counts of the kit's own parts
+  ok    no empty link targets
+
+0 fail, 0 warn
+
+created 4788671
+   4788671  draft      org=-               Write Markdown Once, Publish It Everywhere: dev.to,
+            https://dev.to/xbill/write-markdown-once-publish-it-everywhere-devto-medium-aws-builder-center-and-linkedin-48m7-temp-slug-1340266
+  routed to gde (11939)
 ```
 
 `--create` runs the article checks first and refuses on any failure. The front matter is part of the payload, so the title, tags and cover arrive with the body, and the paragraphs are unwrapped on the way out. The result is a draft.
@@ -190,10 +216,13 @@ python3 make-medium.py devto-markdown-publishing-woes.md medium --cover=cover.8a
 ```
 
 ```text
-OUTPUT_MEDIUM
+devto-markdown-publishing-woes.md: 2 tables, 0 diagrams
+   USE THIS   -> medium/devto-markdown-publishing-woes-hosted.html  (paste or import; needs medium/img committed AND pushed)
+   not this   -> medium/devto-markdown-publishing-woes-embed.html   (220 KB; data: URIs, Medium drops them all on paste)
+   Medium never fills its Title field from pasted content -- set the title separately.
 ```
 
-Every table in this article is now a PNG under `medium/img/`, and every multi-line code block is an image with its text kept as alt text. `-hosted.html` points at those images by their public GitHub URL, so Medium fetches and re-hosts them.
+Both tables in this article are now PNGs under `medium/img/`, rendered at twice the display size. `-hosted.html` points at them by their public GitHub URL, so Medium fetches and re-hosts them. Code blocks stay as code, because pasting keeps multi-line code where the importer would flatten it.
 
 The agent then opens Medium in the browser and pastes the hosted HTML into a new story. The title is typed into its own field, because no paste or import route fills it.
 
@@ -207,7 +236,10 @@ python3 make-builder.py devto-markdown-publishing-woes.md --out builder-markdown
 ```
 
 ```text
-OUTPUT_BUILDER
+  ok    no emoji
+  ok    widest table is 5 columns
+  ok    no duplicate AWS disclaimer (the platform adds its own)
+  ok    title and subtitle carried as strippable lines
 ```
 
 Emoji come out, because Builder Center's house style has none, and front matter comes out, because title and description are separate fields there. The agent serves the body from `serve-body.py` on the same machine, carries it into the editor tab in `window.name`, compares a checksum on both sides, checks that the editor is empty, and pastes once.
@@ -221,26 +253,35 @@ python3 make-linkedin.py devto-markdown-publishing-woes.md
 ```
 
 ```text
-OUTPUT_LINKEDIN
+devto-markdown-publishing-woes.md -> linkedin-devto-markdown-publishing-woes.txt
+  FAIL  3 link(s) still PENDING: builder, devto-gde, medium
+  ok    no draft URLs; every slug is settled
+  ok    hook fits the fold: 91 chars
+  ok    post is 832 chars of 3000
+  ok    no markdown left; LinkedIn renders none of it
+  ok    no template scaffolding left
+  ok    no Unicode pseudo-bold
 ```
 
-The post is a text file plus the cover fitted to LinkedIn's image size. Its links come from `links.txt` beside the article, and a link still marked `PENDING` fails the run, so a post cannot go out pointing at a page that does not exist yet.
+The post is a text file plus the cover fitted to LinkedIn's image size. Its links come from `links.txt` beside the article, and a link still marked `PENDING` fails the run, so a post cannot go out pointing at a page that does not exist yet. The run above is from before the drafts were published; once each destination is live, its URL goes into `links.txt` and the run passes.
 
 ---
 
 #### Step 10 — Publish
 
-Every destination is now a draft. Going live is one deliberate step per destination:
+Every destination is now a draft. `--list` shows the dev.to one, already routed to the organization:
 
 ```shell
-python3 publish-devto.py --publish <id>
+python3 publish-devto.py --list
 ```
 
 ```text
-OUTPUT_PUBLISH
+30 draft(s)
+   4788671  draft      org=gde             Write Markdown Once, Publish It Everywhere: dev.to,
+            https://dev.to/gde/write-markdown-once-publish-it-everywhere-devto-medium-aws-builder-center-and-linkedin-48m7-temp-slug-1340266
 ```
 
-dev.to ignores a `published: true` sent on its own, so `--publish` resends the body with the front matter flipped and then confirms from your article listing. Medium and Builder Center are one click on Publish in the browser, and the LinkedIn post is pasted into the composer with the cover attached.
+Going live is one deliberate step per destination. For dev.to it is `publish-devto.py --publish 4788671`. dev.to ignores a `published: true` sent on its own, so `--publish` resends the body with the front matter flipped and then confirms from your article listing. Medium and Builder Center are one click on Publish in the browser, and the LinkedIn post is pasted into the composer with the cover attached.
 
 ---
 
@@ -252,7 +293,7 @@ The pre-flight requires it, and it is what makes an update safe. After updating 
 
 ####  Tip: Let the Agent Drive the Editors
 
-Medium and Builder Center editors reject typed keystrokes in a background tab, hide upload buttons inside shadow DOM, and duplicate a paste if the editor was not empty. The kit's in-page helpers check each of those before acting, so ask the agent to do the browser steps rather than pasting by hand.
+Medium and Builder Center editors reject typed keystrokes in a background tab, hide upload buttons inside shadow DOM, and duplicate a paste if the editor was not empty. The kit's in-page helpers check each of those before acting, so the browser steps are safer in the agent's hands.
 
 ---
 
@@ -284,7 +325,7 @@ The goal of this article was to explain why publishing markdown to more than one
 - **Medium and Builder Center still need a browser**, because neither offers a publishing API.
 - **LinkedIn cannot hold an API draft**; the post waits in a file until you paste it.
 
-Scope: one article, published on 2026-10-02 with publishing-kit 0.29.0 from Claude Code on Linux, to the dev.to `gde` organization, Medium, AWS Builder Center and LinkedIn. Destination behaviour described above comes from the kit's dated measurements in its `SKILL.md` and `references/` files.
+Scope: one article, published on 2026-10-02 with publishing-kit 0.29.0 from Claude Code on Linux, to the dev.to `gde` organization, Medium, AWS Builder Center and LinkedIn. Destination behaviour described above comes from the dated measurements recorded in the kit's skill and reference files.
 
 The strategy for publishing one markdown article to four destinations with an agent skill was validated with an incremental step by step approach.
 
