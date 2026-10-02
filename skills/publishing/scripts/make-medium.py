@@ -133,7 +133,14 @@ def runs(cell: str):
             out.append((part[1:-1], False, False, True))
         else:
             out.append((part, False, False, False))
-    return out or [(cell, False, False, False)]
+    # A cell that was ONLY emoji strips to nothing. Falling back to the raw cell
+    # put the emoji straight back and drew it as tofu (MEASURED 2026-10-02: a
+    # "Fits?" column of bare ❌/🟢 rendered as three empty boxes). Render it
+    # empty and say so; the fix is a word beside the emoji in the source.
+    if not out and cell.strip():
+        print(f"   WARN  table cell {cell.strip()!r} is only emoji; rendered empty -- "
+              "put a word beside it in the source", file=sys.stderr)
+    return out or [("", False, False, False)]
 
 
 # --------------------------------------------------------------------------
