@@ -75,6 +75,13 @@ it is reachable straight from the document, like Slack's.
   empty 3 s later. Unlike Slack, where synthetic sends cleared the composer and
   posted nothing. Confirm by screenshot: a DOM text search for the posted body
   matches several nested `div`s of the one message.
+- **After `insertText` the Send button can stay disabled.** MEASURED 2026-10-02
+  in TPU Builders Program: the text read back exactly, but `Send message` kept
+  `disabled` -- Chat's own model had not seen the edit, and a synthetic `input`
+  event did not change that. One real click in the composer, then real keys
+  `ctrl+End space BackSpace`, enabled it with the text unchanged; a real click on
+  the arrow then posted once. Check `disabled` before clicking rather than
+  assuming the insert armed it.
 - **Escape closes a picker and leaves the text alone** — 1350 characters before
   and after, all four links intact. It does **not** clear the composer: text
   typed while probing survived it, and the insert's own emptiness guard is what
