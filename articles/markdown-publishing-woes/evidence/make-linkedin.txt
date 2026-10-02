@@ -1,0 +1,18 @@
+
+devto-markdown-publishing-woes.md -> linkedin-devto-markdown-publishing-woes.txt
+  ok    4 link(s) resolved
+  ok    no draft URLs; every slug is settled
+  ok    hook fits the fold: 91 chars
+  ok    post is 1209 chars of 3000
+  ok    no markdown left; LinkedIn renders none of it
+  ok    no template scaffolding left
+  ok    no Unicode pseudo-bold
+  ok    cover cover.168992c6.jpg 1376x578 -> linkedin-devto-markdown-publishing-woes-cover.jpg 1200x627 (fitted 1200x504, not cropped, 38 KB)
+  ok    little-escaped variant for the Posts API -> linkedin-devto-markdown-publishing-woes.little.txt
+
+--- above the fold (140 chars) ---
+Write Markdown Once, Publish It Everywhere: dev.to, Medium, AWS Builder Center and LinkedIn
+
+Markdown is easy to write and hard to publish. 
+
+0 fail, 0 warn

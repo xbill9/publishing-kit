@@ -1,0 +1,15 @@
+Write Markdown Once, Publish It Everywhere: dev.to, Medium, AWS Builder Center and LinkedIn
+
+Markdown is easy to write and hard to publish. Every destination renders it differently, two have no API, and the failures show up only after you hit Publish. A step by step walk-through of publishing-kit, an agent skill that builds, checks and posts each version, used here to publish this article.
+
+What is in it:
+
+- 🟢 dev.to posted through its API, title, tags and cover carried in the front matter.
+- 🟢 Medium tables and code rendered to images, fetched and re-hosted by Medium.
+- 🟢 Builder Center body pasted once, checksummed on both sides.
+- 🟢 LinkedIn post generated with every link resolving.
+
+dev.to (Google Developer Experts): https://dev.to/gde/write-markdown-once-publish-it-everywhere-devto-medium-aws-builder-center-and-linkedin-np4
+dev.to (AWS Community Builders): https://dev.to/aws-builders/write-markdown-once-publish-it-everywhere-devto-medium-aws-builder-center-and-linkedin-kbl
+AWS Builder Center: https://builder.aws.com/content/3K9PQgwGcFuCfWznrEHpVg3Krfx/write-markdown-once-publish-it-everywhere-devto-medium-aws-builder-center-and-linkedin
+Source: https://github.com/xbill9/publishing-kit
