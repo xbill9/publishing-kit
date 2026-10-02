@@ -370,6 +370,25 @@ acting, which is a real guard — unlike an assertion inside a `browser_batch`.
 - **Closing a tab can dissolve the extension's tab group**, leaving the other tab
   outside it and uncontrollable. Close the tab you are still using last.
 
+### Replacing the whole body: clear through Lexical, never paste over a selection
+
+MEASURED 2026-10-02, hidden tab, a saved draft whose body had to be replaced
+after the source changed. Selecting the entire editor with a `Range` and
+dispatching the paste **appended**: 16,315 characters became 32,861, and the
+opening, summary and closing each counted 2. The landmark count is what caught
+it; the editor showed no error and autosaved the doubled body.
+
+The editor is Lexical (`ed.__lexicalEditor`). Clearing the root through its own
+`update()` emptied it (0 characters, 0 children), and the same empty-editor
+paste used for a new draft then landed once: each landmark 1, 2 tables, 22
+multi-line code blocks, confirmed again from the drafts list → preview after
+leaving the editor. `bc.replaceBody(text, openingSentence)` does both steps
+and refuses when the body does not clear.
+
+Swapping the cover on an existing draft is `Remove hero image` (pressed with
+`bc.press`, not a coordinate click), then `find` the file input again and
+`file_upload` to it. The new chip reads `Remove file 1, <name>`.
+
 ### The cover upload's file input is replaced as you use it
 
 MEASURED 2026-09-21, create-article form. `find` returned the cover input as

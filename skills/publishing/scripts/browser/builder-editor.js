@@ -285,6 +285,25 @@ window.bc = (() => {
     return { slug, committed: tagChips().includes(slug), chips: tagChips() };
   }
 
-  return { editor, dialog, pasteOver, press, setField, replaceText, replaceBlock, caretBefore, caretSlot, openInsertImage, replaceInCodeBlock, audit, tagChips, tagSearch, tagStatus, tagAdd };
+  // Replace the WHOLE body. MEASURED 2026-10-02 on a hidden tab: a paste over a
+  // Range covering the entire editor APPENDED -- every landmark counted twice --
+  // and Ctrl+A/Delete needs real keys a hidden tab may drop. The editor is
+  // Lexical, so clear it through its own update(), assert it is empty, then paste
+  // once and count landmarks. Pass the opening sentence as `landmark`.
+  async function replaceBody(text, landmark) {
+    const ed = editor(); if (!ed) return { refused: "no body editor" };
+    const lx = ed.__lexicalEditor; if (!lx) return { refused: "no Lexical editor on the body" };
+    await new Promise((res) => lx.update(() => { lx._pendingEditorState._nodeMap.get("root").clear(); }, { onUpdate: res }));
+    await sleep(1500);
+    if (editor().innerText.trim().length) return { refused: "body did not clear", len: editor().innerText.length };
+    editor().focus();
+    const dt = new DataTransfer(); dt.setData("text/plain", text);
+    editor().dispatchEvent(new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }));
+    await sleep(6000);
+    const t = editor().innerText;
+    return { chars: t.length, landmark: landmark ? t.split(landmark).length - 1 : null };
+  }
+
+  return { editor, dialog, pasteOver, press, setField, replaceText, replaceBlock, replaceBody, caretBefore, caretSlot, openInsertImage, replaceInCodeBlock, audit, tagChips, tagSearch, tagStatus, tagAdd };
 })();
 Object.keys(window.bc);
