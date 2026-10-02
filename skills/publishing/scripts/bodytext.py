@@ -156,6 +156,18 @@ def hard_wrapped(text: str):
     return found
 
 
+def skipped(value):
+    """A links.txt value of SKIP: the article is deliberately not published there.
+
+    PENDING means "not yet" and fails every announcement, which is right until the
+    author decides a destination is out -- Medium refusing an account, say. Then
+    PENDING can never clear and the only escape was deleting the line, which also
+    deletes the check that it is missing. SKIP keeps the line and says why it has
+    no URL; every consumer leaves that destination out of what it writes.
+    """
+    return (value or "").strip().upper() == "SKIP"
+
+
 def links_path(article):
     """The links file for ARTICLE: ``<stem>.links.txt`` beside it, else ``links.txt``.
 

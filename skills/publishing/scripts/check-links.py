@@ -41,7 +41,7 @@ import sys
 import urllib.error
 import urllib.request
 
-from bodytext import links_path
+from bodytext import links_path, skipped
 
 FAILS, WARNS = [], []
 
@@ -343,7 +343,9 @@ def main():
                 continue
             k, _, v = ln.partition("=")
             v = v.strip()
-            if v.upper() == "PENDING" or not v:
+            if skipped(v):
+                ok(f"links.txt {k.strip()}: SKIP, not published there")
+            elif v.upper() == "PENDING" or not v:
                 warn(f"links.txt {k.strip()}: PENDING")
             elif "temp-slug" in v:
                 warn(f"links.txt {k.strip()}: draft URL, the slug changes on publish")

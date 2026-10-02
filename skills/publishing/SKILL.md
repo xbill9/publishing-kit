@@ -659,6 +659,12 @@ the same file feeds `make-slack.py`, `make-gchat.py`, `make-advocu.py`,
 1. **Every link resolves.** `PENDING` is written into the file as a visible
    placeholder *and* fails the run, so a post with an unpublished link cannot go
    out by accident.
+   A destination the article will not reach (an account Medium will not
+   publish from, say) is `SKIP`, never a deleted line: the post, the Slack
+   announcement and `check-links.py` leave it out, and its label goes with it.
+   MEASURED 2026-10-02: `medium = SKIP` dropped the Medium block from the Slack
+   post and the Medium line from the LinkedIn post, with `PENDING` still failing
+   both runs for the LinkedIn link.
 2. The hook fits the "…see more" fold.
 3. The post fits the character limit.
 4. **No markdown survives.** LinkedIn renders none of it.

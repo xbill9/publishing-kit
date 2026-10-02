@@ -71,7 +71,9 @@ standalone.
 
 `links.txt` is `key = url`, one per line, `#` comments. A value of PENDING is
 carried into the output as a visible placeholder AND fails the run, so a draft
-with an unpublished link in it cannot be posted by accident.
+with an unpublished link in it cannot be posted by accident. A value of SKIP
+means the article is deliberately not published there; that destination is left
+out of the post (bodytext.skipped).
 
 THE COVER IMAGE COMES WITH THE POST
 -----------------------------------
@@ -102,7 +104,7 @@ import re
 import statistics
 import sys
 
-from bodytext import links_path
+from bodytext import links_path, skipped
 
 # LinkedIn image-share geometry. Third-party consensus and LinkedIn's ad-spec
 # pages agree on 1.91:1 at 1200x627; not measured against a live post.
@@ -223,7 +225,7 @@ def read_links(path, pairs):
     for p in pairs:
         k, _, v = p.partition("=")
         links[k.strip()] = v.strip()
-    return links
+    return {k: v for k, v in links.items() if not skipped(v)}
 
 
 def escape_little(s):

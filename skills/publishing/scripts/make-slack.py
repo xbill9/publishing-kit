@@ -50,7 +50,7 @@ import pathlib
 import re
 import sys
 
-from bodytext import links_path
+from bodytext import links_path, skipped
 
 FAILS, WARNS = [], []
 # The link verdict lives in check-links.py, and this file asks it rather than
@@ -166,6 +166,10 @@ def main():
     resolved = {}
     for key, label in ORDER:
         v = links.get(key, "")
+        if skipped(v):
+            ok(f"{label}: SKIP, left out of the post")
+            resolved[key] = ""
+            continue
         if not v or v.upper() == "PENDING":
             fail(f"{label} link is PENDING")
         elif "temp-slug" in v:
@@ -196,10 +200,15 @@ def main():
     # 2  BUILD ---------------------------------------------------------------
     ctx = (pathlib.Path(a.context).read_text().strip() if a.context
            else "\n".join(context_lines(text)))
-    post = load_template().format(
-        context=ctx, builder=resolved.get("builder", ""),
-        medium=resolved.get("medium", ""), devto=resolved.get("devto-aws", ""),
-        linkedin=resolved.get("linkedin", ""), hashtags=a.hashtags).strip() + "\n"
+    values = {"context": ctx, "builder": resolved.get("builder", ""),
+              "medium": resolved.get("medium", ""), "devto": resolved.get("devto-aws", ""),
+              "linkedin": resolved.get("linkedin", ""), "hashtags": a.hashtags}
+    # [[key]] ... [[/key]] survives only when that value is non-empty, the same
+    # rule make-linkedin.py applies, so a SKIP destination takes its label with it
+    tpl = re.sub(r"\[\[(\w+)\]\](.*?)\[\[/\1\]\]\n?",
+                 lambda m: m.group(2) if values.get(m.group(1), "").strip() else "",
+                 load_template(), flags=re.S)
+    post = re.sub(r"\n{3,}", "\n\n", tpl.format(**values)).strip() + "\n"
 
     # 3  SLACK RENDERS NO MARKDOWN -------------------------------------------
     leftovers = [m for m in ("**", "](", "`", "##") if m in post]
