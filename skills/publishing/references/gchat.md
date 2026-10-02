@@ -69,6 +69,12 @@ it is reachable straight from the document, like Slack's.
   message; do not type it.
 - **Assume Enter sends.** Not tested, and not worth testing in a live space with
   a `Notify all` entry one keystroke away.
+- **A real click on the Send arrow sends.** MEASURED 2026-10-02 in GDE Americas:
+  message inserted with `insertText`, one `left_click` on the arrow at the
+  composer's right edge, and it posted once as a new topic; the composer read
+  empty 3 s later. Unlike Slack, where synthetic sends cleared the composer and
+  posted nothing. Confirm by screenshot: a DOM text search for the posted body
+  matches several nested `div`s of the one message.
 - **Escape closes a picker and leaves the text alone** — 1350 characters before
   and after, all four links intact. It does **not** clear the composer: text
   typed while probing survived it, and the insert's own emptiness guard is what
