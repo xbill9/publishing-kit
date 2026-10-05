@@ -24,6 +24,9 @@ Checks:
   6. FRONT MATTER            title, description, tags present
   7. MEDIUM ARTIFACTS        if medium/ exists, its images are present and its
                              hosted HTML points at THIS article's directory
+  7c. HOSTED HTML FRESH      a rebuild of the article shows the same text and
+                             images as the committed -hosted.html, which is the
+                             paste for Medium and Substack
   8. NO EMPTY LINKS          `](  )` and bare `](#)` are dead on arrival
 """
 
@@ -122,6 +125,61 @@ def check_devto_crop(im, w, h):
              f"make-cover.py --mode devto now emits 1376x578")
     else:
         warn(f"geometry {w}x{h}: dev.to crops {where}, though nothing is drawn there")
+
+
+def visible(html_text):
+    """The words and image names a reader gets from a -hosted.html <body>."""
+    import html as htmllib
+    body = html_text.split("<body>", 1)[-1]
+    body = re.sub(r"<header\b.*?</header>", " ", body, flags=re.S)
+    imgs = [s.rsplit("/", 1)[-1] for s in re.findall(r'<img[^>]*\ssrc="([^"]+)"', body)]
+    text = htmllib.unescape(re.sub(r"<[^>]+>", " ", body))
+    return " ".join(text.split()), imgs
+
+
+def hosted_fresh(art, hosted):
+    """7c  The hosted HTML is the paste for Medium AND Substack, and nothing tied
+    it to the source: MEASURED 2026-10-05, the kit's own walk-through shipped to
+    Substack from a -hosted.html older than its markdown, while every check here
+    passed, because they look at image paths and commits. So rebuild it into a
+    temporary directory and compare what a reader would see -- text and image
+    names, not bytes, since a pandoc upgrade changes the markup around the same
+    words. The committed file is never rewritten."""
+    import shutil
+    import tempfile
+    src = hosted.read_text()
+    refs = re.findall(r'src="(https://[^"]+/medium/img/)[^"]+"', src)
+    if not refs:
+        warn(f"{hosted.name}: no medium/img URLs to rebuild against; freshness not checked")
+        return
+    if not shutil.which("pandoc"):
+        warn(f"{hosted.name}: pandoc not installed; freshness not checked")
+        return
+    covers = [n for n in re.findall(r'/medium/img/([^"/]*cover[^"/]*)"', src)
+              if (art.parent / n).exists()]
+    with tempfile.TemporaryDirectory() as tmp:
+        cmd = [sys.executable, str(pathlib.Path(__file__).with_name("make-medium.py")),
+               art.name, tmp, f"--img-base={refs[0]}"]
+        if covers:
+            cmd.append(f"--cover={covers[0]}")
+        r = subprocess.run(cmd, cwd=art.parent, capture_output=True, text=True)
+        fresh = pathlib.Path(tmp) / hosted.name
+        if r.returncode != 0 or not fresh.exists():
+            warn(f"{hosted.name}: rebuild failed, freshness not checked "
+                 f"({(r.stderr or r.stdout).strip().splitlines()[-1:]})")
+            return
+        (now_t, now_i), (was_t, was_i) = visible(fresh.read_text()), visible(src)
+    if now_i != was_i:
+        fail(f"{hosted.name} is stale: a rebuild references images {now_i} "
+             f"where the committed file has {was_i}; re-run make-medium.py")
+    elif now_t != was_t:
+        i = next((k for k, (a, b) in enumerate(zip(now_t, was_t)) if a != b),
+                 min(len(now_t), len(was_t)))
+        fail(f"{hosted.name} is stale: its text differs from a rebuild of "
+             f"{art.name} at '…{was_t[max(0, i - 30):i + 40]}…' (rebuild: "
+             f"'…{now_t[max(0, i - 30):i + 40]}…'); re-run make-medium.py")
+    else:
+        ok(f"{hosted.name} matches a fresh build of {art.name}")
 
 
 def matches_head(root, path):
@@ -275,6 +333,9 @@ def main():
                      f"commit, so the pushed copies are stale: {stale[:3]}")
             if not untracked and not stale:
                 ok(f"{len(imgs)} medium/img image(s) committed and matching HEAD")
+        for h in hosted:
+            if h.name == f"{src.stem}-hosted.html":
+                hosted_fresh(src, h)
 
     # 7b  HARD WRAPS ---------------------------------------------------------
     # MEASURED 2026-08-31: dev.to renders with hard breaks ON -- 47 of 62

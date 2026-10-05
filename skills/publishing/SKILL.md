@@ -153,6 +153,11 @@ It enforces, in order of how silently each fails:
 5. `published: false`.
 6. `title` / `description` / `tags` present.
 7. Medium artifacts point at *this* article's directory and their PNGs exist.
+   **And the `-hosted.html` matches a fresh build of the article.** MEASURED
+   2026-10-05: the kit's own walk-through went to Substack from a hosted HTML
+   older than its markdown, with every check passing. The check rebuilds into a
+   temporary directory and compares text and image names; it fails on the stale
+   file that shipped and passes on all three articles in `articles/`.
 8. No empty link targets.
 
 ### Links: get the gate's own answer, then check what it checks
