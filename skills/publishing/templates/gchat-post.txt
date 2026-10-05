@@ -6,7 +6,9 @@ Dev.to is here: {devto}
 
 [[medium]]Medium is here: {medium}
 
-[[/medium]][[builder]]Builder Center article is here: {builder}
+[[/medium]][[substack]]Substack is here: {substack}
+
+[[/substack]][[builder]]Builder Center article is here: {builder}
 
 [[/builder]][[linkedin]]My LinkedIn post is here: {linkedin}
 [[/linkedin]]

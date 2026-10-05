@@ -6,7 +6,10 @@
 [[/builder]][[medium]]Medium is here:
 {medium}
 
-[[/medium]][[devto]]Dev.to is here:
+[[/medium]][[substack]]Substack is here:
+{substack}
+
+[[/substack]][[devto]]Dev.to is here:
 {devto}
 
 [[/devto]][[linkedin]]Linked In is here:

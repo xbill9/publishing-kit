@@ -73,8 +73,9 @@ def link_verdict(url, timeout=20):
     return ("warn" if v[1] else "fail"), v[0], v[1]
 
 
-ORDER = [("builder", "Builder Center"), ("medium", "Medium"),
+ORDER = [("builder", "Builder Center"), ("medium", "Medium"), ("substack", "Substack"),
          ("devto-aws", "Dev.to (aws-builders)"), ("linkedin", "LinkedIn")]
+OPTIONAL = {"substack"}
 
 
 def fail(m):
@@ -170,6 +171,12 @@ def main():
             ok(f"{label}: SKIP, left out of the post")
             resolved[key] = ""
             continue
+        # Substack joined after every links.txt already in the field was written,
+        # so a file with no substack line means "never went there". PENDING
+        # written in still fails, as for the other destinations.
+        if key in OPTIONAL and key not in links:
+            resolved[key] = ""
+            continue
         if not v or v.upper() == "PENDING":
             fail(f"{label} link is PENDING")
         elif "temp-slug" in v:
@@ -201,7 +208,8 @@ def main():
     ctx = (pathlib.Path(a.context).read_text().strip() if a.context
            else "\n".join(context_lines(text)))
     values = {"context": ctx, "builder": resolved.get("builder", ""),
-              "medium": resolved.get("medium", ""), "devto": resolved.get("devto-aws", ""),
+              "medium": resolved.get("medium", ""),
+              "substack": resolved.get("substack", ""), "devto": resolved.get("devto-aws", ""),
               "linkedin": resolved.get("linkedin", ""), "hashtags": a.hashtags}
     # [[key]] ... [[/key]] survives only when that value is non-empty, the same
     # rule make-linkedin.py applies, so a SKIP destination takes its label with it

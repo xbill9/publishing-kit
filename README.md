@@ -1,10 +1,10 @@
 # publishing-kit
 
 A Codex- and Claude Code-compatible skill and toolchain for publishing a technical
-article to **AWS Builder Center**, **dev.to** and **Medium**, and announcing it on
+article to **AWS Builder Center**, **dev.to**, **Medium** and **Substack**, and announcing it on
 **LinkedIn**.
 
-Three destinations, three different artifacts — not three copies of one. They
+Four destinations, four different artifacts — not four copies of one. They
 disagree about tables, about code blocks, and about cover images, and **every
 disagreement fails silently.** You get a plausible-looking file that the
 destination quietly mangles, and you find out after publishing.
@@ -65,6 +65,8 @@ published post.
 **Converts tables and code for Medium.** Medium's importer strips markdown tables
 entirely and flattens `<pre>` to a single line. `make-medium.py` renders them to
 PNG at 2x and emits a self-contained paste variant and a hosted import variant.
+Substack has no tables either, so the same hosted file feeds it, adapted in the
+page by `scripts/browser/substack-editor.js` (`references/substack.md`).
 
 **Traces every factual claim to an artifact.** `check-facts.py` extracts prices,
 measurements, versions and cloud identifiers, then reports which appear in no

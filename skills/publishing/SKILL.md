@@ -1,6 +1,6 @@
 ---
 name: publishing
-description: Trigger when writing up or publishing a technical article to AWS Builder Center, dev.to, Medium, or LinkedIn — including "write this up", "make an article", "builder center", "dev.to post", "medium version", "linkedin post", "announce the article", "cover image", or turning a benchmark or deployment into a paper. Covers the four destination formats and their incompatibilities, the table/code-to-image generator, mandatory cover images, the LinkedIn draft whose links must resolve, and a pre-flight check that fails the build.
+description: Trigger when writing up or publishing a technical article to AWS Builder Center, dev.to, Medium, Substack, or LinkedIn — including "write this up", "make an article", "builder center", "dev.to post", "medium version", "substack post", "linkedin post", "announce the article", "cover image", or turning a benchmark or deployment into a paper. Covers the four destination formats and their incompatibilities, the table/code-to-image generator, mandatory cover images, the LinkedIn draft whose links must resolve, and a pre-flight check that fails the build.
 metadata:
   short-description: Publish technical articles without silent format failures
 ---
@@ -19,7 +19,7 @@ If those capabilities are unavailable, generate and validate the artifacts, then
 hand the user the file and the specific remaining manual browser steps. Never
 claim that a browser draft or post was created when it was not.
 
-Four destinations, **four different artifacts, not four copies of one.** They
+Five destinations, **five different artifacts, not five copies of one.** They
 disagree about tables, about code blocks and about cover images. LinkedIn renders
 no markup at all. Every disagreement fails silently: you get a plausible-looking
 file that the destination quietly mangles.
@@ -72,18 +72,19 @@ URL and compares the bytes.
 ## How each destination is pushed
 
 **This is the split that decides the whole workflow.** One destination has a real
-API. Two have none and need a browser driven for them. One has an API that cannot
+API. Three have none and need a browser driven for them. One has an API that cannot
 draft.
 
 | Destination | How the article gets there | Draft state |
 | --- | --- | --- |
 | **dev.to** | **REST API, and it is complete** — create, update in place, list, and set `organization_id`. No browser, ever. | `published: false` |
 | **Medium** | **Browser automation.** Paste `-hosted.html` into the editor. No publishing API exists. | editor draft |
+| **Substack** | **Browser automation.** Paste Medium's `-hosted.html` through `ss.prepare()`, which adapts it in the page. Read back from the stored draft. | editor draft |
 | **AWS Builder Center** | **Browser automation.** One JS-bridge paste into the `contenteditable` — chunking is not needed. A WAF drops saves whose body matches an attack signature; see `references/browser-publishing.md`. No publishing API exists. | autosaved draft |
 | **LinkedIn** | API exists, but `PUBLISHED` is the only state accepted on creation, so posting through it *is* publishing. | composer only |
 
-So the browser work is not laziness about reading API docs — for Medium and
-Builder Center **there is no API to read.** Everything in
+So the browser work is not laziness about reading API docs — for Medium, Substack
+and Builder Center **there is no API to read.** Everything in
 `references/browser-publishing.md` exists because those two destinations can only
 be reached by driving their editors, and driving an editor is where the clipboard
 races, the duplicate pastes and the silent `data:` stripping all live.
@@ -107,6 +108,7 @@ look first. So, before touching a destination's editor:
 | AWS Builder Center — publish gate | `scripts/browser/builder-gate.js` (`window.gate`) | `SKILL.md` → "Links" and `references/browser-publishing.md` → "Publishing runs a gate" |
 | LinkedIn composer | `scripts/browser/linkedin-composer.js` (`window.li`) | `references/linkedin.md` → "Attaching the cover and posting" |
 | Medium | — | `references/browser-publishing.md` → "Medium" and `references/medium.md` |
+| Substack | `scripts/browser/substack-editor.js` (`window.ss`) | `references/substack.md` |
 | Kaggle benchmark page | `scripts/browser/kaggle-benchmark.js` (`window.kg`) | `references/kaggle.md` |
 
 **On Medium, do not open the publish dialog on a draft.** Its topic field is
@@ -631,6 +633,29 @@ tables, last paragraph — each checked separately, because they fail independen
 why the system clipboard must never be used, the base64 JS-bridge injection, the
 `file://` restriction, and the paragraph-unwrapping that Builder Center's editor
 needs.
+
+## Substack — Medium's hosted HTML, adapted in the page
+
+**No new generator.** Substack's editor has no table node either, so the
+`-hosted.html` from `make-medium.py` is the input, and `ss.prepare()` in
+`scripts/browser/substack-editor.js` makes two changes on the way in, both
+MEASURED 2026-10-05:
+
+- **A link around inline code is dropped.** The editor's `code` mark excludes
+  every other mark, so `` [`path`](url) `` pastes as code with no link and no
+  error. `prepare()` unwraps the `<code>`.
+- **Medium's `<h4>` sections are promoted to `<h3>`.** Substack has six heading
+  sizes and renders `h4` at 21px against 19px body text.
+
+Multi-line code blocks and image alt text both survive the paste, unlike Medium.
+**Audit from the saved draft** with `ss.audit()`, which reads the stored document
+through the editor's own endpoint, rather than from the DOM. Title and subtitle
+(the front matter's `description`) are separate fields: `ss.setTitle()`. The route,
+the counts and what is not yet measured, publishing included, are in
+`references/substack.md`.
+
+Add `substack = <url>` to `links.txt` once it is published; the LinkedIn, Slack
+and Google Chat posts carry it. A `links.txt` with no `substack` line leaves it out.
 
 ## LinkedIn — the post is a file, because the API cannot draft
 

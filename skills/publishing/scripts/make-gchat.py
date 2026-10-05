@@ -104,7 +104,7 @@ DEFAULT_LEDE = ""
 
 FAILS, WARNS = [], []
 # dev.to first: this is the Google community and dev.to/gde is its copy.
-ORDER = [("devto-gde", "Dev.to (gde)"), ("medium", "Medium"),
+ORDER = [("devto-gde", "Dev.to (gde)"), ("medium", "Medium"), ("substack", "Substack"),
          ("builder", "Builder Center"), ("linkedin", "LinkedIn")]
 
 
@@ -236,7 +236,8 @@ def main():
 
     values = {
         "lede": lede, "context": ctx, "devto": resolved.get("devto-gde", ""),
-        "medium": resolved.get("medium", ""), "builder": resolved.get("builder", ""),
+        "medium": resolved.get("medium", ""), "substack": resolved.get("substack", ""),
+        "builder": resolved.get("builder", ""),
         "linkedin": resolved.get("linkedin", "")}
     post = re.sub(r"\[\[(\w+)\]\](.*?)\[\[/\1\]\]", block, template, flags=re.S)
     post = post.format(**values).strip()

@@ -134,6 +134,7 @@ LABELS = {
     "devto-aws": "dev.to (AWS Community Builders)",
     "builder": "AWS Builder Center",
     "medium": "Medium",
+    "substack": "Substack",
     "devcommunity": "AMD Developer Community",
     "companion": "Companion article",
     "benchmark": "Benchmark on Kaggle",
@@ -298,7 +299,7 @@ def build(article, links, hook_override, template, section="Summary"):
     # benchmark / challenge: a challenge entry links the benchmark it submitted and
     # the challenge page (added 2026-09-28 for the Kaggle Benchmarking Challenge).
     ordered = [k for k in ("devto", "devto-gde", "devto-aws", "builder", "medium",
-                           "devcommunity", "companion", "benchmark", "challenge", "live", "repo") if k in links]
+                           "substack", "devcommunity", "companion", "benchmark", "challenge", "live", "repo") if k in links]
     # A key the ordering does not know is silently dropped from {links}, while the
     # resolver above still counts it as "resolved" -- so a typo like devto_gde for
     # devto-gde ships a post missing two of its four destinations and reports ok.
@@ -306,7 +307,7 @@ def build(article, links, hook_override, template, section="Summary"):
     if unknown:
         fail(f"link key(s) not in the render order, so they would be dropped: "
              f"{', '.join(sorted(unknown))}. Known keys: devto, devto-gde, devto-aws, "
-             f"builder, medium, devcommunity, companion, benchmark, challenge, live, repo.")
+             f"builder, medium, substack, devcommunity, companion, benchmark, challenge, live, repo.")
 
     values = {
         "hook": hook,
