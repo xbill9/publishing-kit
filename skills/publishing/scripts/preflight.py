@@ -98,8 +98,10 @@ def main():
         # --no-write: a check that rebuilds the artifact it is checking will
         # quietly replace it with whatever the DEFAULT flags produce, which is how
         # a 1,476-character post became a 468-character one and got committed.
+        # --no-fetch without --live: nothing here fetches a published URL then.
         results["linkedin"] = run("make-linkedin.py — the announcement's links resolve",
-                                  [str(HERE / "make-linkedin.py"), art, "--no-write"])
+                                  [str(HERE / "make-linkedin.py"), art, "--no-write"]
+                                  + ([] if a.live else ["--no-fetch"]))
 
     print(f"\n{'=' * 62}\nSUMMARY\n{'=' * 62}")
     for k, v in results.items():

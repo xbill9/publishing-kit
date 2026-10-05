@@ -532,11 +532,12 @@ the id survive, so links keep working once it is back.
 
 **And the public page can keep serving a 404 after it is back.** MEASURED
 2026-10-05: one of four articles updated and re-published that afternoon
-answered **404 to a public fetch** for more than eight minutes afterwards, with
+answered **404 to a public fetch** for more than 28 minutes afterwards, with
 `x-cache: HIT` and a rising `age:` header, while the API returned it published
 with the new body at the same URL. A query string did not get past the cache.
-The other three served 200. Check each page after a re-publish, and read
-`age:` before calling a 404 a broken article.
+The other three served 200. `--publish` on it refuses, since the listing already
+has it published, so nothing in the API reaches that cache. Check each page after
+a re-publish, and read `age:` before calling a 404 a broken article.
 
 Front matter is part of `body_markdown`, so title, tags and
 `cover_image` all transfer — no field-filling, no cover upload, no title retyping.
@@ -708,7 +709,11 @@ the same file feeds `make-slack.py`, `make-gchat.py`, `make-advocu.py`,
 
 1. **Every link resolves.** `PENDING` is written into the file as a visible
    placeholder *and* fails the run, so a post with an unpublished link cannot go
-   out by accident.
+   out by accident. Each URL is also fetched, with the same verdict
+   `check-links.py` gives. MEASURED 2026-10-05: before that, "resolved" meant
+   only "not PENDING", and the run passed a post carrying a dev.to URL that
+   answered 404 to the public. `--no-fetch` skips the fetch; `preflight.py`
+   passes it when run without `--live`.
    A destination the article will not reach (an account Medium will not
    publish from, say) is `SKIP`, never a deleted line: the post, the Slack
    announcement and `check-links.py` leave it out, and its label goes with it.

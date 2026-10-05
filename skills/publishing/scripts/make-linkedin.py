@@ -99,6 +99,7 @@ the file is what gets attached; see references/linkedin.md.
 """
 
 import argparse
+import importlib.util
 import pathlib
 import re
 import statistics
@@ -146,6 +147,14 @@ DEFAULT_TEMPLATE = ("{hook}\n\n{description}\n\n"
                     "[[bullets]]What is in it:\n\n{bullets}\n[[/bullets]]\n{links}\n")
 
 FAILS, WARNS = [], []
+# The link verdict lives in check-links.py, as for make-slack.py and make-gchat.py.
+# MEASURED 2026-10-05: this file reported "5 link(s) resolved" for a post carrying
+# a dev.to URL that answered 404 to the public, because "resolved" meant only
+# "not PENDING". It now fetches, unless --no-fetch (preflight without --live).
+_CL = pathlib.Path(__file__).resolve().parent / "check-links.py"
+_spec = importlib.util.spec_from_file_location("check_links", _CL)
+cl = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(cl)
 
 
 def fail(m):
@@ -339,6 +348,8 @@ def main():
     ap.add_argument("--bullets-from", default=None,
                     help="heading to take the post's bullets from (default: Summary, "
                          "or whatever linkedin.args beside the article says)")
+    ap.add_argument("--no-fetch", action="store_true",
+                    help="check links are filled in without fetching them (preflight without --live)")
     ap.add_argument("--no-write", action="store_true",
                     help="run the checks without touching the file. A pre-flight "
                         "must not mutate the artifact it is checking.")
@@ -391,8 +402,23 @@ def main():
     pending = [k for k, v in links.items() if not v or v.upper() == "PENDING"]
     if pending:
         fail(f"{len(pending)} link(s) still PENDING: {', '.join(sorted(pending))}")
+    elif a.no_fetch:
+        ok(f"{len(links)} link(s) filled in; not fetched (--no-fetch)")
     else:
-        ok(f"{len(links)} link(s) resolved")
+        dead = []
+        for k, v in links.items():
+            if not v.startswith("https://"):
+                continue
+            verdict = cl.verdict(v, cl.fetch_chain(v, 20))
+            if verdict is None:
+                continue
+            if verdict[1]:
+                warn(f"{k}: {verdict[0]} (dev.to/Medium bot wall, not a broken link)")
+            else:
+                dead.append(k)
+                fail(f"{k}: {verdict[0]} -- {v}")
+        if not dead:
+            ok(f"{len(links)} link(s) resolved")
     for k, v in links.items():
         if v and v.upper() != "PENDING" and not v.startswith("https://"):
             fail(f"{k} is not an https URL: {v}")
