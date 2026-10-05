@@ -1,0 +1,46 @@
+# Second Substack post: this article, published 2026-10-05 through
+# scripts/browser/substack-editor.js end to end. Draft 218974367, hidden tab.
+# Output captured verbatim from the javascript_tool results.
+
+## ss.prepare() before the <pre> class fix, then the saved draft
+source <pre>       9, classes shell/js/js/js/text/text/js/json/text, lines 5/3/3/2/7/5/1/3/10
+saved              code_block 6 (5/3/3/2/1/3), latex_block 3 (the three class="text" blocks,
+                   7/5/10 lines), types: paragraph, captionedImage, horizontal_rule,
+                   heading, bullet_list, code_block, latex_block
+
+## subtitle length: draft_subtitle as saved, 6 s after each set
+284 chars (front matter description)   nothing saved; draft_title "", body 74 chars;
+                                       modal "Draft not saved / Subtitle is too long"
+256  -> 0 (not saved)      257 -> 0 (not saved)
+241  -> 241, body 24449    248 -> 248    250 -> 250   252 -> 252   254 -> 254   255 -> 255
+256 after 241 saved        -> still 241
+banner "Subtitle is too long" stayed on the page after the 241 and 248 saves
+used                       183 chars: the description cut after its second sentence
+
+## after the fix: ss.setTitle(null, 256 chars), ss.clear, ss.prepare, ss.paste, ss.audit
+{"refused": "subtitle is 256 chars; Substack saves at most 255, and refuses the whole draft above that"}
+{"anchors": 5, "codeLinksUnwrapped": 0, "html": 12856, "images": 3, "preClassesCleared": 9, "pres": 9}
+{"chars": 10310, "pasted": true}
+saved              code_block 9, lines 5/3/3/2/7/5/1/3/10 (match), latex_block 0,
+                   images 3 rehosted with alt, link targets 4, h3 17, subtitle 183
+
+## ss.openPublish() settings, first read (helper before its button fix)
+button   "Publishing Markdown to Substack from an Agent Skill\nSubstack has no ...\nxbill9.substack.com\nEdit"
+         (the social-preview card, a <button> whose text starts with the title)
+## after the fix
+{"audience": "everyone", "button": "Send to everyone now", "comments": "everyone", "email": true, "scheduled": false}
+
+## await ss.publish({email: true, audience: "everyone", comments: "everyone", scheduled: false})
+{"answered": "Publish without buttons", "clicked": "Send to everyone now", "settings": {...same...}}
+
+## await ss.published("218974367")
+{"audience": "everyone", "email_sent_at": "2026-10-05T17:55:52.309Z", "id": 218974367,
+ "post_date": "2026-10-05T17:55:52.963Z", "slug": "publishing-markdown-to-substack-from",
+ "url": "https://xbill9.substack.com/p/publishing-markdown-to-substack-from"}
+tab: /publish/posts/detail/218974367/share-center
+
+## dev.to
+create gde 4802799 ok; create aws-builders refused 422 "Title has already been used
+in the last five minutes" at the next two attempts, accepted 17:46:31 UTC as 4802821
+--publish 4802799 -> https://dev.to/gde/publishing-markdown-to-substack-from-an-agent-skill-258f
+--publish 4802821 -> https://dev.to/aws-builders/publishing-markdown-to-substack-from-an-agent-skill-7f
