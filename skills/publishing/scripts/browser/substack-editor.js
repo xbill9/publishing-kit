@@ -15,7 +15,11 @@
 //   await ss.audit()                           -> counts from the SAVED draft
 //   await ss.clear(<draft id>)                 only to replace a body you pasted
 //
-// There is no ss.publish. Publishing is the author's click.
+// Publishing, ONLY when the author said to publish in this session and chose
+// whether subscribers get the email:
+//   await ss.openPublish()                     -> {open:true, settings}  read them out
+//   await ss.publish({email:true, audience:"everyone"})   refuses on any mismatch
+//   await ss.published(<draft id>)             -> {slug, url, email_sent_at}
 //
 // Every helper refuses ({refused: ...}) instead of acting when its precondition
 // fails; a guard inside one script is a real guard, unlike one inside a batch.
@@ -118,5 +122,67 @@ window.ss = (() => {
     return { cleared: true, chars: ed.innerText.trim().length };
   }
 
-  return { prepare, paste, setTitle, audit, clear };
+  // Continue opens a Publish modal on the same URL. Read it before anything else:
+  // MEASURED 2026-10-05 its defaults are audience Everyone, comments Everyone,
+  // "Send via email and the Substack app" ON, scheduling off, and the button
+  // reads "Send to everyone now".
+  const publishDialog = () => [...document.querySelectorAll("[role=dialog]")].find((d) => /^Publish\b/.test(d.innerText)) || null;
+  const labelOf = (c) => ((c.closest("label") || c.parentElement?.parentElement)?.innerText || "").split("\n")[0].trim();
+  function settings() {
+    const d = publishDialog();
+    if (!d) return null;
+    const radio = (name) => d.querySelector(`input[name=${name}]:checked`)?.value || null;
+    const box = (re) => [...d.querySelectorAll("input[type=checkbox]")].find((c) => re.test(labelOf(c)))?.checked ?? null;
+    const send = [...d.querySelectorAll("button")].map((b) => b.innerText.trim()).find((t) => /^(Send|Publish)/.test(t) && t !== "Publish") || null;
+    return { audience: radio("audience"), comments: radio("commentLevel"), email: box(/^Send via email/), scheduled: box(/^Schedule time/), button: send };
+  }
+
+  async function openPublish() {
+    if (publishDialog()) return { open: true, already: true, settings: settings() };
+    const b = [...document.querySelectorAll("button")].find((x) => x.innerText.trim() === "Continue");
+    if (!b) return { refused: "no Continue button; not on a draft in the editor" };
+    b.click();
+    for (let i = 0; i < 10 && !publishDialog(); i++) await sleep(500);
+    return publishDialog() ? { open: true, settings: settings() } : { refused: "Continue did not open the Publish modal" };
+  }
+
+  // Publishing sends the email when `email` is on, and an email cannot be unsent,
+  // so the caller states what it expects and the helper refuses on any mismatch.
+  // Then a second modal, "Add subscribe buttons to your post", holds the publish
+  // at "Publishing..." until answered; reading only the first dialog misses it.
+  // `subscribeButtons: false` answers "Publish without buttons".
+  // Returns before the page moves to /publish/posts/detail/<id>/share-center;
+  // confirm with ss.published().
+  async function publish(expect, { subscribeButtons = false } = {}) {
+    const s = settings();
+    if (!s) return { refused: "Publish modal not open; await ss.openPublish() and read its settings first" };
+    if (!expect || typeof expect.email !== "boolean") return { refused: "pass {email: true|false, audience}; the email cannot be unsent", settings: s };
+    for (const k of ["email", "audience", "comments", "scheduled"])
+      if (k in expect && expect[k] !== s[k]) return { refused: `${k} is ${s[k]}, expected ${expect[k]}; change it in the modal first`, settings: s };
+    const go = [...publishDialog().querySelectorAll("button")].find((b) => b.innerText.trim() === s.button);
+    if (!go) return { refused: "no send/publish button in the modal", settings: s };
+    go.click();
+    const want = subscribeButtons ? "Add subscribe buttons" : "Publish without buttons";
+    for (let i = 0; i < 20; i++) {
+      await sleep(500);
+      const b = [...document.querySelectorAll("button")].find((x) => x.innerText.trim() === want);
+      if (b) { setTimeout(() => b.click(), 100); return { clicked: s.button, answered: want, settings: s }; }
+      if (!publishDialog()) break;
+    }
+    return { clicked: s.button, answered: null, settings: s };
+  }
+
+  // The published list is the confirmation; the slug comes from it, not the title.
+  async function published(id = draftId(), tries = 10) {
+    if (!id) return { refused: "no draft id; pass it" };
+    for (let i = 0; i < tries; i++) {
+      const j = await (await fetch(`${location.origin}/api/v1/post_management/published?offset=0&limit=25&order_by=post_date&order_direction=desc`, { credentials: "include" })).json();
+      const p = j.posts.find((x) => String(x.id) === String(id));
+      if (p) return { id: p.id, slug: p.slug, url: `${location.origin}/p/${p.slug}`, post_date: p.post_date, email_sent_at: p.email_sent_at, audience: p.audience };
+      await sleep(3000);
+    }
+    return { published: false };
+  }
+
+  return { prepare, paste, setTitle, audit, clear, openPublish, settings, publish, published };
 })();

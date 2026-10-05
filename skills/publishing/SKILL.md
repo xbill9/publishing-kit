@@ -651,8 +651,15 @@ Multi-line code blocks and image alt text both survive the paste, unlike Medium.
 **Audit from the saved draft** with `ss.audit()`, which reads the stored document
 through the editor's own endpoint, rather than from the DOM. Title and subtitle
 (the front matter's `description`) are separate fields: `ss.setTitle()`. The route,
-the counts and what is not yet measured, publishing included, are in
-`references/substack.md`.
+the counts and what is not yet measured are in `references/substack.md`.
+
+**Publishing emails every subscriber by default.** MEASURED 2026-10-05: the
+`Publish` modal opens with "Send via email and the Substack app" on and a button
+that reads "Send to everyone now", and a second modal ("Add subscribe buttons")
+holds the publish at `Publishing...` until answered. Ask the author about the
+email before the click; `ss.publish()` refuses without an explicit answer. The
+slug is cut short (`/p/streamline-publishing-with-a-claude`), so take the URL from
+`ss.published()`.
 
 Add `substack = <url>` to `links.txt` once it is published; the LinkedIn, Slack
 and Google Chat posts carry it. A `links.txt` with no `substack` line leaves it out.

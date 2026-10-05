@@ -99,12 +99,41 @@ MEASURED 2026-10-05 with `check-links.py`'s fetch: a published post
 (`<pub>.substack.com/p/<slug>`) and a profile (`substack.com/@<handle>`) answered
 200; a slug that does not exist answered 404. No bot wall, so no exemption like
 dev.to's and Medium's. A draft has no public URL: put `substack = PENDING` in
-`links.txt` until it is published, or `SKIP` if it will not be. An article whose
+`links.txt` until it is published, then the URL `ss.published()` returns, or `SKIP` if it will not be. An article whose
 `links.txt` has no `substack` line at all is treated as never sent there.
 
 ## Publishing
 
-Not measured. Leave the draft as a draft and hand back the editor link. Before
-anyone presses `Continue`, read every checkbox in what it opens, the way Medium's
-dialog is read in `browser-publishing.md`: on a newsletter platform the default may
-send the post to every subscriber's inbox, and an email cannot be unsent.
+MEASURED 2026-10-05, publishing this kit's article from a hidden tab. Use
+`ss.openPublish()`, `ss.publish({...})` and `ss.published(<id>)`.
+
+- **`Continue` opens a `Publish` modal on the same URL**, with no navigation.
+  Its defaults: audience **Everyone**, comments **Everyone**, **"Send via email
+  and the Substack app" ON**, scheduling off, and the button reads **"Send to
+  everyone now"**. Left alone, publishing emails every subscriber, and the email
+  cannot be unsent. Ask the author which they want before the click;
+  `ss.publish()` refuses without an explicit `email: true|false` and on any
+  setting that does not match what was asked for.
+- **A second modal holds the publish.** After "Send to everyone now", the first
+  modal shows `Publishing...` and nothing happens for as long as you wait (35 s
+  measured) while a separate `[role=dialog]`, "Add subscribe buttons to your
+  post", waits for `Add subscribe buttons` or `Publish without buttons`. A read
+  of the first dialog alone shows only the spinner. `ss.publish()` answers it,
+  without buttons unless `{subscribeButtons: true}`.
+- **The tab then moves** to `/publish/posts/detail/<id>/share-center`, where a
+  "Stats are better in the app" dialog opens. The confirmation is the post in
+  `GET /api/v1/post_management/published`, with `post_date` and `email_sent_at`
+  set; `ss.published()` reads it.
+- **The slug is cut short.** "Streamline Publishing with a Claude Code Skill"
+  published as `/p/streamline-publishing-with-a-claude`, so take the URL from
+  `ss.published()`, never from the title. Whether the slug can be set before
+  publishing is not measured.
+- **The public page matches the draft.** The served post body held 4 `<pre>`,
+  7 `<h3>`, 2 images and all 4 article link targets, and each heading gained an
+  anchor at `/i/<id>/<heading-slug>`. The raw page holds the body markup more
+  than once (8 `<pre>`, 16 `<h3>` in the whole document), so count inside
+  `class="body markup"`.
+
+The full route through `ss.publish()` is newer than this measurement: the
+modals' labels and defaults above are what it reads, and its refusals were
+checked on a page with no modal open.
