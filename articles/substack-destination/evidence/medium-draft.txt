@@ -1,0 +1,12 @@
+# Medium draft of this article, 2026-10-05, medium.com/p/c8af036e3339 (not published).
+# Visible tab. Source: medium/devto-substack-destination-hosted.html, header removed.
+source             pre 9, img 3, h4 17, li 19, blockquote 0; pasted body 14521 chars
+after paste        URL https://medium.com/p/c8af036e3339/edit, 83 .graf in the editor
+title              insertText -> "Publishing Markdown to Substack from an Agent Skill", 1 title block
+?format=json       paragraph counts 83, 83, 83 (5 s apart)
+                   types: 1 text 34, 3 title 1, 4 image 3, 8 code 9, 9 list 19, 13 heading 17
+                   code lines 5/3/3/2/7/5/1/3/10, none empty; blockquotes 0
+                   images 0*oKXqhBc5rdsIvaXq.jpg, 0*ODejgtzyeCW9V_gC.png, 0*7o6svOmnY57SvFKe.png
+                   = editor data-image-id
+                   first: title, opening paragraph, cover image; last: "Write Markdown Once,
+                   Publish It Everywhere | dev.to"

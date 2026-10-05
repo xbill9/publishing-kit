@@ -705,6 +705,14 @@ first paragraph, with the 97 body blocks, 5 re-hosted `0*` images and 7
 multi-line code blocks all in place on two reads 10 s apart. Judge it by the
 model, never by the class.
 
+The same route works in a **visible** tab. MEASURED 2026-10-05 on
+`medium.com/new-story` with `visibilityState === "visible"`: Selection-API caret
+in the body, one `text/html` paste of a 14,521-character body, then the title by
+`insertText`. The model held 83 blocks on three reads 5 s apart, with the title
+as block 1, 9 multi-line code blocks with the source's line counts and none
+empty, 3 re-hosted `0*` images matching the editor's ids, 17 headings and 19
+list items. So use it regardless of visibility; it needs no click and no key.
+
 ## Medium blocks a reload for minutes after it says "Saved"
 
 MEASURED 2026-09-21. `beforeunload` stays registered for the life of the editor,
