@@ -1,0 +1,36 @@
+# Updating published Substack posts and re-publishing on dev.to, 2026-10-05.
+# Captured from the javascript_tool / shell output of this session.
+
+## Substack post 218974367 (this article), edit after publish
+editor buttons before edit   Saved, Preview, Continue, ...
+editor buttons after paste   Saved, Preview, Update, ...
+draft saved                  code_block 9 (match), latex_block 0, images 3, links 4, h3 17,
+                             subtitle 183; table-1 re-hosted as _1146x436.png (was 1146x382)
+Update -> modal buttons      Edit, Scan for AI text, Disable AI detection, Cancel, Update now
+modal inputs                 audience, commentLevel, a text input, "Schedule time to publish";
+                             no "Send via email" checkbox, no Delivery section
+after Update now             tab -> /publish/posts/detail/218974367/share-center?alreadyPublished=true
+                             email_sent_at 2026-10-05T17:55:52.309Z (unchanged)
+                             live body contains "limit of 255 characters", table _1146x436.png
+
+## Substack post 218966232 (kit walk-through), edit after publish
+saved draft                  code 2/2/5 (match), latex 0, links match, images 2, h3 7, subtitle 241
+draft cover                  0dc0f217-ee0b-4db2-9286-4e9d789801a7_1376x578.jpeg
+live cover before            eefae13f-b262-4b6f-a180-15bd936b51dc_1376x578.jpeg
+re-hosted vs local           cover.ae4d639e.jpg mean abs diff 0.0; cover.77acc7c4.jpg 18.71
+after Update now             email_sent_at 2026-10-05T17:19:32.552Z (unchanged),
+                             live page has the new cover id and "a lot of ceremony"
+
+## CDN before the paste
+check-links (main)           FAIL img/devto-substack-destination-table-1.png: HTTP 200 but the
+                             served bytes differ from disk
+check-links --pinned         ok, bytes match disk
+check-links (main), 18:04    ok, bytes match disk
+
+## dev.to update + publish
+4802799, 4802821, 4541392, 4541410   updated then published; listing: published
+API /api/articles/aws-builders/publishing-markdown-to-substack-from-an-agent-skill-7f
+                             id 4802821, edited_at 2026-10-05T18:01:28Z, new body present
+public page, same URL        18:02-18:10 HTTP/2 404, x-cache: HIT, HIT; age 287 .. 518;
+                             same with ?cb=<random>
+other three pages            200 with new content (cover.ae4d639e / "limit of 255")
