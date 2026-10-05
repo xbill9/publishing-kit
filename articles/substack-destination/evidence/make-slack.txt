@@ -1,0 +1,12 @@
+
+devto-publishing-kit.md -> slack.txt
+  ok    Builder Center: HTTP 200
+  WARN  Medium: HTTP 403 to a browser UA (dev.to/Medium bot wall, not a broken link)
+  ok    Substack: HTTP 200
+  ok    Dev.to (aws-builders): HTTP 200
+  ok    LinkedIn: HTTP 200
+  ok    no markdown left; Slack renders none of it
+
+0 fail, 1 warn
+
+This script does not post. Paste it into the channel yourself and read it back before sending.

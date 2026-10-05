@@ -1,0 +1,63 @@
+# Substack paste of this article, read back from the saved draft
+# 2026-10-05, xbill9.substack.com draft 218966232, hidden tab.
+# Input: medium/devto-publishing-kit-hosted.html, carried in through window.name
+# with scripts/browser/substack-editor.js. Output of ss.audit(), which reads
+# GET /api/v1/drafts/218966232 (draft_body is the stored ProseMirror document).
+
+## Source (hosted HTML, header removed)
+<pre> blocks         4, lines 2/2/1/4, chars 87/124/65/225
+<img>              2, raw.githubusercontent.com
+link targets       4 distinct, 6 anchors; 2 of them wrap <code>
+sections           7 <h4>
+
+## First paste, HTML as-is
+code_block         4, lines 2/2/1/4, chars 87/124/65/225
+image2             2, both substack-post-media.s3.amazonaws.com, alt kept
+link targets       2: github.com/xbill9/publishing-kit, claude.com/claude-code
+                   missing: .../blob/main/skills/publishing/SKILL.md
+                            .../tree/main/articles/publishing-kit-skill
+                   (both were <a><code>..</code></a>; the code text survived)
+heading            7, level 4
+paragraphs         39, 0 containing a newline
+
+## Editor schema (document.querySelector('.ProseMirror').editor.schema)
+table node         none
+code mark          excludes "_"
+heading sizes      h1 38px, h2 30.875px, h3 26.125px, h4 21.375px, h5 15.77px, p 19px
+
+## Second paste, after ss.prepare() (codeLinksUnwrapped: 2, h4 -> h3)
+draft_title        Streamline Publishing with a Claude Code Skill
+draft_subtitle     241 chars, the front matter description
+types              captionedImage 2, image2 2, blockquote 3, paragraph 39,
+                   heading 7 (h3 7), bullet_list 2, list_item 10, code_block 4,
+                   mark:link 6, mark:code 42, mark:strong 19, mark:em 1
+link targets       https://github.com/xbill9/publishing-kit
+                   https://github.com/xbill9/publishing-kit/blob/main/skills/publishing/SKILL.md
+                   https://github.com/xbill9/publishing-kit/tree/main/articles/publishing-kit-skill
+                   https://claude.com/claude-code
+code lines         2/2/1/4
+images             2 rehosted, alt "Streamline Publishing with a Claude Code Skill", "table"
+
+## Link checker (check-links.py fetch_chain + verdict)
+https://xbill9.substack.com/p/coming-soon       200, no verdict
+https://substack.com/@xbill99                   200, no verdict
+https://xbill9.substack.com/p/no-such-post-zz   HTTP 404 to a browser UA
+
+## Publish, 2026-10-05 17:19 UTC
+modal defaults     audience everyone, commentLevel everyone,
+                   "Send via email and the Substack app" checked,
+                   "Schedule time to email and publish" unchecked,
+                   button "Send to everyone now"
+second modal       "Add subscribe buttons to your post": Publish without buttons /
+                   Add subscribe buttons; first modal showed "Publishing..." until
+                   answered (35 s observed). Answered: Publish without buttons.
+after              tab at /publish/posts/detail/218966232/share-center
+published list     id 218966232, slug streamline-publishing-with-a-claude,
+                   post_date 2026-10-05T17:19:32.878Z,
+                   email_sent_at 2026-10-05T17:19:32.552Z, audience everyone
+public page        https://xbill9.substack.com/p/streamline-publishing-with-a-claude
+                   check-links fetch: 200, no verdict
+                   inside class="body markup": pre 4, h3 7, h4 0, img 2,
+                   article links 4 (SKILL.md and tree/ links present),
+                   7 heading anchors /i/218966232/<heading>
+                   whole document: pre 8, h3 16

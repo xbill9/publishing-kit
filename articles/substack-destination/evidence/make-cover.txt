@@ -1,0 +1,4 @@
+wrote cover.325bdb37.jpg  1376x578  40 KB
+wrote cover-builder.e824b8d8.jpg  1200x675  37 KB
+  https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/substack-destination/cover.325bdb37.jpg
+  https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/substack-destination/cover-builder.e824b8d8.jpg

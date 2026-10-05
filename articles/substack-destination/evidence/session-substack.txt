@@ -1,0 +1,41 @@
+# Browser-session output, captured verbatim from the javascript_tool results
+# 2026-10-05, xbill9.substack.com, draft/post 218966232, hidden tab
+# (document.visibilityState "hidden"). Input: the kit article's
+# medium/devto-publishing-kit-hosted.html as committed at 0.31.0.
+
+## window.name on 127.0.0.1, then navigate to /publish/post?type=newsletter
+window.name.length                 20066
+redirected to                      https://xbill9.substack.com/publish/post/218966232
+
+## editor fields found on the new draft
+contenteditable                    "tiptap ProseMirror mousetrap", placeholder "Start writing..."
+INPUT text                         placeholder "Add a title..."
+TEXTAREA                           placeholder "Add a description..."
+TEXTAREA                           placeholder "Title"
+TEXTAREA                           placeholder "Add a subtitle…"
+
+## ss.prepare(p.html)
+{"anchors": 6, "codeLinksUnwrapped": 2, "html": 11557, "images": 2, "pres": 4}
+
+## await ss.paste()
+{"chars": 9020, "pasted": true}
+
+## ss.paste() before prepare / ss.clear("218966232")
+{"refused": "call ss.prepare() first"}
+{"chars": 0, "cleared": true}
+
+## await ss.published("218966232", 1) on /publish/posts after publishing
+{"audience": "everyone", "email_sent_at": "2026-10-05T17:19:32.552Z", "id": 218966232,
+ "post_date": "2026-10-05T17:19:32.878Z", "slug": "streamline-publishing-with-a-claude",
+ "url": "https://xbill9.substack.com/p/streamline-publishing-with-a-claude"}
+
+## refusals on a page with no draft open
+ss.openPublish()           {"refused": "no Continue button; not on a draft in the editor"}
+ss.publish({email:true})   {"refused": "Publish modal not open; await ss.openPublish() and read its settings first"}
+ss.published("1", 1)       {"published": false}
+
+## editor schema: nodes include
+paragraph, codeBlock, heading, blockquote, bulletList, orderedList, image2,
+captionedImage, gitgist, footnote, latex_block, poll, paywall, subscribeWidget
+(no table node). marks: bold, code (excludes "_"), highlight, italic, link,
+strike, subscript, superscript, textStyle

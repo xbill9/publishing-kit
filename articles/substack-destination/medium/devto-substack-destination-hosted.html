@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Publishing Markdown to Substack from an Agent Skill</title>
+  <meta name="description" content="Substack has no publishing API, its editor has no tables, and a link around inline code is dropped on paste. A step by step walk-through of the Substack destination in publishing-kit: what the editor keeps, what it drops, and how an agent publishes to it and reads the result back." />
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+  <style>
+    body{font-family:-apple-system,'Segoe UI',Roboto,'Liberation Sans',Arial,sans-serif;
+         font-size:18px;line-height:1.58;max-width:42em;color:#242424;}
+    h1,h2,h3,h4{font-weight:700;line-height:1.25;margin-top:1.8em;}
+    h4{font-size:1.25em;}
+    img{max-width:100%;height:auto;display:block;margin:1.6em 0;}
+    pre{background:#f7f7f7;border:1px solid #e6e6e6;border-radius:4px;
+        padding:12px 14px;overflow-x:auto;font-size:14px;line-height:1.45;}
+    code{font-family:'Liberation Mono',Menlo,Consolas,monospace;}
+    :not(pre)>code{background:#f2f2f2;padding:1px 5px;border-radius:3px;font-size:.9em;}
+    blockquote{border-left:3px solid #ddd;margin-left:0;padding-left:1em;color:#555;}
+    hr{border:0;border-top:1px solid #e6e6e6;margin:2.4em 0;}
+  </style>
+</head>
+<body>
+<p>This article provides a step by step guide to publishing a markdown
+article to Substack with publishing-kit, an agent skill for Claude Code,
+Codex and Antigravity. Substack is the kit's fifth destination, after
+dev.to, Medium, AWS Builder Center and LinkedIn, and every output below
+comes from publishing the kit's own walk-through to a Substack
+publication.</p>
+<figure><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/substack-destination/medium/img/cover.325bdb37.jpg" alt="Publishing Markdown to Substack from an Agent Skill" /></figure>
+<p><a
+href="https://github.com/xbill9/publishing-kit">https://github.com/xbill9/publishing-kit</a></p>
+<p><strong>One markdown file goes in. A Substack post comes out, with
+every code block, image and link checked in the draft Substack saved
+before it goes live.</strong></p>
+<hr />
+<h4 id="what-is-the-problem">What Is the Problem?</h4>
+<p>Substack has no publishing API. A post goes in through its web
+editor, and that editor decides what survives.</p>
+<p>Pasting HTML into it, then reading back the draft Substack stored,
+gives this:</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/substack-destination/medium/img/devto-substack-destination-table-1.png"
+alt="Table: Content, In the saved draft" /></p>
+<p>None of the failures produces an error. The table disappears, or a
+link becomes plain monospace text, and the editor saves it.</p>
+<hr />
+<h4 id="why-does-the-link-disappear">Why Does the Link Disappear?</h4>
+<p>Substack's editor is built on ProseMirror, and its schema lists every
+element and mark a post can hold. The <code>code</code> mark is declared
+with <code>excludes: "_"</code>, which means inline code can carry no
+other mark: no bold, no italic, no link.</p>
+<p>So
+<code>[`skills/publishing/SKILL.md`](https://github.com/...)</code>
+arrives as
+<code>&lt;a&gt;&lt;code&gt;skills/publishing/SKILL.md&lt;/code&gt;&lt;/a&gt;</code>,
+and the editor keeps the code and discards the link. The kit's
+walk-through has two links written that way, and pasted as-is, its saved
+draft holds 2 link targets out of 4.</p>
+<p>The fix is to take the <code>&lt;code&gt;</code> out of the anchor
+before pasting. The link survives as plain text, which keeps the
+reader's way to the page.</p>
+<hr />
+<h4 id="how-does-substack-compare-with-medium">How Does Substack Compare
+With Medium?</h4>
+<p>Both lack tables, so the kit feeds Substack the same HTML it builds
+for Medium, where every table is already an image. After that they part
+ways:</p>
+<ul>
+<li><strong>Code:</strong> Medium's importer flattens multi-line code to
+one line. Substack keeps it as a real code block.</li>
+<li><strong>Alt text:</strong> Medium's editor blanks it on paste.
+Substack keeps it.</li>
+<li><strong>Headings:</strong> Medium has two heading sizes, so the kit
+demotes sections to <code>&lt;h4&gt;</code> for it. Substack has six,
+and renders <code>&lt;h4&gt;</code> at 21px against 19px body text, so a
+section heading barely stands out.</li>
+<li><strong>Publishing:</strong> both default to notifying subscribers.
+On Substack that is an email to every subscriber and a push to the
+Substack app.</li>
+</ul>
+<hr />
+<h4 id="at-this-point-you-should-have">At This Point You Should
+Have…</h4>
+<ul>
+<li>publishing-kit 0.32.0 or later in Claude Code, Codex or Antigravity,
+with browser automation that can run JavaScript in the page.</li>
+<li>A Substack publication, signed in, in the browser the agent
+drives.</li>
+<li>An article already built for Medium with
+<code>make-medium.py</code>, its images committed and pushed.</li>
+</ul>
+<hr />
+<h4 id="step-1--build-the-html">Step 1 — Build the HTML</h4>
+<p>The Substack version is Medium's hosted HTML, so the build is the
+Medium build:</p>
+<pre class="shell"><code>python3 make-medium.py devto-substack-destination.md medium --cover=cover.325bdb37.jpg
+devto-substack-destination.md: 2 tables, 0 diagrams
+   USE THIS   -&gt; medium/devto-substack-destination-hosted.html  (paste or import; needs medium/img committed AND pushed)
+   not this   -&gt; medium/devto-substack-destination-embed.html   (199 KB; data: URIs, Medium drops them all on paste)
+   Medium never fills its Title field from pasted content -- set the title separately.</code></pre>
+<p>Tables and box-drawing diagrams become PNGs under
+<code>medium/img/</code>, and <code>-hosted.html</code> points at them
+by their public GitHub URL. Substack fetches each one and re-hosts it on
+its own image server.</p>
+<hr />
+<h4 id="step-2--carry-the-page-into-the-editor">Step 2 — Carry the Page
+Into the Editor</h4>
+<p>The editor page's content security policy blocks a <code>fetch</code>
+to the local machine, so the HTML travels in <code>window.name</code>,
+which survives a navigation in the same tab. The agent serves the
+repository on <code>127.0.0.1</code>, opens the hosted HTML there, and
+stores it and the kit's Substack helper together:</p>
+<pre class="js"><code>const html = await (await fetch(location.href)).text();
+const js = await (await fetch(&#39;/skills/publishing/scripts/browser/substack-editor.js&#39;)).text();
+window.name = JSON.stringify({html, js});</code></pre>
+<p>Then the same tab opens
+<code>https://&lt;pub&gt;.substack.com/publish/post?type=newsletter</code>.
+That URL creates a new draft and redirects to
+<code>/publish/post/&lt;id&gt;</code>, and the payload arrives intact:
+20,066 characters of HTML in this run.</p>
+<hr />
+<h4 id="step-3--prepare-and-paste">Step 3 — Prepare and Paste</h4>
+<p>In the editor, the helper loads from the payload and adapts the HTML
+before pasting it:</p>
+<pre class="js"><code>const p = JSON.parse(window.name); (0, eval)(p.js);
+ss.prepare(p.html)
+{&quot;anchors&quot;: 6, &quot;codeLinksUnwrapped&quot;: 2, &quot;html&quot;: 11557, &quot;images&quot;: 2, &quot;pres&quot;: 4}</code></pre>
+<p><code>prepare()</code> removes the title block, because Title and
+subtitle are separate fields, unwraps the two links around inline code,
+and promotes Medium's <code>&lt;h4&gt;</code> sections to
+<code>&lt;h3&gt;</code>. Then a single synthetic paste:</p>
+<pre class="js"><code>await ss.paste()
+{&quot;chars&quot;: 9020, &quot;pasted&quot;: true}</code></pre>
+<p><code>paste()</code> refuses if the editor already holds text, so a
+second run cannot append the article twice. Everything here works in a
+background tab, where typed keystrokes are unreliable.</p>
+<hr />
+<h4 id="step-4--read-back-the-saved-draft">Step 4 — Read Back the Saved
+Draft</h4>
+<p>The editor's DOM shows what is on screen. What gets published is the
+draft Substack stored, and the editor page can read it as JSON from
+<code>/api/v1/drafts/&lt;id&gt;</code>. <code>ss.audit()</code> waits
+for the autosave and counts that document:</p>
+<pre class="text"><code>code_block         4, lines 2/2/1/4
+image2             2, both substack-post-media.s3.amazonaws.com, alt kept
+heading            7 (h3 7)
+link targets       https://github.com/xbill9/publishing-kit
+                   https://github.com/xbill9/publishing-kit/blob/main/skills/publishing/SKILL.md
+                   https://github.com/xbill9/publishing-kit/tree/main/articles/publishing-kit-skill
+                   https://claude.com/claude-code</code></pre>
+<p>Every count matches the HTML that went in: 4 code blocks with the
+same line counts, 2 images, 4 link targets.</p>
+<hr />
+<h4 id="step-5--set-the-title-and-subtitle">Step 5 — Set the Title and
+Subtitle</h4>
+<p>The editor page holds two pairs of title fields. The post's own are
+textareas with the placeholders <code>Title</code> and
+<code>Add a subtitle…</code>; an <code>Add a title...</code> input and
+an <code>Add a description...</code> textarea belong to the SEO
+settings. <code>ss.setTitle()</code> fills the first pair, using the
+front matter's <code>title</code> and <code>description</code>, and the
+audit confirms both reached the saved draft.</p>
+<hr />
+<h4 id="step-6--publish">Step 6 — Publish</h4>
+<p><code>Continue</code> opens a Publish dialog on the same page.
+<code>ss.openPublish()</code> reads its settings, which by default
+are:</p>
+<pre class="text"><code>audience           everyone
+comments           everyone
+&quot;Send via email and the Substack app&quot;   checked
+&quot;Schedule time to email and publish&quot;    unchecked
+button             &quot;Send to everyone now&quot;</code></pre>
+<p>Left alone, publishing emails every subscriber. An email cannot be
+recalled, so the author decides before the click. For this post the
+author chose to send it, and the settings were checked once more inside
+the same script that clicked "Send to everyone now".</p>
+<p>A second dialog follows, "Add subscribe buttons to your post", and
+the publish waits at <code>Publishing...</code> until it is answered;
+this post went out with <code>Publish without buttons</code>. The
+helper's <code>ss.publish()</code> carries that whole route: it refuses
+unless it is told whether to send the email, refuses on any setting that
+differs from what it was told, and answers the second dialog:</p>
+<pre class="js"><code>await ss.publish({email: true, audience: &quot;everyone&quot;})</code></pre>
+<p>Then <code>ss.published()</code> reads the post back from the
+publication's list:</p>
+<pre class="json"><code>{&quot;audience&quot;: &quot;everyone&quot;, &quot;email_sent_at&quot;: &quot;2026-10-05T17:19:32.552Z&quot;, &quot;id&quot;: 218966232,
+ &quot;post_date&quot;: &quot;2026-10-05T17:19:32.878Z&quot;, &quot;slug&quot;: &quot;streamline-publishing-with-a-claude&quot;,
+ &quot;url&quot;: &quot;https://xbill9.substack.com/p/streamline-publishing-with-a-claude&quot;}</code></pre>
+<p>The slug is shorter than the title, so the URL comes from this
+response, never from the title.</p>
+<hr />
+<h4 id="step-7--add-the-link-to-the-announcements">Step 7 — Add the Link
+to the Announcements</h4>
+<p>The URL goes into <code>links.txt</code> beside the article, which
+feeds the LinkedIn, Slack and Google Chat posts:</p>
+<pre class="text"><code>substack   = https://xbill9.substack.com/p/streamline-publishing-with-a-claude
+python3 make-slack.py devto-publishing-kit.md
+  ok    Builder Center: HTTP 200
+  WARN  Medium: HTTP 403 to a browser UA (dev.to/Medium bot wall, not a broken link)
+  ok    Substack: HTTP 200
+  ok    Dev.to (aws-builders): HTTP 200
+  ok    LinkedIn: HTTP 200
+  ok    no markdown left; Slack renders none of it
+ 
+0 fail, 1 warn</code></pre>
+<p>Substack answers a published post with 200 and a missing slug with
+404, to a client with no cookies, so its links are checked like any
+other. A <code>substack = PENDING</code> line fails the run until the
+post is live.</p>
+<hr />
+<h4 id="mag_right-tip-count-inside-the-post-body">🔎 Tip: Count Inside
+the Post Body</h4>
+<p>The public page carries the post's markup more than once: the served
+HTML for this post holds 8 <code>&lt;pre&gt;</code> and 16
+<code>&lt;h3&gt;</code>. Inside the <code>class="body markup"</code>
+element it holds 4 and 7, matching the draft. Substack also adds an
+anchor link to every heading, at
+<code>/i/&lt;id&gt;/&lt;heading-slug&gt;</code>.</p>
+<hr />
+<h4 id="mag_right-tip-read-the-saved-draft-not-the-screen">🔎 Tip: Read
+the Saved Draft, Not the Screen</h4>
+<p>The editor renders what it holds, and a dropped link still looks like
+code on screen. The JSON document behind the draft lists every link
+target, so a missing one is a line that is absent from the list.</p>
+<hr />
+<h4 id="compare-and-contrast">Compare and Contrast</h4>
+<p><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/substack-destination/medium/img/devto-substack-destination-table-2.png"
+alt="Table: Medium, Substack" /></p>
+<hr />
+<h4 id="so-which-one">So, Which One?</h4>
+<p>Publish to both from the same build. Substack keeps more of the
+article than Medium does, code and alt text included, and asks for only
+two changes to the Medium HTML. Read the saved draft before publishing,
+and decide on the subscriber email before opening the Publish
+dialog.</p>
+<hr />
+<h4 id="summary">Summary</h4>
+<p>The goal of this article was to add Substack to publishing-kit and
+publish an article to it. The key to the solution was reusing the Medium
+HTML, adapting it in the page, and checking the draft Substack stored.
+The results were:</p>
+<ul>
+<li>🟢 <strong>Multi-line code kept</strong>, 4 blocks with the same
+line counts.</li>
+<li>🟢 <strong>Images re-hosted by Substack</strong>, alt text
+kept.</li>
+<li>🟢 <strong>All 4 link targets kept</strong>, once the links around
+inline code were unwrapped.</li>
+<li>🟢 <strong>The URL read back after publishing</strong>, and checked
+by the announcement scripts.</li>
+<li>⚠️ <strong>Publishing emails every subscriber by default</strong>,
+and waits on a second dialog.</li>
+<li>❌ <strong>No tables and no API</strong>: tables arrive as images,
+and the post goes in through the browser.</li>
+</ul>
+<p>Scope: one article, published on 2026-10-05 to one Substack
+publication from a background browser tab, with publishing-kit 0.32.0 in
+Claude Code on Linux. Element and size findings come from that editor's
+schema and styles on that date.</p>
+<p>The strategy for publishing one markdown article to Substack with an
+agent skill was validated with an incremental step by step approach.</p>
+<hr />
+<h4 id="references">References</h4>
+<ul>
+<li><a href="https://github.com/xbill9/publishing-kit">publishing-kit |
+GitHub</a></li>
+<li><a href="https://substack.com">Substack</a></li>
+<li><a href="https://prosemirror.net/docs/guide/#schema">ProseMirror
+schema guide</a></li>
+<li><a
+href="https://dev.to/gde/write-markdown-once-publish-it-everywhere-devto-medium-aws-builder-center-and-linkedin-np4">Write
+Markdown Once, Publish It Everywhere | dev.to</a></li>
+</ul>
+</body>
+</html>

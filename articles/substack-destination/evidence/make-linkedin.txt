@@ -1,0 +1,18 @@
+
+devto-publishing-kit.md -> linkedin-devto-publishing-kit.txt
+  ok    6 link(s) resolved
+  ok    no draft URLs; every slug is settled
+  ok    hook fits the fold: 46 chars
+  ok    post is 1985 chars of 3000
+  ok    no markdown left; LinkedIn renders none of it
+  ok    no template scaffolding left
+  ok    no Unicode pseudo-bold
+  ok    cover found: cover.77acc7c4.jpg (linkedin-devto-publishing-kit-cover.jpg not written)
+  ok    checked without writing (linkedin-devto-publishing-kit.txt left alone)
+
+--- above the fold (140 chars) ---
+Streamline Publishing with a Claude Code Skill
+
+A Claude Code skill that turns one markdown file into dev.to, AWS Builder Center, Medium and
+
+0 fail, 0 warn
