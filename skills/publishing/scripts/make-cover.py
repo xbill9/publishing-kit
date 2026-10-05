@@ -121,12 +121,17 @@ def render(a):
     img = Image.new("RGB", (W * S, H * S), SURFACE)
     d = ImageDraw.Draw(img)
 
-    # subtle vignette so a flat fill does not read as a slide
-    n = int(80 * k)
-    for i in range(n):
-        v = int(6 * (1 - i / n))
-        d.rectangle([i * S, i * S, (W - i) * S, (H - i) * S],
-                    outline=(SURFACE[0] + v, SURFACE[1] + v, SURFACE[2] + v), width=S)
+    # subtle vignette so a flat fill does not read as a slide. A blurred mask,
+    # not nested rectangle outlines: those step in whole units of value and
+    # leave a visible inset frame ~70px in from the edge.
+    from PIL import ImageFilter
+    edge = int(80 * k * S)
+    mask = Image.new("L", img.size, 0)
+    ImageDraw.Draw(mask).rectangle([edge, edge, W * S - edge, H * S - edge], fill=255)
+    mask = mask.filter(ImageFilter.GaussianBlur(edge * 1.5))
+    lift = Image.new("RGB", img.size, tuple(c + 4 for c in SURFACE))
+    img = Image.composite(img, lift, mask)
+    d = ImageDraw.Draw(img)
 
     if a.no_text and a.flow:
         img = render_flow_abstract(img, a, W, H)
@@ -395,19 +400,32 @@ def render_flow_abstract(img, a, W, H):
     gd = ImageDraw.Draw(glow)
     lines = Image.new("RGBA", img.size, (0, 0, 0, 0))
     ld = ImageDraw.Draw(lines)
+    # ImageDraw REPLACES pixels on an RGBA layer rather than compositing, so
+    # strands sharing one layer overwrite each other's alpha where they cross
+    # and the fan's throat renders as a blocky checker. Each strand gets its
+    # own layer and is composited.
+    # Strands are also drawn at a further 4x and downsampled: at S=2 a 3px
+    # polyline near the horizontal steps one whole pixel at a time, and seven
+    # strands stepping out of phase read as dashes in the fan's throat.
+    img = img.convert("RGBA")
+    X = 4
+    lines = Image.new("RGBA", (img.size[0] * X, img.size[1] * X), (0, 0, 0, 0))
     for y, col in zip(ys, cols):
         for s in range(-3, 4):                  # a ribbon is a bundle of strands
             off = s * 5 * u
             p0 = (sx, sy + off * 0.4)
             p3 = (tx - r * 1.3, y + off * 0.6)
             midx = (p0[0] + p3[0]) / 2
-            pts = bez(p0, (midx, p0[1]), (midx, p3[1]), p3)
+            pts = bez(p0, (midx, p0[1]), (midx, p3[1]), p3, steps=240)
             alpha = 150 - abs(s) * 35
-            ld.line(pts, fill=col + (alpha,), width=max(1, int(1.6 * u)))
-            gd.line(pts, fill=col + (90,), width=int(10 * u))
+            gd.line(pts, fill=col + (90,), width=int(10 * u), joint="curve")
+            strand = Image.new("RGBA", lines.size, (0, 0, 0, 0))
+            ImageDraw.Draw(strand).line([(px * X, py * X) for px, py in pts], fill=col + (alpha,),
+                                        width=max(1, int(1.6 * u * X)), joint="curve")
+            lines = Image.alpha_composite(lines, strand)
     glow = glow.filter(ImageFilter.GaussianBlur(14 * u))
-    img = Image.alpha_composite(img.convert("RGBA"), glow)
-    img = Image.alpha_composite(img, lines)
+    img = Image.alpha_composite(img, glow)
+    img = Image.alpha_composite(img, lines.resize(img.size, Image.LANCZOS))
     d = ImageDraw.Draw(img)
 
     # ---- destination shapes: one per --dest, alternating forms ---------------
