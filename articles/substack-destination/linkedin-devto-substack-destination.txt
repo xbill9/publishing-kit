@@ -1,0 +1,16 @@
+Publishing Markdown to Substack from an Agent Skill
+
+Substack has no publishing API, its editor has no tables, and a link around inline code is dropped on paste. A step by step walk-through of the Substack destination in publishing-kit: what the editor keeps, what it drops, and how an agent publishes to it and reads the result back.
+
+What is in it:
+
+- 🟢 Multi-line code kept, 4 blocks with the same line counts.
+- 🟢 Images re-hosted by Substack, alt text kept.
+- 🟢 All 4 link targets kept, once the links around inline code were unwrapped.
+- 🟢 Plain-text code blocks kept as code, once their language class was cleared.
+
+dev.to (Google Developer Experts): https://dev.to/gde/publishing-markdown-to-substack-from-an-agent-skill-258f
+dev.to (AWS Community Builders): https://dev.to/aws-builders/publishing-markdown-to-substack-from-an-agent-skill-7f
+Medium: https://xbill999.medium.com/publishing-markdown-to-substack-from-an-agent-skill-c8af036e3339
+Substack: https://xbill9.substack.com/p/publishing-markdown-to-substack-from
+Source: https://github.com/xbill9/publishing-kit
