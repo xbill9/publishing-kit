@@ -638,7 +638,7 @@ needs.
 
 **No new generator.** Substack's editor has no table node either, so the
 `-hosted.html` from `make-medium.py` is the input, and `ss.prepare()` in
-`scripts/browser/substack-editor.js` makes two changes on the way in, both
+`scripts/browser/substack-editor.js` makes three changes on the way in, all
 MEASURED 2026-10-05:
 
 - **A link around inline code is dropped.** The editor's `code` mark excludes
@@ -646,6 +646,11 @@ MEASURED 2026-10-05:
   error. `prepare()` unwraps the `<code>`.
 - **Medium's `<h4>` sections are promoted to `<h3>`.** Substack has six heading
   sizes and renders `h4` at 21px against 19px body text.
+
+- **A ` ```text ` block becomes a maths block.** `<pre class="text">` saves as
+  Substack's `latex_block`; `prepare()` clears the classes on `<pre>`.
+- **A subtitle over 255 characters stops the whole draft saving**, body
+  included. `ss.setTitle()` refuses one.
 
 Multi-line code blocks and image alt text both survive the paste, unlike Medium.
 **Audit from the saved draft** with `ss.audit()`, which reads the stored document

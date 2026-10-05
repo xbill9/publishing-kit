@@ -47,9 +47,15 @@ window.ss = (() => {
       const n = doc.createElement(sectionHeading);
       n.append(...h.childNodes); h.replaceWith(n);
     }
+    // MEASURED 2026-10-05: <pre class="text"> (a ```text fence) pastes as a
+    // latex_block, Substack's maths element, while shell/js/json fences paste as
+    // code_block. The saved code_block keeps no language, so drop the classes.
+    let preClassesCleared = 0;
+    for (const e of doc.querySelectorAll("pre, pre code"))
+      if (e.hasAttribute("class")) { e.removeAttribute("class"); if (e.tagName === "PRE") preClassesCleared++; }
     const anchors = [...doc.querySelectorAll("a[href]")].filter((a) => /^https?:/.test(a.getAttribute("href"))).length;
     prepared = { html: doc.body.innerHTML, text: doc.body.innerText };
-    return { html: prepared.html.length, codeLinksUnwrapped, anchors, images: doc.querySelectorAll("img").length, pres: doc.querySelectorAll("pre").length };
+    return { html: prepared.html.length, codeLinksUnwrapped, preClassesCleared, anchors, images: doc.querySelectorAll("img").length, pres: doc.querySelectorAll("pre").length };
   }
 
   async function paste() {
@@ -70,7 +76,13 @@ window.ss = (() => {
   // The post's Title and subtitle are textareas in the editor, placeholders "Title"
   // and "Add a subtitle…". The "Add a title..." input and "Add a description..."
   // textarea are the SEO settings, a different pair.
+  // MEASURED 2026-10-05: a 256-character subtitle is refused ("Draft not saved:
+  // Subtitle is too long") and NOTHING saves, body included; 255 saves. The
+  // banner stays up after a later save succeeds, so judge by ss.audit().
+  const SUBTITLE_MAX = 255;
   function setTitle(title, subtitle) {
+    if (subtitle != null && subtitle.length > SUBTITLE_MAX)
+      return { refused: `subtitle is ${subtitle.length} chars; Substack saves at most ${SUBTITLE_MAX}, and refuses the whole draft above that` };
     const t = [...document.querySelectorAll("textarea")].find((e) => e.placeholder === "Title");
     const s = [...document.querySelectorAll("textarea")].find((e) => /^Add a subtitle/.test(e.placeholder));
     if (!t || !s) return { refused: "post title/subtitle textareas not found" };
@@ -133,7 +145,10 @@ window.ss = (() => {
     if (!d) return null;
     const radio = (name) => d.querySelector(`input[name=${name}]:checked`)?.value || null;
     const box = (re) => [...d.querySelectorAll("input[type=checkbox]")].find((c) => re.test(labelOf(c)))?.checked ?? null;
-    const send = [...d.querySelectorAll("button")].map((b) => b.innerText.trim()).find((t) => /^(Send|Publish)/.test(t) && t !== "Publish") || null;
+    // Single-line labels only: the social-preview card is also a <button>, and its
+    // text starts with the post title, which can itself start with "Publish".
+    const send = [...d.querySelectorAll("button")].map((b) => b.innerText.trim())
+      .find((t) => !t.includes("\n") && /^(Send|Publish)\b/.test(t) && t !== "Publish") || null;
     return { audience: radio("audience"), comments: radio("commentLevel"), email: box(/^Send via email/), scheduled: box(/^Schedule time/), button: send };
   }
 

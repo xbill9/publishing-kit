@@ -67,6 +67,13 @@ MEASURED 2026-10-05:
   Two of two such links vanished in the first paste while the four plain links
   beside them survived, so the test could produce a positive. `ss.prepare()`
   unwraps `<code>` inside `<a>`; the second paste kept all four targets.
+- **A ` ```text ` fence becomes a maths block.** MEASURED 2026-10-05: of nine
+  pasted `<pre>` blocks, the six classed `shell`, `js` and `json` saved as
+  `code_block`, and the three classed `text` saved as `latex_block`, the
+  editor's LaTeX element. `ss.prepare()` removes the classes from `<pre>` and
+  `<pre><code>` (a saved `code_block` keeps no language anyway); the re-paste
+  saved nine `code_block` with matching line counts and no `latex_block`.
+  `ss.audit()` counts `latex_block` among the types, so a stray one shows up.
 - A `gitgist` node exists. Whether a pasted gist URL becomes one is not measured.
 
 ## Headings: Substack has six sizes
@@ -85,6 +92,15 @@ and `Add a subtitle…`. The page also holds an `<input>` "Add a title..." and a
 `ss.setTitle()` sets the first pair through the native value setter and fires
 `input`; MEASURED 2026-10-05, both came back in `draft_title` / `draft_subtitle`.
 The house subtitle is the front matter's `description`.
+
+**A subtitle over 255 characters stops the whole draft saving.** MEASURED
+2026-10-05: with a 284-character description, the editor showed "Draft not saved
+/ Subtitle is too long", and the stored draft kept an empty title and a 74-character
+empty body while the editor showed the full paste. Set one at a time and read
+back: 255 saved, 256 and 257 did not, and 241 and 248 to 254 saved, body
+included. The "Subtitle is too long" banner stayed on the page after the later
+saves succeeded, so judge by `ss.audit()`, never by the banner. `ss.setTitle()`
+refuses a subtitle over 255; cut the description at a sentence.
 
 ## Replacing the body
 
@@ -134,6 +150,15 @@ MEASURED 2026-10-05, publishing this kit's article from a hidden tab. Use
   than once (8 `<pre>`, 16 `<h3>` in the whole document), so count inside
   `class="body markup"`.
 
-The full route through `ss.publish()` is newer than this measurement: the
-modals' labels and defaults above are what it reads, and its refusals were
-checked on a page with no modal open.
+**`ss.publish()` has run end to end.** MEASURED 2026-10-05 on a second post:
+`openPublish()` read the settings, `publish({email: true, audience: "everyone",
+comments: "everyone", scheduled: false})` returned `clicked: "Send to everyone
+now"` and `answered: "Publish without buttons"`, and `published()` returned the
+post with `email_sent_at` set. Its first read of the dialog picked the
+social-preview card as the send button, because that card is a `<button>` whose
+text starts with the post title, and this title starts with "Publishing"; the
+helper now accepts single-line labels only. Read `openPublish()`'s `button`
+before calling `publish()`.
+
+**Slugs seen so far are cut to about 35 characters on a word boundary:**
+`streamline-publishing-with-a-claude` and `publishing-markdown-to-substack-from`.
