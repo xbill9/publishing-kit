@@ -20,6 +20,9 @@
 //   await ss.openPublish()                     -> {open:true, settings}  read them out
 //   await ss.publish({email:true, audience:"everyone"})   refuses on any mismatch
 //   await ss.published(<draft id>)             -> {slug, url, email_sent_at}
+// Updating a published post: clear, prepare, paste and audit as above, then
+//   await ss.openPublish()                     -> settings.button "Update now", email null
+//   await ss.publish({update: true})           no email is sent; email_sent_at unchanged
 //
 // Every helper refuses ({refused: ...}) instead of acting when its precondition
 // fails; a guard inside one script is a real guard, unlike one inside a batch.
@@ -148,14 +151,16 @@ window.ss = (() => {
     // Single-line labels only: the social-preview card is also a <button>, and its
     // text starts with the post title, which can itself start with "Publish".
     const send = [...d.querySelectorAll("button")].map((b) => b.innerText.trim())
-      .find((t) => !t.includes("\n") && /^(Send|Publish)\b/.test(t) && t !== "Publish") || null;
+      .find((t) => !t.includes("\n") && /^(Send|Publish|Update)\b/.test(t) && t !== "Publish") || null;
     return { audience: radio("audience"), comments: radio("commentLevel"), email: box(/^Send via email/), scheduled: box(/^Schedule time/), button: send };
   }
 
   async function openPublish() {
     if (publishDialog()) return { open: true, already: true, settings: settings() };
-    const b = [...document.querySelectorAll("button")].find((x) => x.innerText.trim() === "Continue");
-    if (!b) return { refused: "no Continue button; not on a draft in the editor" };
+    // A published post whose draft differs from the live copy shows "Update"
+    // where a draft shows "Continue" (MEASURED 2026-10-05).
+    const b = [...document.querySelectorAll("button")].find((x) => ["Continue", "Update"].includes(x.innerText.trim()));
+    if (!b) return { refused: "no Continue or Update button; not on a draft in the editor, or nothing changed since publishing" };
     b.click();
     for (let i = 0; i < 10 && !publishDialog(); i++) await sleep(500);
     return publishDialog() ? { open: true, settings: settings() } : { refused: "Continue did not open the Publish modal" };
@@ -171,11 +176,19 @@ window.ss = (() => {
   async function publish(expect, { subscribeButtons = false } = {}) {
     const s = settings();
     if (!s) return { refused: "Publish modal not open; await ss.openPublish() and read its settings first" };
-    if (!expect || typeof expect.email !== "boolean") return { refused: "pass {email: true|false, audience}; the email cannot be unsent", settings: s };
+    // MEASURED 2026-10-05: updating a published post opens the same modal with no
+    // Delivery section (settings().email is null) and "Update now"; email_sent_at
+    // stayed unchanged, so an update does not send a second email.
+    if (s.email === null && s.button === "Update now") {
+      if (!expect?.update) return { refused: "this updates a published post; pass {update: true}", settings: s };
+    } else if (!expect || typeof expect.email !== "boolean") return { refused: "pass {email: true|false, audience}; the email cannot be unsent", settings: s };
     for (const k of ["email", "audience", "comments", "scheduled"])
-      if (k in expect && expect[k] !== s[k]) return { refused: `${k} is ${s[k]}, expected ${expect[k]}; change it in the modal first`, settings: s };
+      if (k in expect && k !== "update" && expect[k] !== s[k]) return { refused: `${k} is ${s[k]}, expected ${expect[k]}; change it in the modal first`, settings: s };
     const go = [...publishDialog().querySelectorAll("button")].find((b) => b.innerText.trim() === s.button);
     if (!go) return { refused: "no send/publish button in the modal", settings: s };
+    // An update moves the tab to share-center?alreadyPublished=true at once, which
+    // kills a script still running in the page; click after returning.
+    if (s.button === "Update now") { setTimeout(() => go.click(), 100); return { clicked: s.button, settings: s }; }
     go.click();
     const want = subscribeButtons ? "Add subscribe buttons" : "Publish without buttons";
     for (let i = 0; i < 20; i++) {

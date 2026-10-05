@@ -160,5 +160,36 @@ text starts with the post title, and this title starts with "Publishing"; the
 helper now accepts single-line labels only. Read `openPublish()`'s `button`
 before calling `publish()`.
 
+## Updating a published post
+
+MEASURED 2026-10-05 on both posts, done step by step in a hidden tab:
+
+- `/publish/post/<id>` opens the published post in the same editor, and edits
+  save to a draft copy (`draft_updated_at` moves; the live page does not).
+  `ss.clear(<id>)`, `ss.prepare()`, `ss.paste()` and `ss.audit()` work there
+  unchanged.
+- Once the draft differs from the live post, the editor's button reads
+  **`Update`** where a new draft shows `Continue`.
+- `Update` opens the same `Publish` modal **with no Delivery section and no
+  email checkbox**, and its button reads **`Update now`**. After it, both posts
+  kept their original `email_sent_at`, so an update sends no second email. No
+  subscribe-buttons modal followed.
+- The tab moves to `/publish/posts/detail/<id>/share-center?alreadyPublished=true`
+  immediately, which ends any script still running in the page.
+- The live page served the new body at once: the new paragraph, the new table
+  image (`_1146x436.png` against `_1146x382.png` before), and on the other post
+  the new cover. Substack re-hosts an image under a new name on every paste, so
+  compare the re-hosted bytes against the local file. The new cover
+  differed from the local file by 0.0 mean per pixel, the old one by 18.71.
+- **A changed image must reach the CDN before the paste.** Substack fetches
+  `raw.githubusercontent.com/.../main/...` at paste time; after a push, that URL
+  served the previous bytes for several minutes (`check-links.py` failed it while
+  `--pinned` passed). Paste once `check-links.py` without `--pinned` passes.
+
+`openPublish()` and `publish({update: true})` carry this route; the helper
+refuses an update without `update: true`, and clicks `Update now` after
+returning. The two updates above were run step by step, before those lines were
+written.
+
 **Slugs seen so far are cut to about 35 characters on a word boundary:**
 `streamline-publishing-with-a-claude` and `publishing-markdown-to-substack-from`.

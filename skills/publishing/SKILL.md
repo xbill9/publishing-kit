@@ -530,6 +530,14 @@ nothing about the state change; only `--list` shows it. **After updating anythin
 already live, re-run `--publish <id>` and confirm with `--list`.** The slug and
 the id survive, so links keep working once it is back.
 
+**And the public page can keep serving a 404 after it is back.** MEASURED
+2026-10-05: one of four articles updated and re-published that afternoon
+answered **404 to a public fetch** for more than eight minutes afterwards, with
+`x-cache: HIT` and a rising `age:` header, while the API returned it published
+with the new body at the same URL. A query string did not get past the cache.
+The other three served 200. Check each page after a re-publish, and read
+`age:` before calling a 404 a broken article.
+
 Front matter is part of `body_markdown`, so title, tags and
 `cover_image` all transfer — no field-filling, no cover upload, no title retyping.
 `--update` rewrites those too, and does not change the slug of an already-published
