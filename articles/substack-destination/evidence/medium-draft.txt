@@ -17,3 +17,7 @@ set                paywall unchecked; re-read after 2 s: paywall false, notify t
 ?format=json       firstPublishedAt 1791224289777, isSubscriptionLocked false, 83 paragraphs
 mediumUrl          https://medium.com/@xbill999/publishing-markdown-to-substack-from-an-agent-skill-c8af036e3339
 tab landed on      https://xbill999.medium.com/publishing-markdown-to-substack-from-an-agent-skill-c8af036e3339?postPublishedType=initial
+
+## LinkedIn post staged in the composer (not posted), 2026-10-05
+cover              linkedin-devto-substack-destination-cover.jpg, 37484 bytes, preview 1200x627
+text               verifyPost: normalizedEqual true, 1076 = 1076 chars, imageAttached true, postEnabled true

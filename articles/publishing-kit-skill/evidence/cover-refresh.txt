@@ -1,0 +1,10 @@
+# The walk-through's cover replaced on its published copies, 2026-10-05.
+new cover          cover.ae4d639e.jpg (dev.to, Substack, Medium HTML), cover-builder.cabd79f3.jpg (Builder)
+dev.to 4541392     cover_image ...cover.ae4d639e.jpg after --update + --publish; page 200
+dev.to 4541410     cover_image ...cover.ae4d639e.jpg after --update + --publish; page 200
+Substack 218966232 re-hosted cover mean abs pixel diff vs cover.ae4d639e.jpg 0.0, vs cover.77acc7c4.jpg 18.71;
+                   Update now, email_sent_at unchanged (2026-10-05T17:19:32.552Z)
+Builder Center     hero 3Iht8SwPGUiGCM5ZmKpLgWaBnY1/cove.webp -> 3KHoEUygYIqInweXj06zzeB6Mzi/cove.webp,
+                   1200x675; mean abs pixel diff vs cover-builder.cabd79f3.jpg 0.56,
+                   vs cover-builder.80aa6ca5.jpg 14.66 (Publish clicked by the author)
+Medium             not replaced; the story still shows cover.77acc7c4.jpg
