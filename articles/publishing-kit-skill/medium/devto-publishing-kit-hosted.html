@@ -1,12 +1,15 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="utf-8" />
-  <meta name="generator" content="pandoc" />
+  <meta name="generator" content="pandoc 3.11" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>Streamline Publishing with a Claude Code Skill</title>
   <meta name="description" content="A Claude Code skill that turns one markdown file into dev.to, AWS Builder Center, Medium and LinkedIn versions, checks them before they ship, and posts the ones with an API — plus the debugging tools for when a destination mangles something." />
   <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
     html {
       color: #1a1a1a;
       background-color: #fdfdfd;
@@ -39,7 +42,6 @@
       body {
         background-color: transparent;
         color: black;
-        font-size: 12pt;
       }
       p, h2, h3 {
         orphans: 3;
@@ -89,6 +91,7 @@
       color: #606060;
     }
     code {
+      white-space: pre-wrap;
       font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
       font-size: 85%;
       margin: 0;
@@ -108,8 +111,8 @@
      overflow: visible;
     }
     hr {
-      background-color: #1a1a1a;
       border: none;
+      border-top: 1px solid #1a1a1a;
       height: 1px;
       margin: 1em 0;
     }
@@ -152,10 +155,13 @@
     #TOC a:not(:hover) {
       text-decoration: none;
     }
-    code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
-    div.columns{display: flex; gap: min(4vw, 1.5em);}
-    div.column{flex: auto; overflow-x: auto;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
     /* The extra [class] is a hack that increases specificity enough to
        override a similar rule in reveal.js */
@@ -166,71 +172,6 @@
       margin: 0 0.8em 0.2em -1.6em;
       vertical-align: middle;
     }
-    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
-    /* CSS for syntax highlighting */
-    pre > code.sourceCode { white-space: pre; position: relative; }
-    pre > code.sourceCode > span { line-height: 1.25; }
-    pre > code.sourceCode > span:empty { height: 1.2em; }
-    .sourceCode { overflow: visible; }
-    code.sourceCode > span { color: inherit; text-decoration: inherit; }
-    div.sourceCode { margin: 1em 0; }
-    pre.sourceCode { margin: 0; }
-    @media screen {
-    div.sourceCode { overflow: auto; }
-    }
-    @media print {
-    pre > code.sourceCode { white-space: pre-wrap; }
-    pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
-    }
-    pre.numberSource code
-      { counter-reset: source-line 0; }
-    pre.numberSource code > span
-      { position: relative; left: -4em; counter-increment: source-line; }
-    pre.numberSource code > span > a:first-child::before
-      { content: counter(source-line);
-        position: relative; left: -1em; text-align: right; vertical-align: baseline;
-        border: none; display: inline-block;
-        -webkit-touch-callout: none; -webkit-user-select: none;
-        -khtml-user-select: none; -moz-user-select: none;
-        -ms-user-select: none; user-select: none;
-        padding: 0 4px; width: 4em;
-        color: #aaaaaa;
-      }
-    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-    div.sourceCode
-      {   }
-    @media screen {
-    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-    }
-    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-    code span.at { color: #7d9029; } /* Attribute */
-    code span.bn { color: #40a070; } /* BaseN */
-    code span.bu { color: #008000; } /* BuiltIn */
-    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-    code span.ch { color: #4070a0; } /* Char */
-    code span.cn { color: #880000; } /* Constant */
-    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-    code span.dt { color: #902000; } /* DataType */
-    code span.dv { color: #40a070; } /* DecVal */
-    code span.er { color: #ff0000; font-weight: bold; } /* Error */
-    code span.ex { } /* Extension */
-    code span.fl { color: #40a070; } /* Float */
-    code span.fu { color: #06287e; } /* Function */
-    code span.im { color: #008000; font-weight: bold; } /* Import */
-    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-    code span.op { color: #666666; } /* Operator */
-    code span.ot { color: #007020; } /* Other */
-    code span.pp { color: #bc7a00; } /* Preprocessor */
-    code span.sc { color: #4070a0; } /* SpecialChar */
-    code span.ss { color: #bb6688; } /* SpecialString */
-    code span.st { color: #4070a0; } /* String */
-    code span.va { color: #19177c; } /* Variable */
-    code span.vs { color: #4070a0; } /* VerbatimString */
-    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
   <style>
     body{font-family:-apple-system,'Segoe UI',Roboto,'Liberation Sans',Arial,sans-serif;
@@ -247,10 +188,7 @@
   </style>
 </head>
 <body>
-<figure><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/cover.77acc7c4.jpg" alt="Streamline Publishing with a Claude Code Skill" /></figure>
-<header id="title-block-header" hidden>
-<h1 class="title">Streamline Publishing with a Claude Code Skill</h1>
-</header>
+<figure><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/cover.ae4d639e.jpg" alt="Streamline Publishing with a Claude Code Skill" /></figure>
 <blockquote>
 <p><strong>TL;DR:</strong> <a
 href="https://github.com/xbill9/publishing-kit">publishing-kit</a>
@@ -261,9 +199,9 @@ This article, its cover and all four of its artifacts were produced by
 the thing the article is about — dogfooding all the way down. More on
 that at the end.</p>
 </blockquote>
-<p>Publishing one technical article to four places involves a surprising
-amount of ceremony: making a cover at whatever size each destination
-wants, rendering tables to images because Medium's importer eats them,
+<p>Publishing one technical article to four places involves a lot of
+ceremony: making a cover at whatever size each destination wants,
+rendering tables to images because Medium's importer eats them,
 stripping emoji for AWS, checking that every number in the piece came
 from a real run, getting a long markdown file into a browser editor that
 has no API, remembering which organization the article routes to, and
@@ -287,7 +225,7 @@ and a LinkedIn post. <code>make-builder.py</code>,
 pipeline as an illustration and renders it at every geometry the
 destinations demand, names the file by a hash of its own bytes, and
 reports which type sizes survive a 320px feed card — which is the size a
-cover is actually met at, and where a diagram with small labels turns to
+cover is seen at, and where a diagram with small labels turns to
 mush.</li>
 <li><strong>Trace every number:</strong> <code>check-facts.py</code>
 pulls the prices, measurements and versions out of your prose and
@@ -323,9 +261,8 @@ LinkedIn's Posts API cannot create a draft, because
 <pre class="shell"><code>/plugin marketplace add xbill9/publishing-kit
 /plugin install publishing@publishing-kit</code></pre>
 <p>Prefer the classic route? Clone it and symlink the skill:</p>
-<div class="sourceCode" id="cb2"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/xbill9/publishing-kit</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ln</span> <span class="at">-s</span> <span class="st">&quot;</span><span class="va">$PWD</span><span class="st">/publishing-kit/skills/publishing&quot;</span> ~/.claude/skills/publishing</span></code></pre></div>
+<pre class="bash"><code>git clone https://github.com/xbill9/publishing-kit
+ln -s &quot;$PWD/publishing-kit/skills/publishing&quot; ~/.claude/skills/publishing</code></pre>
 <p>You will need Python 3 with Pillow for the cover and table rendering,
 a dev.to API key in <code>~/.devto.key</code>, and a public repo to hold
 the article directory — both the cover and the Medium images are fetched
@@ -364,10 +301,9 @@ went sideways</h4>
 <p>This is the half that surprised me most, and where most of the
 skill's value ended up.</p>
 <p><strong>The page does not look like the file.</strong> Fetch what the
-destination actually serves rather than reasoning about what you
-pushed:</p>
-<pre class="shell"><code>python3 ../../skills/publishing/scripts/check-links.py article.md</code></pre>
-<pre class="plaintext"><code>devto-publishing-kit.md  (branch URLs)
+destination serves rather than reasoning about what you pushed:</p>
+<pre class="shell"><code>python3 ../../skills/publishing/scripts/check-links.py article.md
+devto-publishing-kit.md  (branch URLs)
   ok    cover.77acc7c4.jpg: HTTP 200, bytes match disk
   ok    img/cover.77acc7c4.jpg: HTTP 200, bytes match disk
   ok    img/devto-publishing-kit-table-1.png: HTTP 200, bytes match disk</code></pre>
@@ -388,7 +324,7 @@ references real URLs Medium re-hosts, and commit the images first.</p>
 <code>check-facts.py</code> will name it. Every untraced claim is one of
 three things: measured but never archived, arithmetic that should be
 labelled as arithmetic, or asserted from memory — and it is always the
-third one that turns out to be wrong.</p>
+third one that is wrong.</p>
 <h4 id="under-the-hood">Under the hood</h4>
 <p>One <code>SKILL.md</code>, a reference file for each destination's
 quirks, and a script per job. The skill decides when each one runs; the
@@ -412,10 +348,11 @@ this article, and its cover 🐕🍖</h4>
 <code>publish-devto.py</code>.</p>
 <p>The two numbers on the cover are real, and both were found by using
 the kit on itself:</p>
-<p><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/devto-publishing-kit-table-1.png" alt="table" /></p>
+<p><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/devto-publishing-kit-table-1.png"
+alt="Table: measured" /></p>
 <p>The first one had been happening to my articles for months. The
-second cost a full re-do the first time it happened. Neither is in the
-docs of either destination, and both are now checks.</p>
+second cost a full re-do the first time it happened. Both are missing
+from the destinations' docs, and both are now checks.</p>
 <p>The run also found five faults in the kit itself, which is the point
 of eating your own cooking: <code>make-medium.py</code> had another
 project's repo hardcoded as its default image base;

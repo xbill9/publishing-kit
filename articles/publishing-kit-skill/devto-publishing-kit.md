@@ -3,7 +3,7 @@ title: "Streamline Publishing with a Claude Code Skill"
 published: false
 description: "A Claude Code skill that turns one markdown file into dev.to, AWS Builder Center, Medium and LinkedIn versions, checks them before they ship, and posts the ones with an API — plus the debugging tools for when a destination mangles something."
 tags: claudecode, writing, devtools, ai
-cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/cover.77acc7c4.jpg
+cover_image: https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/cover.ae4d639e.jpg
 ---
 
 > **TL;DR:** [publishing-kit](https://github.com/xbill9/publishing-kit) packages the whole
