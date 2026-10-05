@@ -37,7 +37,7 @@ None of the failures produces an error. The table disappears, or a link becomes 
 
 Substack's editor is built on ProseMirror, and its schema lists every element and mark a post can hold. The `code` mark is declared with `excludes: "_"`, which means inline code can carry no other mark: no bold, no italic, no link.
 
-So `` [`skills/publishing/SKILL.md`](https://github.com/...) `` arrives as `<a><code>skills/publishing/SKILL.md</code></a>`, and the editor keeps the code and discards the link. The kit's walk-through has two links written that way, and pasted as-is, its saved draft holds 2 link targets out of 4.
+So `` [`skills/publishing/SKILL.md`](https://github.com/xbill9/publishing-kit/blob/main/skills/publishing/SKILL.md) `` arrives as `<a><code>skills/publishing/SKILL.md</code></a>`, and the editor keeps the code and discards the link. The kit's walk-through has two links written that way, and pasted as-is, its saved draft holds 2 link targets out of 4.
 
 The fix is to take the `<code>` out of the anchor before pasting. The link survives as plain text, which keeps the reader's way to the page.
 
