@@ -10,3 +10,10 @@ title              insertText -> "Publishing Markdown to Substack from an Agent 
                    = editor data-image-id
                    first: title, opening paragraph, cover image; last: "Write Markdown Once,
                    Publish It Everywhere | dev.to"
+
+## Published 2026-10-05
+submission page    "Paywall this story" checked, "Notify your 232 subscribers" checked (defaults)
+set                paywall unchecked; re-read after 2 s: paywall false, notify true
+?format=json       firstPublishedAt 1791224289777, isSubscriptionLocked false, 83 paragraphs
+mediumUrl          https://medium.com/@xbill999/publishing-markdown-to-substack-from-an-agent-skill-c8af036e3339
+tab landed on      https://xbill999.medium.com/publishing-markdown-to-substack-from-an-agent-skill-c8af036e3339?postPublishedType=initial

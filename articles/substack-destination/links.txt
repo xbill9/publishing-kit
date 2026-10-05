@@ -3,8 +3,7 @@
 devto-gde  = https://dev.to/gde/publishing-markdown-to-substack-from-an-agent-skill-258f
 devto-aws  = https://dev.to/aws-builders/publishing-markdown-to-substack-from-an-agent-skill-7f
 substack   = https://xbill9.substack.com/p/publishing-markdown-to-substack-from
-# Medium draft (not public until published): https://medium.com/p/c8af036e3339/edit
-medium     = PENDING
+medium     = https://xbill999.medium.com/publishing-markdown-to-substack-from-an-agent-skill-c8af036e3339
 builder    = SKIP
 # not posted yet; replace SKIP with the post's URL once it is
 linkedin   = SKIP
