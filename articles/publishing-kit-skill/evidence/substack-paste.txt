@@ -42,3 +42,22 @@ images             2 rehosted, alt "Streamline Publishing with a Claude Code Ski
 https://xbill9.substack.com/p/coming-soon       200, no verdict
 https://substack.com/@xbill99                   200, no verdict
 https://xbill9.substack.com/p/no-such-post-zz   HTTP 404 to a browser UA
+
+## Publish, 2026-10-05 17:19 UTC
+modal defaults     audience everyone, commentLevel everyone,
+                   "Send via email and the Substack app" checked,
+                   "Schedule time to email and publish" unchecked,
+                   button "Send to everyone now"
+second modal       "Add subscribe buttons to your post": Publish without buttons /
+                   Add subscribe buttons; first modal showed "Publishing..." until
+                   answered (35 s observed). Answered: Publish without buttons.
+after              tab at /publish/posts/detail/218966232/share-center
+published list     id 218966232, slug streamline-publishing-with-a-claude,
+                   post_date 2026-10-05T17:19:32.878Z,
+                   email_sent_at 2026-10-05T17:19:32.552Z, audience everyone
+public page        https://xbill9.substack.com/p/streamline-publishing-with-a-claude
+                   check-links fetch: 200, no verdict
+                   inside class="body markup": pre 4, h3 7, h4 0, img 2,
+                   article links 4 (SKILL.md and tree/ links present),
+                   7 heading anchors /i/218966232/<heading>
+                   whole document: pre 8, h3 16
