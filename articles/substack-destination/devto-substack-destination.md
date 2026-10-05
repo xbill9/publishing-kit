@@ -27,6 +27,7 @@ Pasting HTML into it, then reading back the draft Substack stored, gives this:
 | Plain links | 🟢 kept |
 | Tables | ❌ no table element exists in the editor |
 | A link whose text is inline code | ❌ the link is dropped, the code is kept |
+| A code block marked `text` | ❌ saved as a maths (LaTeX) block |
 | Section headings | ⚠️ kept at the level pasted, in six distinct sizes |
 
 None of the failures produces an error. The table disappears, or a link becomes plain monospace text, and the editor saves it.
@@ -73,7 +74,7 @@ python3 make-medium.py devto-substack-destination.md medium --cover=cover.325bdb
 ```text
 devto-substack-destination.md: 2 tables, 0 diagrams
    USE THIS   -> medium/devto-substack-destination-hosted.html  (paste or import; needs medium/img committed AND pushed)
-   not this   -> medium/devto-substack-destination-embed.html   (199 KB; data: URIs, Medium drops them all on paste)
+   not this   -> medium/devto-substack-destination-embed.html   (211 KB; data: URIs, Medium drops them all on paste)
    Medium never fills its Title field from pasted content -- set the title separately.
 ```
 
@@ -108,7 +109,7 @@ ss.prepare(p.html)
 {"anchors": 6, "codeLinksUnwrapped": 2, "html": 11557, "images": 2, "pres": 4}
 ```
 
-`prepare()` removes the title block, because Title and subtitle are separate fields, unwraps the two links around inline code, and promotes Medium's `<h4>` sections to `<h3>`. Then a single synthetic paste:
+`prepare()` removes the title block, because Title and subtitle are separate fields, unwraps the two links around inline code, and promotes Medium's `<h4>` sections to `<h3>`. It also clears the language class from every `<pre>`: pasted as-is, a block fenced as ` ```text ` is saved as `latex_block`, Substack's maths element, while `shell`, `js` and `json` blocks are saved as code. Substack's code blocks store no language, so nothing is lost. Then a single synthetic paste:
 
 ```js
 await ss.paste()
@@ -143,6 +144,8 @@ Every count matches the HTML that went in: 4 code blocks with the same line coun
 #### Step 5 — Set the Title and Subtitle
 
 The editor page holds two pairs of title fields. The post's own are textareas with the placeholders `Title` and `Add a subtitle…`; an `Add a title...` input and an `Add a description...` textarea belong to the SEO settings. `ss.setTitle()` fills the first pair, using the front matter's `title` and `description`, and the audit confirms both reached the saved draft.
+
+The subtitle has a limit of 255 characters, and going over it stops the whole draft saving, body included, while the editor still shows everything. A "Subtitle is too long" banner appears, and stays on the page even after a later save succeeds, so the saved draft is the only reliable signal. `ss.setTitle()` refuses a subtitle over 255; this article's description is longer, so its Substack subtitle ends after the second sentence.
 
 ---
 
@@ -245,8 +248,10 @@ The goal of this article was to add Substack to publishing-kit and publish an ar
 - 🟢 **Multi-line code kept**, 4 blocks with the same line counts.
 - 🟢 **Images re-hosted by Substack**, alt text kept.
 - 🟢 **All 4 link targets kept**, once the links around inline code were unwrapped.
+- 🟢 **Plain-text code blocks kept as code**, once their language class was cleared.
 - 🟢 **The URL read back after publishing**, and checked by the announcement scripts.
 - ⚠️ **Publishing emails every subscriber by default**, and waits on a second dialog.
+- ⚠️ **A subtitle over 255 characters stops the draft saving**, body included.
 - ❌ **No tables and no API**: tables arrive as images, and the post goes in through the browser.
 
 Scope: one article, published on 2026-10-05 to one Substack publication from a background browser tab, with publishing-kit 0.32.0 in Claude Code on Linux. Element and size findings come from that editor's schema and styles on that date.

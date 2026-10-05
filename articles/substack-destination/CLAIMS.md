@@ -18,6 +18,8 @@ Every factual claim in this article and what it traces to.
 | publish dialog defaults, second dialog, slug, email_sent_at | `substack-paste.txt`, `session-substack.txt` |
 | public page: 4/7 inside body markup, 8/16 whole page, heading anchors | `substack-paste.txt` |
 | post 200, missing slug 404, Slack run with Substack line | `substack-paste.txt`, `make-slack.txt` |
+| a `text` code block saved as latex_block; cleared classes save as code_block | `substack-publish-2.txt` |
+| subtitle: 255 saves, 256 stops the whole draft saving; banner persists | `substack-publish-2.txt` |
 | make-medium output, 2 tables | `make-medium.txt` |
 | cover files | `make-cover.txt` |
 | publishing-kit 0.32.0 | `version.txt` |
