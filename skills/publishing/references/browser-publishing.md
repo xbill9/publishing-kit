@@ -1158,3 +1158,34 @@ Two pastes do the replacement, both of which reach the model:
 Match the anchor by its text, not by `a.href`: Medium rewrites hrefs in the editor
 to `https://medium.com/r/?url=<encoded>`, so an `href === url` test finds nothing.
 The model keeps the real URL in `markups[].href`.
+
+## Builder Center's editor changed: Slate, an `Image` button, a paste-time image notice
+
+MEASURED 2026-10-12, create-article form, visible tab, one article end to end.
+
+- **The body is no longer Lexical.** `ed.__lexicalEditor` is undefined, so
+  `bc.replaceBody` refuses with "no Lexical". Code lines render as
+  `div.slate-code_line` inside `pre`. On a new draft the editor holds only its
+  placeholder (`What do you want to share?`), so assert empty with that string
+  removed, put a collapsed `Range` in the first `p`, and dispatch the plain-text
+  paste. 14,159 characters landed once: 8 tables, 4 `pre` with the source's line
+  counts (2, 1, 4, 3), each landmark 1.
+- **Audit code by `pre`, not by multi-line `code`.** `bc.audit().codeBlocks`
+  read 0 in both the editor and the preview while all four blocks were there.
+- **Markdown images are now refused at paste with a notice**: "A pasted image
+  could not be read and was removed. Add it with the "Insert image" button."
+  The toolbar button's `aria-label` is now **`Image`**, not `Insert image`, so
+  `bc.openInsertImage` finds nothing. Make the slot with the caret at the END of
+  the preceding block (a `Range`) and one real `Return`, verify the new block is
+  empty and its previous sibling is the expected text, then `press` the `Image`
+  button. The dialog takes `file_upload` on its file input, and alt text through
+  the React value setter.
+- **`Insert` stays disabled while the upload runs.** At 3 s it was still
+  disabled for a 225 KB PNG; 4-6 s more and it enabled. Poll it rather than
+  sleeping a fixed time. The inserted image is re-hosted as `.webp` on
+  `cosmic.aws.dev`, and the alt text was cut to 100 characters.
+- **The top-bar "+" -> Article menu item ignored a coordinate click** on a
+  visible tab; `press` on the `A` element navigated to `/create/content`.
+- Tags (`bc.tagAdd`), the cover upload and publishing with `press` from the
+  preview page all worked as already written: five tags first time, gate passed,
+  URL moved to `/content/<id>/<slug>` with a "You're live!" dialog.
