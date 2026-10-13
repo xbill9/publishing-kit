@@ -218,3 +218,16 @@ image once, confirmed by reloading the channel. So: insert, wait, **screenshot**
 and insert again if the box is empty. A DOM read alone passed the copy Slack
 was about to discard.
 
+
+**A trusted click on a freshly inserted message did not send. MEASURED
+2026-10-13** in `#boost-ai-engineering`. Cover attached first, then one
+`insertText` (1,296 characters), Escape, and a screenshot six seconds later
+showed text and thumbnail in place. One `computer left_click` on Send changed
+nothing visible, and a reload brought the composer back **still holding all
+1,296 characters**, now with Slack's link-preview chips and `Drafts & sent 1`:
+the reload had turned the scripted text into a real Slack draft. One more
+`left_click` on Send at its new position (the preview chips had moved it up
+46 px) posted text and image once, confirmed by a second reload: one message,
+cover attached, composer empty. So if the first click does nothing, reload,
+re-read the button's position off a screenshot, and click once more; do not
+re-insert or re-attach, because the draft already holds both.
