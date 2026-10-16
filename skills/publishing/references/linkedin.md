@@ -407,8 +407,8 @@ community without anyone spelling that out.
 ## `window.name` arrives empty on the LinkedIn feed
 
 MEASURED 2026-10-16. The `window.name` route that carries a payload into Substack
-(`references/substack.md`) does not reach `linkedin.com/feed`: a 13,494-character
-`JSON.stringify({js, text})` set on `127.0.0.1` read back as an empty string after
+(`references/substack.md`) does not reach `linkedin.com/feed`: `JSON.stringify({js, text})`
+holding the 12,217-character helper and the 1,277-character post, set on `127.0.0.1`, read back as an empty string after
 the same tab navigated to the feed. Evaluate `linkedin-composer.js` in the page
 from its source instead, and pass the post text as a JSON string literal from
 `json.dumps(open(txt).read())` so the emoji and blank lines arrive exact. With
