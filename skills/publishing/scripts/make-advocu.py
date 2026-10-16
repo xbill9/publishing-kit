@@ -192,7 +192,7 @@ def main():
     ap.add_argument("article")
     ap.add_argument("--reach", type=int,
                     help=f"override the standing estimate of {DEFAULT_REACH}")
-    ap.add_argument("--link", help="published URL; defaults to links.txt devto-gde")
+    ap.add_argument("--link", help="published URL; defaults to links.txt devto-gde, else devto")
     ap.add_argument("--date", help="YYYY-MM-DD; defaults to dev.to published_at")
     ap.add_argument("--type", default="Articles", choices=TYPES)
     ap.add_argument("--cover", help="image for the activity; default builder-cover*, "
@@ -211,7 +211,7 @@ def main():
     tags = [t.strip() for t in field(fm, "tags").split(",") if t.strip()]
 
     links = links_file(src)
-    link = a.link or links.get("devto-gde") or ""
+    link = a.link or links.get("devto-gde") or links.get("devto") or ""
 
     out = pathlib.Path(a.out) if a.out else d / f"advocu-{src.stem}.md"
     out.parent.mkdir(parents=True, exist_ok=True)
