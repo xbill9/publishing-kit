@@ -283,3 +283,24 @@ placeholder too, this does not hold.
 2026-09-18 with `visibilityState === "hidden"`: `computer type` reported success
 and the Title stayed empty. Collapsing a `Range` into `.graf--title` and
 dispatching a `text/plain` paste filled it, and it survived the reload.
+
+## Canonical link to the original: Story settings, Advanced Settings
+
+MEASURED 2026-10-16 on a published story, pointing it at its dev.to original.
+
+- Open `medium.com/p/<id>/settings`, choose **Advanced Settings** in the left
+  list, then expand the **Advanced Settings** heading. It sits directly above
+  **Delete story**, so click the heading text, not below it.
+- Tick **This story was originally published elsewhere**, press **Edit canonical
+  link**, put the original's URL in the field (placeholder `Type the canonical
+  URL...`), and press **Save canonical link**.
+- **Read back the right input.** The page also holds a disabled, read-only
+  Friend Link input whose value is the story's own Medium URL, so a lookup by
+  "the input holding a medium.com URL" finds that one. Select the canonical
+  input by its placeholder.
+- **Verify on the live story**, in a browser: one `link[rel=canonical]`, equal to
+  the original's URL, appeared right after saving. A plain `curl` of the story
+  returned a page with no canonical tag at all, so it cannot confirm this.
+- Substack has no equivalent. MEASURED 2026-10-16: its post Settings panel offers
+  `SEO Options` (SEO title and description) and no canonical field; the
+  published post's canonical is its own URL.
