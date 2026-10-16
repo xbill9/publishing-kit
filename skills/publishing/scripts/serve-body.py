@@ -96,7 +96,8 @@ def main():
     print(f"first line: {body.splitlines()[0][:70]}")
     print(f"last line : {body.splitlines()[-1][:70]}")
     print(f"\n  http://127.0.0.1:{a.port}/body.md\n")
-    print("open that in a second tab, Ctrl+A Ctrl+C, then Ctrl+V into the editor")
+    print("load it into window.name in the editor tab and paste through the JS bridge;\n"
+          "never Ctrl+A/Ctrl+C/Ctrl+V (see the docstring)")
 
     class H(http.server.BaseHTTPRequestHandler):
         def do_GET(self):

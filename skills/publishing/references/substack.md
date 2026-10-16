@@ -102,6 +102,22 @@ included. The "Subtitle is too long" banner stayed on the page after the later
 saves succeeded, so judge by `ss.audit()`, never by the banner. `ss.setTitle()`
 refuses a subtitle over 255; cut the description at a sentence.
 
+**Typed input stops at 200 characters.** MEASURED 2026-10-16: the `Add a
+subtitle…` textarea carries `maxLength = 200`. A 236-character subtitle entered
+with `computer type` kept the first 200 characters, cut mid-word, with no message.
+The same 236 characters set through the native value setter (what `ss.setTitle()`
+does) bypassed `maxLength`, and `GET /api/v1/drafts/<id>` returned all 236 in
+`draft_subtitle`. So a subtitle of 201 to 255 characters goes in only through
+`ss.setTitle()`. A hand-off that asks the author to type or paste the subtitle
+must give one of 200 characters or fewer.
+
+**Set the title by script as well.** MEASURED 2026-10-16: the visible `Title`
+textarea sits in the editor's own scroll container. After a long paste,
+`scrollIntoView()` left it at `top -8970`, the click at the computed point landed
+in the body, and the typed title went nowhere. `find` also offered the SEO
+`Add a title...` input first. `ss.setTitle()` finds the right textarea by
+placeholder and needs no click.
+
 ## Replacing the body
 
 `ss.clear(<id>)` calls the editor's own `clearContent` and takes the draft id so

@@ -664,7 +664,9 @@ MEASURED 2026-10-05:
 - **A ` ```text ` block becomes a maths block.** `<pre class="text">` saves as
   Substack's `latex_block`; `prepare()` clears the classes on `<pre>`.
 - **A subtitle over 255 characters stops the whole draft saving**, body
-  included. `ss.setTitle()` refuses one.
+  included. `ss.setTitle()` refuses one. The textarea's `maxLength` is 200, so
+  typing or pasting by hand keeps only the first 200 characters, cut mid-word
+  (MEASURED 2026-10-16); `ss.setTitle()` bypasses that.
 
 Multi-line code blocks and image alt text both survive the paste, unlike Medium.
 **Audit from the saved draft** with `ss.audit()`, which reads the stored document

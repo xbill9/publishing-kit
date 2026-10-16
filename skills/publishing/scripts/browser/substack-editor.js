@@ -82,6 +82,8 @@ window.ss = (() => {
   // MEASURED 2026-10-05: a 256-character subtitle is refused ("Draft not saved:
   // Subtitle is too long") and NOTHING saves, body included; 255 saves. The
   // banner stays up after a later save succeeds, so judge by ss.audit().
+  // MEASURED 2026-10-16: the textarea's maxLength is 200, and typed input stops
+  // there mid-word; this setter bypasses it and the server stored all 236.
   const SUBTITLE_MAX = 255;
   function setTitle(title, subtitle) {
     if (subtitle != null && subtitle.length > SUBTITLE_MAX)
