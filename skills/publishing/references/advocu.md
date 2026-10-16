@@ -374,3 +374,26 @@ same page load leaves the first form's hidden `input[type=file]` in the DOM**,
 so labelling every file input and calling `find` returned two refs. Label only
 the input inside the visible modal. The session count is the author's to give;
 ask rather than estimate.
+
+## In a visible tab, plain clicks and typing file it
+
+MEASURED 2026-10-16, filing the t4-timeshare article with the tab visible
+(`document.visibilityState === "visible"`). Everything went through ordinary
+clicks and typing, with no value setters:
+
+- Content type: click the select, click `Articles`.
+- Tags: click the picker, type `Gemma`, click `AI - Gemma`, press Escape. One
+  tag stuck.
+- Date: click the field, click the `16` cell in the open panel. The form item
+  reported `ant-form-item-has-success` and the input read `2026-10-16`. The
+  0.92 frame factor from 2026-09-16 did not apply: the click frame (1512x808)
+  was the screenshot's own, and a cell clicked at its screenshot position hit.
+- Image: `find` returned the drop zone's file input and `file_upload` attached
+  the WebP; Submit stayed enabled once the upload finished.
+- Submit showed `Success!` with no validation toast, the modal closed, and a
+  fresh load of the Activity Stream listed the activity at the top of *My
+  activities*, whose count went from 351 to 352. The lists render in a visible
+  tab, so this is the confirmation the hidden-tab runs could not get.
+- The links file named the article `devto` (the author's own account); before
+  `a3a5903`, `make-advocu.py` read only `devto-gde` and failed with "no
+  published URL".
