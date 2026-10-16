@@ -175,6 +175,9 @@ window.ss = (() => {
   // `subscribeButtons: false` answers "Publish without buttons".
   // Returns before the page moves to /publish/posts/detail/<id>/share-center;
   // confirm with ss.published().
+  // MEASURED 2026-10-16: the second modal can be absent; the click then moves
+  // the tab at once and this script dies with "target navigated". The post went
+  // out: reload the editor tab's helper elsewhere and read ss.published().
   async function publish(expect, { subscribeButtons = false } = {}) {
     const s = settings();
     if (!s) return { refused: "Publish modal not open; await ss.openPublish() and read its settings first" };

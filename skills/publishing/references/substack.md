@@ -152,6 +152,12 @@ MEASURED 2026-10-05, publishing this kit's article from a hidden tab. Use
   post", waits for `Add subscribe buttons` or `Publish without buttons`. A read
   of the first dialog alone shows only the spinner. `ss.publish()` answers it,
   without buttons unless `{subscribeButtons: true}`.
+  MEASURED 2026-10-16, on the publication's second post: no second modal. The
+  click on "Send to everyone now" published and moved the tab to share-center
+  at once, which killed the script still waiting in the page ("Inspected target
+  navigated or closed"). That error after the click means the post went out:
+  confirm with `ss.published()` and never click again. `post_date` and
+  `email_sent_at` were set within 0.1 s of each other.
 - **The tab then moves** to `/publish/posts/detail/<id>/share-center`, where a
   "Stats are better in the app" dialog opens. The confirmation is the post in
   `GET /api/v1/post_management/published`, with `post_date` and `email_sent_at`

@@ -677,7 +677,9 @@ the counts and what is not yet measured are in `references/substack.md`.
 **Publishing emails every subscriber by default.** MEASURED 2026-10-05: the
 `Publish` modal opens with "Send via email and the Substack app" on and a button
 that reads "Send to everyone now", and a second modal ("Add subscribe buttons")
-holds the publish at `Publishing...` until answered. Ask the author about the
+holds the publish at `Publishing...` until answered (MEASURED 2026-10-16: on a
+later post it did not appear, the tab moved at once and the in-page script
+died; confirm with `ss.published()`, never re-click). Ask the author about the
 email before the click; `ss.publish()` refuses without an explicit answer. The
 slug is cut short (`/p/streamline-publishing-with-a-claude`), so take the URL from
 `ss.published()`.
