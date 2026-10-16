@@ -398,8 +398,6 @@ def render_flow_abstract(img, a, W, H):
     # ---- ribbons, drawn twice: a blurred glow layer, then crisp strands -------
     glow = Image.new("RGBA", img.size, (0, 0, 0, 0))
     gd = ImageDraw.Draw(glow)
-    lines = Image.new("RGBA", img.size, (0, 0, 0, 0))
-    ld = ImageDraw.Draw(lines)
     # ImageDraw REPLACES pixels on an RGBA layer rather than compositing, so
     # strands sharing one layer overwrite each other's alpha where they cross
     # and the fan's throat renders as a blocky checker. Each strand gets its
