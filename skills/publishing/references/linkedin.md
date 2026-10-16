@@ -280,27 +280,45 @@ the original hosts. Verify by the title, the bullets and the link **labels**, no
 by URLs or image dimensions. An 800x199 image on the same page is the profile
 banner, not the post.
 
-## The composer is now ProseMirror, and the upload input is in the light DOM
+## The composer was rebuilt: ProseMirror, a plain file input, paste works
 
-MEASURED 2026-10-16. Pressing "Start a post" moves the tab to
-`linkedin.com/sharing/compose`, and the editor is a `div.tiptap.ProseMirror`
-with `role=textbox`. `.ql-editor` matches nothing, so `li.openComposer()`
-reports `editor:false` on a composer that is open. What worked:
+MEASURED 2026-10-16 on two machines, each posting a real article announcement
+with its cover. Every step below "Start a post" changed, and the old route fails
+quietly against it.
 
-- **Image:** press the `aria-label="Media"` button. That adds a plain
-  `input[type=file]` to the **light DOM** (no shadow root, no id); `find`
-  returns a ref for it and `file_upload` fills it directly, with no proxy
-  input. The `Editor` dialog shows the image; a coordinate click on `Next`
-  returns to the composer with it attached (1200x627 `img` visible).
-- **Text:** a synthetic `paste` now works (`insertText` was not needed). With
-  `text/plain`, each blank line is dropped: 13 source lines became 9 `<p>`
-  with no gaps, and the collapsed-whitespace comparison still reported equal,
-  so that check cannot see lost spacing. Paste `text/html` built as one `<p>`
-  per line and `<p><br></p>` per blank line; that gave 13 `<p>`, 4 of them
-  blank, matching the source. Count the `<p>` against the source lines.
-- **A paste over a select-all does not replace, it appends.** Remove the
-  unwanted copy by setting a DOM range over it and pressing a real `Delete`
-  key; ProseMirror honoured that.
+- **"Start a post" navigates to `/sharing/compose`.** The composer is a modal on
+  that URL. There is **no `[role=dialog]`** around it, so anything scoped to the
+  dialog finds nothing.
+- **The editor is a TipTap/ProseMirror `div.tiptap.ProseMirror`** with
+  `role=textbox`, in the light DOM. No Quill, no `.ql-editor`, no shadow root.
+  The old lookup returned null with the composer on screen, so the old
+  `li.openComposer()` reported `editor:false` on an open composer.
+- **A synthetic paste works now.** `ClipboardEvent("paste")` with a `DataTransfer`
+  put the full text in on the first try; `insertText` is not needed. Plain text
+  alone drops every blank line (13 source lines became 9 `<p>` with no gaps on
+  one run; 14 paragraphs with no gaps on the other). Paste `text/html` built as
+  one `<p>` per line and an empty paragraph per blank line: `<p><br></p>` gave 13
+  `<p>`, 4 blank, matching the source, and `<p></p>` kept all 23 on the other
+  post. **Count the `<p>` against the source lines.** The collapsed-whitespace
+  text comparison reported equal on the gapless paste, so it cannot see lost
+  spacing.
+- **A paste over a select-all appends rather than replaces.** Remove the
+  unwanted copy by setting a DOM range over it and pressing a real `Delete` key;
+  ProseMirror honoured that.
+- **"Add media" is now "Media" (`aria-label="Media"`), and it calls
+  `input.click()`** on a light-DOM `input[type=file]` (no id, `accept` images and
+  video). Patch `HTMLInputElement.prototype.click` first so no native picker
+  opens, keep the input it was called on, give it the proxy aria-label, and
+  `file_upload` straight into it. `find` also returns a ref for that input. No
+  proxy copy is needed. The "Editor" dialog with Next appears only after the file
+  lands; a coordinate click on Next returned to the composer with the image
+  attached (a 1200x627 `img` visible).
+- **The Media button disappears once the text contains a link** (the toolbar
+  shrinks to Proofread and emoji). Attach the image **before** inserting the text.
+- **The tab was visible on both runs.**
+
+`scripts/browser/linkedin-composer.js` handles both editors: it looks for the
+ProseMirror editor first and falls back to the old Quill/shadow-root route.
 
 ## "Start a post" is no longer a button
 

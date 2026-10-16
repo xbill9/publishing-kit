@@ -1,14 +1,16 @@
 // LinkedIn composer helpers, for evaluation in the page on linkedin.com/feed.
 //
-// OUT OF DATE since 2026-10-16: the composer is ProseMirror, not Quill, and the
-// upload input is in the light DOM. See references/linkedin.md, "The composer is
-// now ProseMirror". editor() and uploadInput() below no longer match.
-//
 // MEASURED 2026-09-15 posting an article announcement with its cover image. Why each
 // helper exists is in references/linkedin.md ("Attaching the cover and posting").
 // Short version: the tab is often hidden (ref clicks do nothing), the composer and
 // its upload input live in shadow roots (no ref for file_upload), and the page's
 // CSP blocks fetching the image. So:
+//
+// MEASURED 2026-10-16 the composer was rebuilt (ProseMirror editor in the light DOM,
+// "Media" calls input.click() on a light-DOM file input, synthetic paste works, and
+// the Media button vanishes once the text holds a link). The helpers below handle
+// both builds; on the new one, file_upload goes straight into LinkedIn's own input
+// and moveProxyFileToEditor only waits for the preview. Attach the image FIRST.
 //
 //   await li.openComposer()                    -> {editor:true}
 //   await li.openMediaEditor()                 -> {uploadInput:true}
@@ -34,10 +36,13 @@ window.li = (() => {
   };
   const label = (b) => (b.getAttribute("aria-label") || b.innerText || "").trim();
   const button = (name) => deepAll(document, "button,[role=button]").filter(visible).find((b) => label(b) === name);
-  const editor = () => deepAll(document, '.ql-editor[contenteditable="true"]').find(visible) || null;
+  const editor = () => deepAll(document, '.tiptap.ProseMirror[contenteditable="true"],.ql-editor[contenteditable="true"]').find(visible) || null;
+  const isProseMirror = (ed) => !!ed && ed.classList.contains("ProseMirror");
   const dialog = () => deepAll(document, "[role=dialog]").filter(visible)[0] || null;
-  const uploadInput = () => deepAll(document, "input[type=file]").find((i) => i.id === "media-editor-file-selector__file-input") || null;
-  const attachedImage = () => { const d = dialog(); return !!d && deepAll(d, "img").filter(visible).some((im) => im.naturalWidth >= 600); };
+  // New build: the input "Media" tried to click, captured by the guard in openMediaEditor.
+  const uploadInput = () => (window.__liFileInput && window.__liFileInput.isConnected ? window.__liFileInput : null) ||
+    deepAll(document, "input[type=file]").find((i) => i.id === "media-editor-file-selector__file-input") || null;
+  const attachedImage = () => { const d = dialog() || document; return deepAll(d, "img").filter(visible).some((im) => im.naturalWidth >= 600 && /^(blob:|data:)/.test(im.src)); };
 
   // A ref click is swallowed in a hidden tab; this sequence is what React acted on.
   const press = (el) => {
@@ -60,8 +65,14 @@ window.li = (() => {
 
   async function openMediaEditor() {
     if (uploadInput()) return { uploadInput: true, already: true };
-    const b = button("Add media");
-    if (!b) return { refused: "no Add media button (composer not open?)" };
+    const b = button("Media") || button("Add media");
+    if (!b) return { refused: "no Media button (composer not open, or text with a link already inserted: attach the image first)" };
+    // New build calls input.click(); swallow it so no native picker opens, and keep the input.
+    if (!HTMLInputElement.prototype.__liPatched) {
+      const orig = HTMLInputElement.prototype.click;
+      HTMLInputElement.prototype.click = function () { if (this.type === "file") { window.__liFileInput = this; return; } return orig.call(this); };
+      HTMLInputElement.prototype.__liPatched = true;
+    }
     press(b);
     for (let i = 0; i < 10 && !uploadInput(); i++) await sleep(500);
     return { uploadInput: !!uploadInput() };
@@ -70,6 +81,13 @@ window.li = (() => {
   // find() and read_page cannot see into shadow roots, so give file_upload a target
   // in the light DOM.
   function addProxyInput() {
+    // New build: label LinkedIn's own light-DOM input instead of adding a proxy.
+    const own = window.__liFileInput;
+    if (own && own.isConnected) {
+      own.setAttribute("aria-label", "Publishing proxy file input");
+      Object.assign(own.style, { display: "block", position: "fixed", top: "4px", left: "4px", zIndex: "2147483647", width: "220px", height: "28px", opacity: "1" });
+      return { proxy: true, own: true, next: 'find "Publishing proxy file input", then upload the image to that input' };
+    }
     let p = document.getElementById("publishing-proxy-file-input");
     if (!p) {
       p = document.createElement("input");
@@ -82,6 +100,17 @@ window.li = (() => {
   }
 
   async function moveProxyFileToEditor(expectedBytes) {
+    const own = window.__liFileInput;
+    if (own && own.isConnected && own.files && own.files[0]) {
+      const f = own.files[0];
+      own.removeAttribute("style"); own.removeAttribute("aria-label");
+      if (expectedBytes && f.size !== expectedBytes) return { refused: "size mismatch", size: f.size, expectedBytes };
+      let img = null;
+      for (let i = 0; i < 12 && !img; i++) { await sleep(800); img = deepAll(document, "img").filter(visible).find((im) => im.naturalWidth >= 600 && /^(blob:|data:)/.test(im.src)); }
+      const n = button("Next");
+      return { name: f.name, size: f.size, preview: img ? `${img.naturalWidth}x${img.naturalHeight}` : null,
+               nextEnabled: n ? !(n.disabled || n.getAttribute("aria-disabled") === "true") : null, own: true };
+    }
     const p = document.getElementById("publishing-proxy-file-input");
     const f = p && p.files && p.files[0];
     if (!f) return { refused: "proxy input holds no file; run file_upload first" };
@@ -116,11 +145,21 @@ window.li = (() => {
     if (!ed) return { refused: "composer editor not found" };
     if (ed.innerText.trim().length > 0) return { refused: "editor not empty", len: ed.innerText.trim().length };
     ed.focus();
+    if (isProseMirror(ed)) {
+      // New build: paste works. Plain text drops blank lines; one <p> per line keeps them.
+      const esc = (x) => x.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+      const dt = new DataTransfer();
+      dt.setData("text/html", text.split("\n").map((l) => (l ? `<p>${esc(l)}</p>` : "<p></p>")).join(""));
+      dt.setData("text/plain", text);
+      ed.dispatchEvent(new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }));
+      await sleep(1500);
+      return { inserted: ed.innerText.trim().length > 0, editor: "prosemirror", paragraphs: ed.querySelectorAll("p").length };
+    }
     const r = document.createRange(); r.selectNodeContents(ed);
     const s = document.getSelection(); s.removeAllRanges(); s.addRange(r);
     const ok = document.execCommand("insertText", false, text);
     await sleep(1500);
-    return { inserted: ok };
+    return { inserted: ok, editor: "quill" };
   }
 
   // Raw innerText length differs (blank lines are empty <p>); compare collapsed.
