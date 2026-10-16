@@ -1,5 +1,9 @@
 // LinkedIn composer helpers, for evaluation in the page on linkedin.com/feed.
 //
+// OUT OF DATE since 2026-10-16: the composer is ProseMirror, not Quill, and the
+// upload input is in the light DOM. See references/linkedin.md, "The composer is
+// now ProseMirror". editor() and uploadInput() below no longer match.
+//
 // MEASURED 2026-09-15 posting an article announcement with its cover image. Why each
 // helper exists is in references/linkedin.md ("Attaching the cover and posting").
 // Short version: the tab is often hidden (ref clicks do nothing), the composer and

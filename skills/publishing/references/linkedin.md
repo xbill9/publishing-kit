@@ -280,6 +280,28 @@ the original hosts. Verify by the title, the bullets and the link **labels**, no
 by URLs or image dimensions. An 800x199 image on the same page is the profile
 banner, not the post.
 
+## The composer is now ProseMirror, and the upload input is in the light DOM
+
+MEASURED 2026-10-16. Pressing "Start a post" moves the tab to
+`linkedin.com/sharing/compose`, and the editor is a `div.tiptap.ProseMirror`
+with `role=textbox`. `.ql-editor` matches nothing, so `li.openComposer()`
+reports `editor:false` on a composer that is open. What worked:
+
+- **Image:** press the `aria-label="Media"` button. That adds a plain
+  `input[type=file]` to the **light DOM** (no shadow root, no id); `find`
+  returns a ref for it and `file_upload` fills it directly, with no proxy
+  input. The `Editor` dialog shows the image; a coordinate click on `Next`
+  returns to the composer with it attached (1200x627 `img` visible).
+- **Text:** a synthetic `paste` now works (`insertText` was not needed). With
+  `text/plain`, each blank line is dropped: 13 source lines became 9 `<p>`
+  with no gaps, and the collapsed-whitespace comparison still reported equal,
+  so that check cannot see lost spacing. Paste `text/html` built as one `<p>`
+  per line and `<p><br></p>` per blank line; that gave 13 `<p>`, 4 of them
+  blank, matching the source. Count the `<p>` against the source lines.
+- **A paste over a select-all does not replace, it appends.** Remove the
+  unwanted copy by setting a DOM range over it and pressing a real `Delete`
+  key; ProseMirror honoured that.
+
 ## "Start a post" is no longer a button
 
 MEASURED 2026-09-20. `li.openComposer()` refused with `no Start a post button
