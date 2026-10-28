@@ -86,8 +86,13 @@ def display_width(s: str) -> int:
 
 # Longest delimiter first: ***x*** before **x** before *x*, or the bold
 # branch swallows a bold-italic and renders its leftover asterisks.
+#
+# An underscore opens or closes italic only at a word edge, as in CommonMark
+# (and as dev.to renders it). MEASURED 2026-10-28: without the lookarounds a
+# quantization name in a table cell, Q5_K_M, rendered as "Q5" + italic "K" + "M"
+# with both underscores gone, while dev.to showed the same cell as Q5_K_M.
 TOKEN = re.compile(
-    r"(\*\*\*.+?\*\*\*|\*\*.+?\*\*|\*[^*\n]+?\*|_[^_\n]+?_|`[^`]+`)"
+    r"(\*\*\*.+?\*\*\*|\*\*.+?\*\*|\*[^*\n]+?\*|(?<![0-9A-Za-z])_[^_\n]+?_(?![0-9A-Za-z])|`[^`]+`)"
 )
 
 # DejaVu has no emoji glyphs and NotoColorEmoji is a 109px-only bitmap font, so
