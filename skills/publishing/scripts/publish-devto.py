@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Create and update dev.to articles over the REST API. No browser, ever.
 
-dev.to is the only destination of the four with a complete publishing API, and
+dev.to is the only destination of the five with a complete publishing API, and
 the front matter IS the payload -- title, tags and cover_image all ride inside
 `body_markdown`, so nothing is retyped and no cover is uploaded by hand.
 
     publish-devto.py --list
-    publish-devto.py --create <article>.md [--org gde]
+    publish-devto.py --create <article>.md [--org-slug gde]
     publish-devto.py --update <id> <article>.md
     publish-devto.py --org <id> <org-slug>
 
@@ -54,7 +54,7 @@ import sys
 import urllib.error
 import urllib.request
 
-from bodytext import hard_wrapped, unwrap_article
+from bodytext import hard_wrapped, split_front_matter, unwrap_article
 
 API = "https://dev.to/api"
 
@@ -96,6 +96,34 @@ def preflight(article, force):
         sys.exit("\nrefusing to publish: the pre-flight failed. --force overrides.")
     if r.returncode:
         print("\n--force given; publishing over a failed pre-flight")
+
+
+def listing(endpoint):
+    """Every page of a listing. A single page hides older articles."""
+    arts = []
+    for page in range(1, 100):
+        st, batch = call("GET", f"{endpoint}?per_page=100&page={page}")
+        if st != 200:
+            sys.exit(f"could not read {endpoint}: {st} {batch}")
+        arts += batch
+        if len(batch) < 100:
+            return arts
+    return arts
+
+
+def flip_published(markdown, want):
+    """Set `published:` in the FRONT MATTER only, never a line in the body."""
+    fm, body = split_front_matter(markdown)
+    new = re.sub(r"^published:\s*(true|false)\s*$",
+                 f"published: {'true' if want else 'false'}", fm, count=1, flags=re.M)
+    return new + body, new != fm
+
+
+def organization_id(slug):
+    st, org = call("GET", f"/organizations/{slug}")
+    if st != 200:
+        sys.exit(f"no such organization '{slug}': {st}")
+    return org["id"]
 
 
 def show(a):
@@ -146,14 +174,12 @@ def main():
 
     if a.org:
         aid, slug = a.org
-        st, org = call("GET", f"/organizations/{slug}")
-        if st != 200:
-            sys.exit(f"no such organization '{slug}': {st}")
+        org_id = organization_id(slug)
         st, r = call("PUT", f"/articles/{aid}",
-                     {"article": {"organization_id": org["id"]}})
+                     {"article": {"organization_id": org_id}})
         if st not in (200, 201):
             sys.exit(f"routing failed: {st} {r}")
-        print(f"  article {aid} -> {slug} ({org['id']})")
+        print(f"  article {aid} -> {slug} ({org_id})")
         print(f"  {r.get('url','')}")
         return 0
 
@@ -168,19 +194,13 @@ def main():
         # it reports success for a request that did nothing, and only the listing
         # shows the article still sitting in /me/unpublished.
         src_ep = "/articles/me/unpublished" if want else "/articles/me"
-        st, arts = call("GET", f"{src_ep}?per_page=100")
-        if st != 200:
-            sys.exit(f"could not read current body: {st}")
-        cur = next((x for x in arts if x["id"] == aid), None)
+        cur = next((x for x in listing(src_ep) if x["id"] == aid), None)
         if cur is None:
             sys.exit(f"{aid} is not in {src_ep} -- it may already be "
                      f"{'published' if want else 'a draft'}")
 
-        body = cur["body_markdown"]
-        new = re.sub(r"^published:\s*(true|false)\s*$",
-                     f"published: {'true' if want else 'false'}", body,
-                     count=1, flags=re.M)
-        if new == body:
+        new, changed = flip_published(cur["body_markdown"], want)
+        if not changed:
             sys.exit("no `published:` line in the front matter to flip")
 
         st, r = call("PUT", f"/articles/{aid}", {"article": {"body_markdown": new}})
@@ -188,8 +208,8 @@ def main():
             sys.exit(f"{'publish' if want else 'unpublish'} failed: {st} {r}")
 
         # verify from the listing, because the response body has lied before
-        st, chk = call("GET", f"/articles/{'me' if want else 'me/unpublished'}?per_page=100")
-        landed = next((x for x in chk if x["id"] == aid), None) if st == 200 else None
+        landed = next((x for x in listing(f"/articles/{'me' if want else 'me/unpublished'}")
+                       if x["id"] == aid), None)
         if not landed:
             sys.exit(f"PUT returned {st} but {aid} is not in the "
                      f"{'published' if want else 'draft'} listing. Nothing changed.")
@@ -199,6 +219,9 @@ def main():
 
     article = pathlib.Path(a.create or a.update[1]).resolve()
     preflight(article, a.force)
+    # Before the POST: a mistyped slug must not leave an unrouted article behind,
+    # and there is no delete.
+    org_id = organization_id(a.org_on_create) if a.create and a.org_on_create else None
 
     # MEASURED 2026-08-31: dev.to renders with hard breaks ON, so a source
     # wrapped at ~95 columns publishes with a <br> at every wrap. Unwrap on the
@@ -217,20 +240,35 @@ def main():
             sys.exit(f"\ncreate failed: {st} {r}")
         print(f"\ncreated {r['id']}")
         show(r)
-        if a.org_on_create:
-            st, org = call("GET", f"/organizations/{a.org_on_create}")
-            if st == 200:
-                st, r2 = call("PUT", f"/articles/{r['id']}",
-                              {"article": {"organization_id": org["id"]}})
-                print(f"  routed to {a.org_on_create} ({org['id']})"
-                      if st in (200, 201) else f"  routing failed: {st}")
+        if org_id is not None:
+            st, r2 = call("PUT", f"/articles/{r['id']}",
+                          {"article": {"organization_id": org_id}})
+            if st not in (200, 201):
+                sys.exit(f"created {r['id']}, but routing to {a.org_on_create} "
+                         f"failed: {st} {r2}")
+            print(f"  routed to {a.org_on_create} ({org_id})")
         return 0
 
-    aid = a.update[0]
+    # MEASURED 2026-09-01: the source's `published: false`, which the pre-flight
+    # requires, unpublished live articles on update, and the run still printed
+    # `updated <id>`. A warning in SKILL.md did not stop it. So read the state
+    # first, keep a live article live in the payload, and verify from the listing.
+    aid = int(a.update[0])
+    live = any(x["id"] == aid for x in listing("/articles/me"))
+    if not live and not any(x["id"] == aid for x in listing("/articles/me/unpublished")):
+        sys.exit(f"\n{aid} is in neither the published nor the draft listing")
+    if live:
+        new, _ = flip_published(body, True)
+        if not re.search(r"^published:\s*true\s*$", split_front_matter(new)[0], re.M):
+            sys.exit("\nrefusing: no `published:` line, so this update could unpublish")
+        payload["article"]["body_markdown"] = new
     st, r = call("PUT", f"/articles/{aid}", payload)
     if st not in (200, 201):
         sys.exit(f"\nupdate failed: {st} {r}")
-    print(f"\nupdated {aid}")
+    if live and not any(x["id"] == aid for x in listing("/articles/me")):
+        sys.exit(f"\nupdated {aid}, but it left the published listing. "
+                 f"Run --publish {aid} and check --list.")
+    print(f"\nupdated {aid}" + (" (still published)" if live else " (draft)"))
     show(r)
     return 0
 
