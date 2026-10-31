@@ -28,7 +28,7 @@ to it, or --ledger) cite a claim instead of proving it. Two guards, because this
 a hole by design:
 
   * the row must carry a date, and the claim must appear in it LITERALLY -- not
-    by the digit-normalised match the evidence files get, which "2026-08-30" alone
+    by the number match the evidence files get, which "2026-08-30" alone
     would satisfy for half the counts in an article;
   * the ledger may not live inside --evidence. It restates every number, so a
     ledger inside the evidence set traces everything by construction. That is not
@@ -44,6 +44,8 @@ import json
 import pathlib
 import re
 import sys
+
+from bodytext import strip_fenced
 
 # Claims worth tracing. Ordinary prose numbers ("three reasons", "two platforms")
 # are excluded by the shape of these patterns rather than by a stop-list.
@@ -75,12 +77,21 @@ PATTERNS = [
     (r"\b\d+(?:\.\d+)?\s?px\b", "pixels", "95px"),
 ]
 
-NUM = re.compile(r"[\d.]+")
+# Claims and evidence compare as NUMBERS, not as a stream of digits. MEASURED
+# 2026-10-31: every number in a file used to be concatenated, so "12 then 3.4"
+# became "123.4" and traced a claim of 123.4 ms, and "rows 147 and 629" traced
+# "47 of 62". A number now matches a whole number, and a multi-number claim needs
+# its numbers adjacent, in order. That also retires `4.35 s` matching `4.355`.
+NUM = re.compile(r"(?<![\d.,])\d{1,3}(?:,\d{3})+(?:\.\d+)*|(?<![\d.,])\d+(?:\.\d+)*")
+LITERAL_ONLY = ("cloud-id", "digest")     # hex: digits inside them mean nothing
 
 
-def norm(s):
-    """Compare on digits alone: '15,360 MiB' and '15360' are the same claim."""
-    return "".join(NUM.findall(s.replace(",", "")))
+def numbers(s):
+    return [n.replace(",", "") for n in NUM.findall(s)]
+
+
+def key(nums):
+    return "\0" + "\0".join(nums) + "\0"
 
 
 def load_evidence(paths):
@@ -91,16 +102,18 @@ def load_evidence(paths):
         for f in files:
             if not f.is_file():
                 continue
+            # Strict decode. errors="ignore" turned PNGs and compressed traces
+            # into random digits that matched claims by coincidence.
             try:
-                t = f.read_text(errors="ignore")
-            except Exception:
+                t = f.read_bytes().decode("utf-8")
+            except (OSError, UnicodeDecodeError):
                 continue
             if f.suffix == ".json":
                 try:  # flatten so nested numbers are searchable as text
                     t += "\n" + json.dumps(json.loads(t))
                 except Exception:
                     pass
-            blobs.append((f, t, t.replace(",", "")))
+            blobs.append((f, t, key(numbers(t))))
     return blobs
 
 
@@ -145,7 +158,7 @@ def main():
     text = src.read_text()
 
     # strip fenced code: it is usually pasted tool output, i.e. evidence itself
-    prose = re.sub(r"```.*?```", "", text, flags=re.S)
+    prose = strip_fenced(text)
 
     exempt = list(a.exempt)
     ig = src.parent / ".factsignore"
@@ -216,10 +229,11 @@ def main():
 
     unverified, cited = [], []
     for c, kind in sorted(claims.items()):
-        n = norm(c)
+        nums = numbers(c)
+        n = key(nums) if kind not in LITERAL_ONLY and len("".join(nums)) >= 3 else None
         hit = None
-        for f, raw, flat in blobs:
-            if c in raw or (n and len(n) >= 3 and n in norm(flat)):
+        for f, raw, stream in blobs:
+            if c in raw or (n and n in stream):
                 hit = f.name
                 break
         if hit:

@@ -94,6 +94,7 @@ publishing, so these come from LinkedIn's own developer documentation.
 | Claim | Date on the log entry |
 | --- | --- |
 | Medium strips `data:` URIs on paste; 0 of 4 embed, 4 of 4 hosted | 2026-08-30 |
+| a cover is met at a 320px feed card (`make-cover.py`, `CARD_W`) | 2026-08-31 |
 | Medium's importer strips tables and flattens `<pre>`, drops `<br>` | 2026-08-23 |
 | first body image becomes the story cover; title never transfers | 2026-08-23 / 2026-08-30 |
 | `#` and `##` both render at title size | 2026-08-23 |
