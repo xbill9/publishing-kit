@@ -4,4 +4,5 @@ devto-aws  = https://dev.to/aws-builders/agent-skills-drift-a-feedback-loop-for-
 builder    = https://builder.aws.com/content/3LTK13AEJgPilDZ1tZEoWPmpPDl/agent-skills-drift-a-feedback-loop-for-keeping-one-true
 medium     = https://xbill999.medium.com/agent-skills-drift-a-feedback-loop-for-keeping-one-true-9ec551ef6859
 substack   = https://xbill9.substack.com/p/agent-skills-drift-a-feedback-loop
+linkedin   = https://www.linkedin.com/feed/update/urn:li:activity:7522444844158353409/
 repo       = https://github.com/xbill9/publishing-kit
