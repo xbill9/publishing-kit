@@ -25,5 +25,8 @@ claudecode, writing, devtools, ai
 ## Link to Content
 https://dev.to/gde/streamline-publishing-with-a-claude-code-skill-1bdn
 
+## Cover image
+advocu-devto-publishing-kit-cover.webp (1376x578 WebP, 20 KB, from cover.ae4d639e.jpg)
+
 ---
 Save as draft rather than submitting, and read it back before you do.
