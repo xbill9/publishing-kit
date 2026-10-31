@@ -1,6 +1,6 @@
 ---
 name: publishing
-description: Trigger when writing up or publishing a technical article to AWS Builder Center, dev.to, Medium, Substack, or LinkedIn — including "write this up", "make an article", "builder center", "dev.to post", "medium version", "substack post", "linkedin post", "announce the article", "cover image", or turning a benchmark or deployment into a paper. Covers the four destination formats and their incompatibilities, the table/code-to-image generator, mandatory cover images, the LinkedIn draft whose links must resolve, and a pre-flight check that fails the build.
+description: Trigger when writing up or publishing a technical article to AWS Builder Center, dev.to, Medium, Substack, or LinkedIn — including "write this up", "make an article", "builder center", "dev.to post", "medium version", "substack post", "linkedin post", "announce the article", "cover image", or turning a benchmark or deployment into a paper. Also covers the optional announcements and records afterwards: "slack post", "google chat post", "advocu activity". Covers the five destination formats and their incompatibilities, the table/code-to-image generator, mandatory cover images, the LinkedIn draft whose links must resolve, and a pre-flight check that fails the build.
 metadata:
   short-description: Publish technical articles without silent format failures
 ---
@@ -14,7 +14,7 @@ the user's working directory. Browser-only workflows require browser automation
 that can evaluate JavaScript in the page, inspect the DOM,
 upload a local file, click/type, and read the result back. Tool names vary by
 host; descriptions such as `javascript_tool`, `file_upload`, `find`, `computer
-type`, and `browser_batch` below name capabilities, not required Codex tool names.
+type`, and `browser_batch` below name capabilities, not required tool names.
 If those capabilities are unavailable, generate and validate the artifacts, then
 hand the user the file and the specific remaining manual browser steps. Never
 claim that a browser draft or post was created when it was not.
@@ -85,7 +85,7 @@ draft.
 
 So the browser work is not laziness about reading API docs — for Medium, Substack
 and Builder Center **there is no API to read.** Everything in
-`references/browser-publishing.md` exists because those two destinations can only
+`references/browser-publishing.md` exists because those three destinations can only
 be reached by driving their editors, and driving an editor is where the clipboard
 races, the duplicate pastes and the silent `data:` stripping all live.
 
@@ -158,6 +158,13 @@ It enforces, in order of how silently each fails:
    older than its markdown, with every check passing. The check rebuilds into a
    temporary directory and compares text and image names; it fails on the stale
    file that shipped and passes on all three articles in `articles/`.
+   **Correction.** That rebuild compared text and image names and took its cover
+   from the hosted file, and the result was two holes, MEASURED 2026-10-31: a
+   changed table cell left both unchanged, because table text lives only in a
+   PNG with a positional name, and a wrong cover matched itself. It now compares
+   image bytes and rebuilds with the front matter's cover. A Pillow or font
+   upgrade fails this loudly; re-running `make-medium.py` clears it.
+   Every `<img>` in the file must also be absolute: a relative one fails.
 8. No empty link targets.
 
 ### Links: get the gate's own answer, then check what it checks
@@ -264,6 +271,15 @@ kernel duration in ms) and an `SM 8.9` claim matched `8.976` inside a file for t
 So: a green result from a directory full of binaries is not evidence of anything.
 Feed it text, and sanity-check *which file* each claim traced to — the tool reports
 the first match, not the best one.
+
+**Correction.** The two paragraphs above describe a comparison on digits alone,
+and that was the defect, not a usage hazard. MEASURED 2026-10-31: every number in
+a file was concatenated, so `12 then 3.4` traced a claim of `123.4 ms` and `rows
+147 and 629` traced `47 of 62`. This kit's own `320px` had been traced to
+`plugin-install.txt`, a file with no 320 in it, and failed the moment the match was
+fixed. A claim now matches whole numbers, a multi-number claim needs them adjacent
+and in order, and evidence must decode as UTF-8, so binaries are skipped outright.
+Checking which file a claim traced to is still worth doing.
 
 **And a green result from a path that does not exist is worse.** `preflight.py`
 defaulted `--evidence evidence/` and `--repo-root ..` *relative to the current
@@ -530,6 +546,13 @@ nothing about the state change; only `--list` shows it. **After updating anythin
 already live, re-run `--publish <id>` and confirm with `--list`.** The slug and
 the id survive, so links keep working once it is back.
 
+**Correction.** The instruction above was written down and nothing enforced it.
+`--update` now reads the listings first and sends a live article's front matter as
+`published: true`, then confirms it is still in the published listing, and exits
+non-zero if it is not; an id in neither listing refuses. This is tested against a
+fake API only: no live article has been updated through this path, so it stays
+unmeasured until one has. Keep confirming with `--list` until then.
+
 **And the public page can keep serving a 404 after it is back.** MEASURED
 2026-10-05: one of four articles updated and re-published that afternoon
 answered **404 to a public fetch** for more than 28 minutes afterwards, with
@@ -619,6 +642,12 @@ It renders every table and box-drawing diagram to PNG at 2x and emits two files:
 holding covers for several articles will therefore put the wrong art on the story,
 and since the first body image becomes Medium's cover, that is what ships.
 
+**Correction.** The default is now the local file named by `cover_image:`, and
+the alphabetical pick applies only when that is absent. MEASURED 2026-10-31: on
+this kit's own article the pick was the superseded `cover.77acc7c4.jpg`.
+`--cover` is needed only for a cover the front matter does not name, and the
+pre-flight now fails that as stale.
+
 **Type the title in by hand.** No paste or import route fills Medium's Title field,
 even though the hosted variant carries an `<h1 class="title">`.
 
@@ -660,9 +689,11 @@ MEASURED 2026-10-05:
   error. `prepare()` unwraps the `<code>`.
 - **Medium's `<h4>` sections are promoted to `<h3>`.** Substack has six heading
   sizes and renders `h4` at 21px against 19px body text.
-
 - **A ` ```text ` block becomes a maths block.** `<pre class="text">` saves as
   Substack's `latex_block`; `prepare()` clears the classes on `<pre>`.
+
+`ss.setTitle()` handles one more:
+
 - **A subtitle over 255 characters stops the whole draft saving**, body
   included. `ss.setTitle()` refuses one. The textarea's `maxLength` is 200, so
   typing or pasting by hand keeps only the first 200 characters, cut mid-word
@@ -1023,7 +1054,10 @@ the copies are separate URLs that cannot be summed. So the sheet says
 `3000 (standing estimate, not a counter reading)` — the author's standing figure,
 marked as what it is — and reports dev.to's `page_views_count` beside it without
 substituting it. `--reach N` overrides. **Date published** still comes from that
-same response's `published_at`, because that one is a measurement.
+same response's `published_at`, because that one is a measurement. MEASURED
+2026-10-31: the lookup read one page of a 481-article account and missed this
+kit's article on page 2. It reads every page now, and a date it cannot find is a
+FAIL, since Advocu requires one.
 
 The distinction is worth holding on to: the rule against invented figures is
 about passing an estimate off as a measurement. Silently copying a count that

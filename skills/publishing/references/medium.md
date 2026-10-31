@@ -147,6 +147,10 @@ holding `builder-cover.jpg`, `devto-cover-aws.jpg` and `devto-cover-gde.jpg` put
 *AWS* cover on the *GDE* article — and since the first body image becomes the
 story's cover, the wrong art would have shipped.
 
+**Correction.** With no `--cover` the default is now the local file named by
+`cover_image:`; the alphabetical pick applies only when that is absent. MEASURED
+2026-10-31: it had picked a superseded cover on this kit's own article.
+
 Import only when you need a URL-driven flow.
 
 ## Driving the importer in a browser
