@@ -20,6 +20,8 @@
 //   await ss.openPublish()                     -> {open:true, settings}  read them out
 //   await ss.publish({email:true, audience:"everyone"})   refuses on any mismatch
 //   await ss.published(<draft id>)             -> {slug, url, email_sent_at}
+// {email:false} also needs the SAVED draft to read should_send_email false, or it
+// refuses: the modal's checkbox is no proof (references/substack.md).
 // Updating a published post: clear, prepare, paste and audit as above, then
 //   await ss.openPublish()                     -> settings.button "Update now", email null
 //   await ss.publish({update: true})           no email is sent; email_sent_at unchanged
@@ -178,6 +180,24 @@ window.ss = (() => {
   // MEASURED 2026-10-16: the second modal can be absent; the click then moves
   // the tab at once and this script dies with "target navigated". The post went
   // out: reload the editor tab's helper elsewhere and read ss.published().
+  //
+  // MEASURED 2026-10-31: .click() on the email checkbox made settings().email read
+  // false, the publish went ahead, and the stored post read should_send_email true
+  // with email_sent_at set. So {email:false} is checked against the saved draft and
+  // anything but an explicit false refuses, a failed read included. An email cannot
+  // be unsent, so a refusal here costs a retry and a pass-through costs the list.
+  // UNTESTED: whether a real mouse click makes the draft read false.
+  async function storedEmail(id = draftId()) {
+    for (let i = 0; i < 3; i++) {
+      if (i) await sleep(1000); // the modal's change may still be saving
+      try {
+        const r = await fetch(`/api/v1/drafts/${id}`, { credentials: "include" });
+        if (r.ok) { const v = (await r.json()).should_send_email; if (v === false) return v; if (i === 2) return v ?? null; }
+      } catch (e) { /* a failed read refuses below */ }
+    }
+    return null;
+  }
+
   async function publish(expect, { subscribeButtons = false } = {}) {
     const s = settings();
     if (!s) return { refused: "Publish modal not open; await ss.openPublish() and read its settings first" };
@@ -189,6 +209,10 @@ window.ss = (() => {
     } else if (!expect || typeof expect.email !== "boolean") return { refused: "pass {email: true|false, audience}; the email cannot be unsent", settings: s };
     for (const k of ["email", "audience", "comments", "scheduled"])
       if (k in expect && k !== "update" && expect[k] !== s[k]) return { refused: `${k} is ${s[k]}, expected ${expect[k]}; change it in the modal first`, settings: s };
+    if (expect?.email === false) {
+      const stored = await storedEmail();
+      if (stored !== false) return { refused: `the saved draft reads should_send_email ${stored}, so this would email subscribers; uncheck "Send via email" with a real mouse click and retry`, settings: s };
+    }
     const go = [...publishDialog().querySelectorAll("button")].find((b) => b.innerText.trim() === s.button);
     if (!go) return { refused: "no send/publish button in the modal", settings: s };
     // An update moves the tab to share-center?alreadyPublished=true at once, which

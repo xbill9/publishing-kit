@@ -38,6 +38,10 @@
 //     against the 2026-09-15 note that they carry none. Read aria-selected, which
 //     was right in both runs.
 //
+//   - A bare URL holding `_` saves escaped and its link goes dead (MEASURED
+//     2026-10-31), so the paste helpers refuse one; write it as [label](url).
+//     Repair a saved draft with bc.replaceInMarkdown.
+//
 // Paste this whole file once per page load (it only defines functions on
 // window.bc), then call e.g. `await bc.replaceText("old", "new")`.
 //
@@ -69,9 +73,23 @@ window.bc = (() => {
     const s = getSelection(); s.removeAllRanges(); s.addRange(r);
   };
 
+  // MEASURED 2026-10-31: https://youtu.be/jfC_d6nq2EM pasted as text/plain saved as
+  // jfC\_d6nq2EM with the href jfC/_d6nq2EM, which is dead; inside [label](url) it
+  // stayed correct. Fenced and inline code hold no links, so neither counts.
+  const bareUnderscoreUrls = (text) => (String(text)
+    .replace(/^(```|~~~)[^\n]*\n[\s\S]*?^\1[ \t]*$/gm, "")
+    .replace(/`[^`\n]*`/g, "")
+    .replace(/\[[^\]\n]*\]\([^)\s]+(?:\s+"[^"]*")?\)/g, "")
+    .match(/https?:\/\/[^\s)>\]<"`]+/g) || []).filter((u) => u.includes("_"));
+  const urlRefusal = (text) => {
+    const urls = bareUnderscoreUrls(text);
+    return urls.length ? { refused: "a bare URL with _ saves escaped and its link goes dead; write it as [label](url)", urls } : null;
+  };
+
   // Replace the current selection with text/plain. Markdown in `text` is converted
   // by the editor's paste handler, so "[label](https://...)" becomes a real link.
   const pasteOver = async (text) => {
+    const no = urlRefusal(text); if (no) return no;
     const ed = editor(); const dt = new DataTransfer(); dt.setData("text/plain", text);
     ed.dispatchEvent(new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }));
     await sleep(1200);
@@ -94,7 +112,7 @@ window.bc = (() => {
     n.parentElement.scrollIntoView({ block: "center" });
     select(n, i, n, i + oldStr.length); await sleep(400);
     if (getSelection().toString() !== oldStr) return { refused: "selection mismatch", sel: getSelection().toString() };
-    await pasteOver(newStr);
+    const no = await pasteOver(newStr); if (no) return no;
     return { replaced: true, remaining: editor().innerText.split(oldStr).length - 1 };
   }
 
@@ -105,10 +123,13 @@ window.bc = (() => {
     const ed = editor(); if (!ed) return { refused: "no body editor" };
     const blocks = [...ed.querySelectorAll(tags)].filter((b) => b.innerText.trim() === exact);
     if (blocks.length !== 1) return { refused: `expected 1 block, found ${blocks.length}` };
+    // MEASURED 2026-10-31 on Slate: a paste over a selection across an inline link
+    // emptied the block in the editor and did not save.
+    if (ed.querySelector(".slate-p") && blocks[0].querySelector("a")) return { refused: "a paste across a link empties the block on Slate; use bc.replaceInMarkdown" };
     const t = textNodes(blocks[0]); blocks[0].scrollIntoView({ block: "center" });
     select(t[0], 0, t[t.length - 1], t[t.length - 1].length); await sleep(400);
     if (getSelection().toString() !== exact) return { refused: "selection mismatch", sel: getSelection().toString() };
-    await pasteOver(newText);
+    const no = await pasteOver(newText); if (no) return no;
     return { replaced: true, links: [...ed.querySelectorAll("a")].map((a) => a.href) };
   }
 
@@ -178,6 +199,23 @@ window.bc = (() => {
     return { replaced: true, dialogClosed: !dialog(), stillPresent: editor().innerText.includes(oldStr) };
   }
 
+  // Replace one exact string in the saved markdown. MEASURED 2026-10-31, the route
+  // that repaired an escaped URL: on /create/content/<id>?v=<v> (without v a blank
+  // editor opens, and it saved nothing), click the body's Markdown toggle, then call
+  // this. Removing only the backslash from a bare URL is re-escaped on save, so
+  // urlRefusal holds here too: replace it with [label](url). Read a[href] on the
+  // preview page afterwards, because check-links.py reads the source.
+  function replaceInMarkdown(oldStr, newStr) {
+    if (!new URLSearchParams(location.search).get("v")) return { refused: "no v in the URL; open /create/content/<id>?v=<v>, because without it the editor is blank" };
+    const no = urlRefusal(newStr); if (no) return no;
+    const box = document.querySelector('textarea[placeholder="What do you want to share?"]');
+    if (!box) return { refused: "no Markdown textarea; click the body's Markdown toggle first" };
+    const count = box.value.split(oldStr).length - 1;
+    if (count !== 1) return { refused: `expected 1 occurrence, found ${count}` };
+    setField(box, box.value.split(oldStr).join(newStr));
+    return { replaced: true, chars: box.value.length };
+  }
+
   // Counts to compare against the source after any edit. On a preview page (no
   // editor) it reads the document instead, which is what proves persistence.
   function audit(landmarks = []) {
@@ -188,6 +226,9 @@ window.bc = (() => {
       images: [...root.querySelectorAll("img")].filter((i) => /cosmic\.aws\.dev/.test(i.src)).map((i) => ({ file: i.src.split("/").pop().split("?")[0].slice(-40), alt: (i.alt || "").length, loaded: i.complete && i.naturalWidth > 0 })),
       codeBlocks: [...root.querySelectorAll("code")].filter((c) => c.innerText.includes("\n")).length,
       tables: root.querySelectorAll("table").length,
+      // What an escaped URL leaves in the saved page. Some real paths start with
+      // "_", so this lists hrefs to compare with the source and proves nothing alone.
+      suspectLinks: [...new Set([...root.querySelectorAll("a")].map((a) => a.href).filter((h) => /\/_|\\_|%5C_/i.test(h)))],
       links: [...new Set([...root.querySelectorAll("a")].map((a) => a.href).filter((h) => /^https?:/.test(h) && !/builder\.aws\.com|aws\.amazon\.com|pulse\.aws/.test(h)))],
       tags: [...document.querySelectorAll('[aria-label^="Remove "]')].map((e) => e.getAttribute("aria-label").slice(7)).filter((x) => x !== "hero image"),
       landmarks: Object.fromEntries(landmarks.map((l) => [l.slice(0, 30), t.split(l).length - 1])),
@@ -297,6 +338,7 @@ window.bc = (() => {
     // Before the clear, because autosave would keep an emptied draft: window.name
     // has arrived empty (references/linkedin.md).
     if (typeof text !== "string" || text.trim().length < 200) return { refused: "text is empty or too short to be a body", len: text?.length ?? 0 };
+    const no = urlRefusal(text); if (no) return no;
     const prior = lx.getEditorState();
     await new Promise((res) => lx.update(() => { lx._pendingEditorState._nodeMap.get("root").clear(); }, { onUpdate: res }));
     await sleep(1500);
@@ -311,6 +353,6 @@ window.bc = (() => {
     return { chars: t.length, landmark: landmark ? t.split(landmark).length - 1 : null };
   }
 
-  return { editor, dialog, pasteOver, press, setField, replaceText, replaceBlock, replaceBody, caretBefore, caretSlot, openInsertImage, replaceInCodeBlock, audit, tagChips, tagSearch, tagStatus, tagAdd };
+  return { editor, dialog, pasteOver, press, setField, bareUnderscoreUrls, replaceText, replaceBlock, replaceBody, replaceInMarkdown, caretBefore, caretSlot, openInsertImage, replaceInCodeBlock, audit, tagChips, tagSearch, tagStatus, tagAdd };
 })();
 Object.keys(window.bc);

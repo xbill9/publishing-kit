@@ -374,6 +374,60 @@ class BrowserHelpers(unittest.TestCase):
         self.assertLess(body.index('"text is empty'), body.index("lx.update"))
         self.assertIn("setEditorState(prior)", body)
 
+    def test_bare_underscore_url_is_found_and_a_markdown_link_is_not(self):
+        got = self.node(r"""
+          const fs = require('fs'), vm = require('vm');
+          const w = {setTimeout}; w.window = w;
+          vm.runInContext(fs.readFileSync('browser/builder-editor.js', 'utf8'), vm.createContext(w));
+          const u = 'https://youtu.be/jfC_d6nq2EM', f = w.bc.bareUnderscoreUrls;
+          console.log(JSON.stringify({
+            bare: f('see ' + u + ' now'), link: f('[v](' + u + ')'), label: f('[' + u + '](' + u + ')'),
+            image: f('![v](' + u + ')'), inline: f('`' + u + '`'),
+            fence: f('```\n' + u + '\n```'), tilde: f('~~~\n' + u + '\n~~~'),
+            after_fence: f('```\nx\n```\n' + u), clean: f('https://example.com/a'),
+          }));
+        """)
+        u = "https://youtu.be/jfC_d6nq2EM"
+        self.assertEqual(got.pop("bare"), [u])
+        self.assertEqual(got.pop("after_fence"), [u])
+        self.assertEqual(set(map(len, got.values())), {0}, got)
+
+    def test_paste_refuses_a_bare_underscore_url_before_touching_the_editor(self):
+        got = self.node(r"""
+          const fs = require('fs'), vm = require('vm');
+          const w = {setTimeout}; w.window = w;   // no document: reaching the editor throws
+          vm.runInContext(fs.readFileSync('browser/builder-editor.js', 'utf8'), vm.createContext(w));
+          w.bc.pasteOver('https://youtu.be/jfC_d6nq2EM').then((r) => console.log(JSON.stringify(r)));
+        """)
+        self.assertIn("[label](url)", got["refused"])
+
+    def substack_publish(self, stored):
+        return self.node(r"""
+          const fs = require('fs'), vm = require('vm');
+          let clicks = 0, open = true;
+          const go = {innerText: 'Publish now', click() { clicks++; open = false; }};
+          const box = {checked: false, closest: () => ({innerText: 'Send via email and the Substack app'})};
+          const dlg = {innerText: 'Publish',
+            querySelector: () => ({value: 'everyone'}),
+            querySelectorAll: (q) => q === 'button' ? [go] : q.includes('checkbox') ? [box] : []};
+          const w = {setTimeout, location: {pathname: '/publish/post/7', origin: 'https://x'},
+            document: {querySelector: () => null,
+              querySelectorAll: (q) => q === 'button' ? [] : open ? [dlg] : []},
+            fetch: async () => { const s = STORED; if (s === 'throw') throw new Error('net');
+              return {ok: s !== 'bad', json: async () => s === 'absent' ? {} : {should_send_email: s}}; }};
+          w.window = w;
+          vm.runInContext(fs.readFileSync('browser/substack-editor.js', 'utf8'), vm.createContext(w));
+          w.ss.publish({email: false, audience: 'everyone'}).then((r) =>
+            console.log(JSON.stringify({clicks, refused: r.refused || null})));
+        """.replace("STORED", json.dumps(stored)))
+
+    def test_no_email_publish_needs_the_saved_draft_to_agree(self):
+        self.assertEqual(self.substack_publish(False), {"clicks": 1, "refused": None})
+        for stored in (True, "absent", "bad", "throw"):
+            got = self.substack_publish(stored)
+            self.assertEqual(got["clicks"], 0, stored)
+            self.assertIn("should_send_email", got["refused"], stored)
+
 
 if __name__ == "__main__":
     unittest.main()
