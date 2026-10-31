@@ -1189,3 +1189,9 @@ MEASURED 2026-10-12, create-article form, visible tab, one article end to end.
 - Tags (`bc.tagAdd`), the cover upload and publishing with `press` from the
   preview page all worked as already written: five tags first time, gate passed,
   URL moved to `/content/<id>/<slug>` with a "You're live!" dialog.
+
+## Builder Center escapes `_` in bare URLs, and Markdown mode is the repair route
+
+MEASURED 2026-10-31. A bare URL with an underscore pasted as text/plain (`https://youtu.be/jfC_d6nq2EM`) saved as `jfC\_d6nq2EM`, and the link's href became `jfC/_d6nq2EM`, which is dead. The same URL inside `[label](url)` stayed correct. So paste any URL holding `_` as a markdown link. `check-links.py` reads the source, so it cannot see this; read `a[href]` on the preview page.
+
+Repair: open the draft at `/create/content/<id>?v=<v>` (without `v` a blank editor opens, and it saved nothing that run), click the body's **Markdown** toggle, and write the textarea (placeholder `What do you want to share?`) through the prototype's value setter. Removing only the backslash from a bare URL is re-escaped on save; replacing it with `[label](url)` held. A synthetic paste over a selection across an inline link emptied the block in the editor and did not save. The editor here is Slate (`div.slate-p`), and `querySelectorAll("p")` finds no paragraphs.

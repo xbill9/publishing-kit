@@ -215,3 +215,7 @@ written.
 
 **Slugs seen so far are cut to about 35 characters on a word boundary:**
 `streamline-publishing-with-a-claude` and `publishing-markdown-to-substack-from`.
+
+## Unchecking "Send via email" did not hold
+
+MEASURED 2026-10-31. In the Publish modal, `.click()` on the `Send via email and the Substack app` checkbox made `ss.settings().email` read `false`, and `ss.publish({email:false, audience:"everyone"})` went ahead. The stored post then read `should_send_email: true` with `email_sent_at` set at publish time. So the checkbox reading is no proof, and the setting may need a real mouse click. Treat a scripted no-email publish as unproven until tested on a post that can be emailed safely; if the author wants no email, read `GET /api/v1/drafts/<id>` for `should_send_email` before the final click.
