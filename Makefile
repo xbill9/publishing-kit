@@ -1,7 +1,7 @@
 # Root Makefile for the publishing kit.
 #
-# There is no test suite: the regression test is the kit run against its own
-# dogfood article (see CLAUDE.md, "Verifying a change").
+# Two regression tests: tests/, one case per input that shipped wrong, and the kit
+# run against its own dogfood article (see CLAUDE.md, "Verifying a change").
 
 SKILL_NAME := publishing
 SKILL_DIR  := skills/$(SKILL_NAME)
@@ -21,7 +21,7 @@ help:
 	@echo "  make deps          - check dependencies; pip-install Pillow and ruff if missing"
 	@echo "  make lint          - ruff on scripts/, node --check on browser helpers,"
 	@echo "                       bash -n on hooks, manifest copy check"
-	@echo "  make test          - preflight against the dogfood article (local state only)"
+	@echo "  make test          - tests/, then preflight on the dogfood article (local state only)"
 	@echo "  make live          - preflight --live: fetch published URLs, compare to disk"
 	@echo "  make pinned        - preflight --live --pinned: resolve at HEAD's sha"
 	@echo "  make manifest      - fail if root plugin.json differs from .claude-plugin/plugin.json"
@@ -53,13 +53,14 @@ deps:
 
 lint: manifest
 	@command -v ruff >/dev/null || { echo "ruff not found; install with: pip install ruff"; exit 1; }
-	ruff check $(SCRIPTS)
+	ruff check $(SCRIPTS) tests
 	@command -v node >/dev/null && for f in $(SCRIPTS)/browser/*.js; do node --check $$f || exit 1; done \
 		|| echo "node not found; skipped browser helper syntax check"
 	@for s in .claude/hooks/*.sh; do bash -n $$s || exit 1; done
 	@echo "lint OK"
 
 test:
+	python3 -m unittest discover -s tests
 	python3 $(SCRIPTS)/preflight.py $(DOGFOOD)
 
 live:

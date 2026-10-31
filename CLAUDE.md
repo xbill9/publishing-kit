@@ -9,15 +9,22 @@ articles it publishes.
 
 ## Verifying a change
 
-There is no CI and no test suite. The regression test is running the kit against
-its own dogfood article:
+There is no CI. Two checks together are the regression test. `tests/` holds one
+case per input that shipped wrong, each with a control beside it, because the
+dogfood article only walks the happy path:
+
+```bash
+python3 -m unittest discover -s tests
+```
+
+The other is the kit run against its own dogfood article:
 
 ```bash
 python3 skills/publishing/scripts/preflight.py \
   articles/publishing-kit-skill/devto-publishing-kit.md --live
 ```
 
-Run it after touching anything in `scripts/`. `--live` is the only check that
+Run both after touching anything in `scripts/`. `--live` is the only check that
 fetches published URLs and compares served bytes to disk; without it the run
 reasons about local state, and local state has been wrong. Exit code is 1 if any
 check failed. `--pinned` (with `--live`) resolves at HEAD's sha to bypass the CDN
@@ -60,6 +67,8 @@ Requirements section — there is no manifest to update.
 
 ## Rules that cost this repo a retry each
 
+- **One fence parser.** Code fences are classified by `bodytext.fence_kinds`, and
+  nowhere else. Nine separate `startswith("```")` tests once disagreed about `~~~`.
 - **Never fork a script.** A wrapper *calls* `make-medium.py`; it does not copy
   from it. Unwrapping logic exists once, in `scripts/bodytext.py`.
 - **Defaults anchor to the article, not the cwd.** Flags derive from
