@@ -17,7 +17,11 @@
 // verdict() returns URLs as-is but never the raw body.
 
 window.gate = (() => {
-  const seen = [];
+  // Shared across pastes. The fetch hook installs once and closes over the first
+  // array, so a second paste with its own `seen` could never see a response.
+  // A paste also starts a fresh capture: wait() would return on an old verdict.
+  const seen = (window.__gateSeen ||= []);
+  seen.length = 0;
   const keep = (url, text) => {
     if (!/submit-review|review-status/.test(String(url))) return;
     try { seen.push({ url: String(url).split("?")[0], body: JSON.parse(text) }); } catch (e) { /* non-JSON poll tick */ }

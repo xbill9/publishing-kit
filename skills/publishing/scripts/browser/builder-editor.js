@@ -171,7 +171,8 @@ window.bc = (() => {
     if (!ace) return { refused: "no Ace editor in the dialog" };
     const before = ace.getValue(); const count = before.split(oldStr).length - 1;
     if (count !== 1) return { refused: `expected 1 occurrence in the block, found ${count}` };
-    ace.setValue(before.replace(oldStr, newStr), 1); await sleep(400);
+    ace.setValue(before.split(oldStr).join(newStr), 1); // .replace would read `$&` and `$$` in code as patterns
+    await sleep(400);
     const save = [...d.querySelectorAll("button")].find((b) => b.innerText.trim() === "Save");
     press(save); await sleep(2000);
     return { replaced: true, dialogClosed: !dialog(), stillPresent: editor().innerText.includes(oldStr) };
@@ -293,6 +294,10 @@ window.bc = (() => {
   async function replaceBody(text, landmark) {
     const ed = editor(); if (!ed) return { refused: "no body editor" };
     const lx = ed.__lexicalEditor; if (!lx) return { refused: "no Lexical editor on the body" };
+    // Before the clear, because autosave would keep an emptied draft: window.name
+    // has arrived empty (references/linkedin.md).
+    if (typeof text !== "string" || text.trim().length < 200) return { refused: "text is empty or too short to be a body", len: text?.length ?? 0 };
+    const prior = lx.getEditorState();
     await new Promise((res) => lx.update(() => { lx._pendingEditorState._nodeMap.get("root").clear(); }, { onUpdate: res }));
     await sleep(1500);
     if (editor().innerText.trim().length) return { refused: "body did not clear", len: editor().innerText.length };
@@ -301,6 +306,8 @@ window.bc = (() => {
     editor().dispatchEvent(new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }));
     await sleep(6000);
     const t = editor().innerText;
+    // Rendered text is shorter than its markdown, so half is the floor for "it landed".
+    if (t.trim().length < text.trim().length / 2) { lx.setEditorState(prior); await sleep(1500); return { refused: "paste did not land; prior body restored", chars: t.length }; }
     return { chars: t.length, landmark: landmark ? t.split(landmark).length - 1 : null };
   }
 
