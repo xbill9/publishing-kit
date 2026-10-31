@@ -28,20 +28,28 @@ script finds both, renders them to PNG at 2x, and emits HTML two ways:
 Usage:
     ./make-medium.py article.md [outdir] [--img-base URL] [--cover FILE]
 
-Also writes <outdir>/img/*.png so the hosted variant has something to point at.
+outdir defaults to medium/ beside the article. The cover defaults to the local
+file named by the front matter's cover_image.
+
+Also writes <outdir>/img/*.png so the hosted variant has something to point at,
+and copies the article's own local images there.
 """
 
 from __future__ import annotations
 
 import base64
 import html
+import mimetypes
 import re
 import subprocess
 import sys
 import unicodedata
 from pathlib import Path
+from urllib.parse import unquote
 
 from PIL import Image, ImageDraw, ImageFont
+
+from bodytext import fence_kinds
 
 SCALE = 2  # render at 2x for crisp display on high-DPI screens
 
@@ -91,8 +99,18 @@ def display_width(s: str) -> int:
 # (and as dev.to renders it). MEASURED 2026-10-28: without the lookarounds a
 # quantization name in a table cell, Q5_K_M, rendered as "Q5" + italic "K" + "M"
 # with both underscores gone, while dev.to showed the same cell as Q5_K_M.
+#
+# MEASURED 2026-10-31: the rest of CommonMark's flanking rule was missing, so a
+# table's `4 * 1024 * 1024` rendered as "4 " + italic " 1024 " + " 1024". An opener
+# needs a non-space after it and a closer a non-space before it, and \w replaces
+# the ASCII classes so `é_x_é` stays literal.
 TOKEN = re.compile(
-    r"(\*\*\*.+?\*\*\*|\*\*.+?\*\*|\*[^*\n]+?\*|(?<![0-9A-Za-z])_[^_\n]+?_(?![0-9A-Za-z])|`[^`]+`)"
+    r"(\*\*\*(?=\S).+?(?<=\S)\*\*\*"
+    r"|\*\*(?=\S).+?(?<=\S)\*\*"
+    r"|(?<!\w)__(?=\S).+?(?<=\S)__(?!\w)"
+    r"|(?<!\*)\*(?![\s*])[^*\n]+?(?<![\s*])\*(?!\*)"
+    r"|(?<![\w_])_(?![\s_])[^\n]+?(?<![\s_])_(?![\w_])"
+    r"|`[^`]+`)"
 )
 
 # DejaVu has no emoji glyphs and NotoColorEmoji is a 109px-only bitmap font, so
@@ -125,19 +143,21 @@ def runs(cell: str):
     rather than falling back to plain text.
     """
     out = []
-    for part in TOKEN.split(strip_emoji(cell)):
+    # split() with one group alternates: odd indexes are matched tokens. Text
+    # that merely looks delimited, `* 1024 *`, sits at an even index and stays.
+    for idx, part in enumerate(TOKEN.split(strip_emoji(cell))):
         if not part:
             continue
-        if part.startswith("***") and part.endswith("***"):
-            out.append((part[3:-3], True, False, True))
-        elif part.startswith("**") and part.endswith("**"):
-            out.append((part[2:-2], True, False, False))
-        elif part.startswith("`") and part.endswith("`"):
-            out.append((part[1:-1], False, True, False))
-        elif len(part) > 2 and part[0] == part[-1] and part[0] in "*_":
-            out.append((part[1:-1], False, False, True))
-        else:
+        if idx % 2 == 0:
             out.append((part, False, False, False))
+        elif part.startswith("***"):
+            out.append((part[3:-3], True, False, True))
+        elif part.startswith(("**", "__")):
+            out.append((part[2:-2], True, False, False))
+        elif part.startswith("`"):
+            out.append((part[1:-1], False, True, False))
+        else:
+            out.append((part[1:-1], False, False, True))
     # A cell that was ONLY emoji strips to nothing. Falling back to the raw cell
     # put the emoji straight back and drew it as tofu (MEASURED 2026-10-02: a
     # "Fits?" column of bare ❌/🟢 rendered as three empty boxes). Render it
@@ -153,14 +173,19 @@ def runs(cell: str):
 # --------------------------------------------------------------------------
 
 def parse_table(block: list[str]) -> tuple[list[str], list[list[str]]]:
-    rows = []
+    rows, seen = [], 0
     for line in block:
         line = line.strip()
         if not line.startswith("|"):
             continue
-        cells = [c.strip() for c in line.strip("|").split("|")]
-        if all(re.fullmatch(r":?-{2,}:?", c) for c in cells):
-            continue  # separator
+        seen += 1
+        # Only an unescaped pipe divides cells, in code spans too, as GFM says.
+        cells = re.split(r"(?<!\\)\|", line[1:])
+        if len(cells) > 1 and not cells[-1].strip():
+            cells.pop()
+        cells = [c.strip().replace("\\|", "|") for c in cells]
+        if seen == 2 and all(re.fullmatch(r":?-+:?", c) for c in cells):
+            continue  # the separator, which is one dash at the least
         rows.append(cells)
     return rows[0], rows[1:]
 
@@ -368,21 +393,27 @@ def demoji(cell: str) -> str:
 # So every section heading is demoted to `####`, and the document's `#` title is
 # DROPPED: Medium never fills its Title field from pasted content anyway, and the
 # orphaned h1 just leaves a stray empty block at the top.
+#
+# MEASURED 2026-10-31: any line starting with `#` used to count as a heading, so
+# `#1 in the ranking` and `#gemma #ai` were deleted as titles, and only here: GFM
+# needs a space after the hashes, so dev.to shows them as paragraphs. Now only a
+# real ATX heading matches, and only a title-position H1 drops; a later H1 is a
+# section like any other.
+ATX = re.compile(r"^ {0,3}(#{1,6})(?:[ \t]+(.*?))??(?:[ \t]+#+)?[ \t]*$")
+
+
 def demote_headings(lines: list[str]) -> list[str]:
-    out, fenced = [], False
-    for line in lines:
-        if line.strip().startswith("```"):
-            fenced = not fenced
-            out.append(line)
-            continue
-        if not fenced and line.startswith("#"):
-            level = len(line) - len(line.lstrip("#"))
-            text = line.lstrip("#").strip()
-            if level == 1:
+    out, seen_body = [], False
+    for line, kind in zip(lines, fence_kinds(lines)):
+        m = None if kind else ATX.match(line)
+        if m:
+            if len(m.group(1)) == 1 and not seen_body:
+                seen_body = True
                 continue          # title is a separate field; drop it
-            out.append("#### " + text)
-            continue
-        out.append(line)
+            out.append("#### " + (m.group(2) or "").strip())
+        else:
+            out.append(line)
+        seen_body = seen_body or bool(line.strip())
     return out
 
 
@@ -439,14 +470,13 @@ def protect_blank_lines(lines: list[str]) -> list[str]:
     so there is no blank line left in the HTML to find. An earlier version of
     this looked for one and silently matched nothing.
     """
-    out, fenced = [], False
-    for line in lines:
-        if line.lstrip().startswith("```"):
-            fenced = not fenced
-            out.append(line)
-            continue
-        out.append(" " if (fenced and not line.strip()) else line)
-    return out
+    return [" " if (kind == "body" and not line.strip()) else line
+            for line, kind in zip(lines, fence_kinds(lines))]
+
+
+# pandoc 3.8 deprecated --no-highlight; older ones do not have the replacement.
+NO_HIGHLIGHT = ("--syntax-highlighting=none" if "--syntax-highlighting" in subprocess.run(
+    ["pandoc", "--help"], capture_output=True, text=True).stdout else "--no-highlight")
 
 
 def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = None) -> Path:
@@ -468,6 +498,7 @@ def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = No
     imgdir.mkdir(parents=True, exist_ok=True)
 
     lines = protect_blank_lines(demote_headings(text.split("\n")))
+    kinds = fence_kinds(lines)
     out: list[str] = []
     n_tab = n_dia = 0
     i = 0
@@ -475,9 +506,9 @@ def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = No
         line = lines[i]
 
         # fenced block?
-        if line.startswith("```"):
+        if kinds[i] == "open":
             j = i + 1
-            while j < len(lines) and not lines[j].startswith("```"):
+            while j < len(lines) and kinds[j] == "body":
                 j += 1
             block = lines[i + 1:j]
             if block and any(any(c in BOX for c in l) for l in block):
@@ -524,7 +555,7 @@ def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = No
         # it, and Medium throws that markup away regardless: its editor re-runs
         # its own language auto-detection on paste. So the highlighting buys
         # nothing here and costs a gap after most blocks.
-        ["pandoc", "-f", "gfm", "-t", "html5", "--standalone", "--no-highlight",
+        ["pandoc", "-f", "gfm", "-t", "html5", "--standalone", NO_HIGHLIGHT,
          "--metadata", f"title={title}", "-o", str(base), str(tmp)],
         check=True,
     )
@@ -588,19 +619,38 @@ def convert(src: Path, outdir: Path, img_base: str = "", cover: Path | None = No
   </style>
 </head>""")
 
+    # The article's own local images join the rendered ones in <outdir>/img, so
+    # both variants resolve them the same way. MEASURED 2026-10-31: only the embed
+    # variant handled them, and `![shot](screenshot.png)` left -hosted.html, the
+    # one marked USE THIS, with a relative src no destination can fetch.
+    def localize(m: re.Match) -> str:
+        ref = unquote(m.group(1))
+        if ref.startswith(("http://", "https://", "data:")):
+            return m.group(0)
+        cand = src.parent / ref
+        if not cand.exists():
+            cand = outdir / ref
+        if not cand.exists():
+            print(f"   ! missing image, left as-is: {ref}", file=sys.stderr)
+            return m.group(0)
+        dst = imgdir / cand.name
+        if cand.resolve() != dst.resolve():
+            if dst.exists() and dst.read_bytes() != cand.read_bytes():
+                sys.exit(f"two different images named {cand.name}: rename one")
+            dst.write_bytes(cand.read_bytes())
+        return f'src="img/{cand.name}"'
+
+    h = re.sub(r'src="([^"]+)"', localize, h)
+
     # 1. self-contained: every local image inlined as a data: URI.
-    #    Covers both the tables/diagrams we rendered into <outdir>/img and any
-    #    image the article references itself (header art, screenshots), which
-    #    resolve relative to the source .md.
     def inline(m: re.Match) -> str:
         ref = m.group(1)
         if ref.startswith(("http://", "https://", "data:")):
             return m.group(0)
-        cand = (outdir / ref) if ref.startswith("img/") else (src.parent / ref)
+        cand = outdir / ref
         if not cand.exists():
-            print(f"   ! missing image, left as-is: {ref}", file=sys.stderr)
             return m.group(0)
-        mime = "image/png" if cand.suffix.lower() == ".png" else "image/jpeg"
+        mime = mimetypes.guess_type(cand.name)[0] or "image/jpeg"
         b64 = base64.b64encode(cand.read_bytes()).decode()
         return f'src="data:{mime};base64,{b64}"'
 
@@ -667,7 +717,26 @@ def default_img_base(src: Path, outdir: Path) -> str:
                  f"variant, and the embed variant hides it.")
 
 
+def default_cover(src: Path) -> Path | None:
+    """The cover the article declares; the old guess only if it declares none.
+
+    MEASURED 2026-10-31: the first *cover*.jpg alphabetically was the superseded
+    cover.77acc7c4.jpg in this kit's own article, while its front matter named
+    cover.ae4d639e.jpg. Filename order knows nothing about which one is current.
+    """
+    m = re.search(r"^cover_image:\s*(\S+)", src.read_text(), re.M)
+    if m:
+        named = src.parent / m.group(1).rstrip("/").rsplit("/", 1)[-1]
+        if named.exists():
+            return named
+    return next((c for c in sorted(src.parent.glob("*cover*.jpg"))
+                 + sorted(src.parent.glob("*cover*.png"))
+                 if "builder" not in c.name), None)
+
+
 if __name__ == "__main__":
+    if {"-h", "--help"} & set(sys.argv[1:]):
+        sys.exit(print(__doc__))
     # Accept both `--flag=value` and `--flag value`. Only the first was parsed, so
     # MEASURED 2026-09-18 `--cover devto-cover.jpg` read the cover as the string
     # "--cover", found no such file, and emitted a story with NO cover -- the first
@@ -693,12 +762,10 @@ if __name__ == "__main__":
     if not args:
         sys.exit(__doc__)
     src = Path(args[0])
-    outdir = Path(args[1]) if len(args) > 1 else Path("medium")
+    outdir = Path(args[1]) if len(args) > 1 else src.resolve().parent / "medium"
     img_base = flags.get("--img-base") or default_img_base(src, outdir)
     cov = flags.get("--cover")
     if cov and not Path(cov).exists():
         sys.exit(f"--cover {cov}: no such file")
-    cover = Path(cov) if cov else next(
-        (c for c in sorted(src.parent.glob("*cover*.jpg")) + sorted(src.parent.glob("*cover*.png"))
-         if "builder" not in c.name), None)
+    cover = Path(cov) if cov else default_cover(src)
     convert(src, outdir, img_base, cover)

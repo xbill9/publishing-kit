@@ -45,7 +45,7 @@ import pathlib
 import socketserver
 import sys
 
-from bodytext import unwrap
+from bodytext import fence_kinds, unwrap
 
 
 def strip_front(text: str) -> str:
@@ -58,11 +58,10 @@ def strip_front(text: str) -> str:
     fences, and take the H1 only where a title can actually be -- before any
     body content.
     """
-    keep, fenced, seen_body, dropped_h1 = [], False, False, False
-    for ln in text.splitlines():
-        if ln.lstrip().startswith("```"):
-            fenced = not fenced
-        elif not fenced:
+    keep, seen_body, dropped_h1 = [], False, False
+    lines = text.splitlines()
+    for ln, kind in zip(lines, fence_kinds(lines)):
+        if not kind:
             if not dropped_h1 and not seen_body and ln.startswith("# "):
                 dropped_h1 = True
                 continue

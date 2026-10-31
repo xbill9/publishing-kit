@@ -50,7 +50,7 @@ import pathlib
 import re
 import sys
 
-from bodytext import links_path, skipped
+from bodytext import fence_kinds, links_path, skipped
 
 FAILS, WARNS = [], []
 # The link verdict lives in check-links.py, and this file asks it rather than
@@ -125,8 +125,9 @@ def context_lines(text, n=3):
     _, _, body = text.partition("\n---\n")
     body = re.sub(r"^>.*$", "", body, flags=re.M)          # drop the TL;DR quote
     paras, buf = [], []
-    for line in body.splitlines():
-        if line.strip().startswith(("#", "```", "|", "-")):
+    lines = body.splitlines()
+    for line, kind in zip(lines, fence_kinds(lines)):
+        if kind or line.strip().startswith(("#", "|", "-")):
             continue
         if line.strip():
             buf.append(line.strip())

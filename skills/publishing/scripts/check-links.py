@@ -41,7 +41,7 @@ import sys
 import urllib.error
 import urllib.request
 
-from bodytext import links_path, skipped
+from bodytext import links_path, skipped, strip_fenced
 
 FAILS, WARNS = [], []
 
@@ -76,16 +76,16 @@ def fetch(url, timeout):
 
 def local_for(url, d):
     """Map a raw.githubusercontent URL back to the file it should be serving."""
-    m = re.search(r"/main/(?:.*/)?" + re.escape(d.name) + r"/(.+)$", url)
-    if not m:
-        m = re.search(r"/[0-9a-f]{40}/(?:.*/)?" + re.escape(d.name) + r"/(.+)$", url)
+    # Any ref: a hardcoded /main/ skipped the byte comparison on a `master` repo.
+    m = re.search(r"raw\.githubusercontent\.com/[^/]+/[^/]+/[^/]+/(?:.*/)?"
+                  + re.escape(d.name) + r"/(.+)$", url)
     return (d / m.group(1)) if m else None
 
 
 def check(url, d, timeout, pinned_sha):
     shown = url
     if pinned_sha:
-        url = re.sub(r"(raw\.githubusercontent\.com/[^/]+/[^/]+)/main/",
+        url = re.sub(r"(raw\.githubusercontent\.com/[^/]+/[^/]+)/[^/]+/",
                      rf"\1/{pinned_sha}/", url)
     status, body = fetch(url, timeout)
     # the cover appears at two URLs -- the article directory and medium/img -- so
@@ -135,13 +135,14 @@ def check(url, d, timeout, pinned_sha):
 BROWSER_UA = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
               "(KHTML, like Gecko) Chrome/140.0 Safari/537.36")
 # A naive scanner stops at whitespace, `)` and `>` -- not at a quote or comma.
-NAIVE_URL = re.compile(r"https?://[^\s)>\]<\"`]+")
+# One level of balanced parentheses stays in the URL, as in markdown itself.
+NAIVE_URL = re.compile(r"https?://(?:[^\s()>\]<\"`]|\([^\s()>\]<\"`]*\))+")
 TRAILING = ".,;:!?'\""
 FRONT = re.compile(r"\A---\n.*?\n---\n", re.S)
-FENCE = re.compile(r"^(```|~~~)[^\n]*\n.*?^\1[ \t]*$", re.M | re.S)
 INLINE_CODE = re.compile(r"`[^`\n]*`")
-MD_LINK = re.compile(r"(?<!!)\[[^\]\n]*\]\((https?://[^\s)]+)(?:\s+\"[^\"]*\")?\)")
-MD_IMAGE = re.compile(r"!\[[^\]\n]*\]\((https?://[^\s)]+)\)")
+_TARGET = r"https?://(?:[^\s()]|\([^\s()]*\))+"
+MD_LINK = re.compile(rf"(?<!!)\[[^\]\n]*\]\(({_TARGET})(?:\s+\"[^\"]*\")?\)")
+MD_IMAGE = re.compile(rf"!\[[^\]\n]*\]\(({_TARGET})\)")
 HTML_A = re.compile(r"<a\s[^>]*href=[\"'](https?://[^\"']+)", re.I)
 AUTOLINK = re.compile(r"<(https?://[^>\s]+)>")
 # Any hop, not just the final URL: ai.google.dev bounces through oauth2callback
@@ -220,7 +221,7 @@ def verdict(url, res):
 def scan_article_links(text, timeout):
     print("\narticle links (gate profile: rendered anchors, browser UA, no cookies)")
     body = FRONT.sub("", text, count=1)          # cover_image is checked above
-    prose = FENCE.sub("", body)
+    prose = strip_fenced(body)
     anchored_text = INLINE_CODE.sub("", prose)
 
     anchors = []

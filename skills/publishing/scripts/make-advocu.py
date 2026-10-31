@@ -72,15 +72,23 @@ Date published is in the same dev.to response as the views, so it is read from
 """
 
 import argparse
+import importlib.util
 import json
 import os
 import pathlib
 import re
 import sys
-import urllib.error
 import urllib.request
 
-from bodytext import links_path
+from bodytext import links_path, skipped
+
+# The link verdict lives in check-links.py. MEASURED 2026-10-31: this script kept
+# its own fetch, so a Medium or dev.to bot-wall 403 was a hard failure here and a
+# warning everywhere else.
+_CL = pathlib.Path(__file__).resolve().parent / "check-links.py"
+_spec = importlib.util.spec_from_file_location("check_links", _CL)
+cl = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(cl)
 
 TYPES = ["Articles", "Books", "Code contribution", "Demos",
          "Newsletters", "Podcasts", "Videos"]
@@ -144,17 +152,24 @@ def devto_stats(url, key_path=None):
         key_path.read_text().strip() if key_path.exists() else "")
     if not key:
         return None, None
+    # Every page. MEASURED 2026-10-31: on an account of 481 articles the kit's own
+    # article sits on page 2, so reading page 1 found nothing and the sheet went
+    # out with no date.
     try:
-        req = urllib.request.Request(
-            "https://dev.to/api/articles/me?per_page=100",
-            headers={"api-key": key, "User-Agent": "publishing-kit"})
-        with urllib.request.urlopen(req, timeout=20) as r:
-            for a in json.load(r):
+        for page in range(1, 100):
+            req = urllib.request.Request(
+                f"https://dev.to/api/articles/me?per_page=100&page={page}",
+                headers={"api-key": key, "User-Agent": "publishing-kit"})
+            with urllib.request.urlopen(req, timeout=20) as r:
+                arts = json.load(r)
+            for a in arts:
                 if a.get("url") and a["url"].rstrip("/") == url.rstrip("/"):
                     pub = (a.get("published_at") or "")[:10] or None
                     return a.get("page_views_count"), pub
-    except Exception:
-        return None, None
+            if len(arts) < 100:
+                break
+    except Exception as e:
+        warn(f"could not read dev.to's listing: {e}")
     return None, None
 
 
@@ -211,7 +226,8 @@ def main():
     tags = [t.strip() for t in field(fm, "tags").split(",") if t.strip()]
 
     links = links_file(src)
-    link = a.link or links.get("devto-gde") or links.get("devto") or ""
+    link = a.link or next((links[k] for k in ("devto-gde", "devto")
+                           if links.get(k) and not skipped(links[k])), "")
 
     out = pathlib.Path(a.out) if a.out else d / f"advocu-{src.stem}.md"
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -226,14 +242,14 @@ def main():
         fail(f"the link is an unpublished dev.to draft whose slug changes on "
              f"publish: {link}")
     else:
-        try:
-            req = urllib.request.Request(link, headers={"User-Agent": "publishing-kit"})
-            with urllib.request.urlopen(req, timeout=20) as r:
-                ok(f"link resolves: HTTP {r.status}")
-        except urllib.error.HTTPError as e:
-            fail(f"link returns HTTP {e.code}: {link}")
-        except Exception as e:
-            warn(f"could not reach the link ({e}): {link}")
+        res = cl.fetch_chain(link, 20)
+        v = cl.verdict(link, res)
+        if v is None:
+            ok(f"link resolves: HTTP {res[0]}")
+        elif v[1]:
+            warn(f"{v[0]} (dev.to/Medium bot wall, not a broken link): {link}")
+        else:
+            fail(f"{v[0]}: {link}")
 
     # 2  REACH ---------------------------------------------------------------
     reach, date, reach_note = a.reach, a.date, ""
@@ -253,7 +269,7 @@ def main():
     else:
         ok(f"reach {reach}, given on the command line")
     if date is None:
-        warn("no publication date. Pass --date YYYY-MM-DD")
+        fail("no publication date, and Advocu requires one. Pass --date YYYY-MM-DD")
 
     # 3  FIELDS --------------------------------------------------------------
     for label, value in (("title", title), ("description", desc)):

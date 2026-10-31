@@ -73,7 +73,7 @@ import pathlib
 import re
 import sys
 
-from bodytext import links_path
+from bodytext import fence_kinds, links_path, skipped
 
 # Empty on purpose. A manufactured "just posting in case this helps..." line was
 # the default here for exactly one post, and the author cut it before sending:
@@ -145,8 +145,9 @@ def context_lines(text, n=3):
     _, _, body = text.partition("\n---\n")
     body = re.sub(r"^>.*$", "", body, flags=re.M)          # drop the TL;DR quote
     paras, buf = [], []
-    for line in body.splitlines():
-        if line.strip().startswith(("#", "```", "|", "-")):
+    lines = body.splitlines()
+    for line, kind in zip(lines, fence_kinds(lines)):
+        if kind or line.strip().startswith(("#", "|", "-")):
             continue
         if line.strip():
             buf.append(line.strip())
@@ -190,7 +191,11 @@ def main():
     resolved = {}
     for key, label in ORDER:
         v = links.get(key, "")
-        if not v or v.upper() == "PENDING":
+        if skipped(v) and key != "devto-gde":
+            ok(f"{label}: SKIP, left out of the post")
+            resolved[key] = ""
+            continue
+        if skipped(v) or not v or v.upper() == "PENDING":
             # Only the dev.to copy is required -- it is the one this room is for.
             # A piece that never went to Builder Center or Medium still gets
             # announced; its line drops out of the template instead of failing

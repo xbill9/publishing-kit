@@ -37,8 +37,14 @@ import pathlib
 import re
 import sys
 
+from bodytext import fence_kinds
+
 DISCLAIMER = ("Any opinions in this article are those of the individual author "
               "and may not reflect the opinions of AWS.")
+# Whitespace-tolerant, because a source hard-wrapped at ~95 columns splits it and
+# an exact match then left the disclaimer in the body with the check reading ok.
+DISCLAIMER_RE = re.compile(r"[*_]*" + r"\s+".join(map(re.escape, DISCLAIMER.split()))
+                           + r"[*_]*")
 
 # Builder Center's house style takes NO emoji. This used to be a list of the ones
 # the author's style happened to use -- medals and status markers -- which is an
@@ -69,12 +75,11 @@ def strip_front_matter(text):
 
 
 def widest_table(text):
-    widest, fenced = 0, False
-    for line in text.splitlines():
-        if line.strip().startswith("```"):
-            fenced = not fenced
-        if not fenced and line.strip().startswith("|"):
-            widest = max(widest, line.count("|") - 1)
+    widest = 0
+    lines = text.splitlines()
+    for line, kind in zip(lines, fence_kinds(lines)):
+        if not kind and line.strip().startswith("|"):
+            widest = max(widest, len(re.findall(r"(?<!\\)\|", line)) - 1)
     return widest
 
 
@@ -90,7 +95,7 @@ def drop_emptied_first_column(body):
     Only tables whose first cell is empty in EVERY row are narrowed, header and
     separator included, so a table with real content in column one is untouched.
     """
-    out, block, fenced = [], [], False
+    out, block = [], []
     def flush():
         if not block:
             return
@@ -107,10 +112,9 @@ def drop_emptied_first_column(body):
                     block[i] = "|" + stripped.lstrip("|").split("|", 1)[1] + nl
         out.extend(block)
         block.clear()
-    for line in body.splitlines(keepends=True):
-        if line.strip().startswith("```"):
-            fenced = not fenced
-        if not fenced and line.strip().startswith("|"):
+    lines = body.splitlines(keepends=True)
+    for line, kind in zip(lines, fence_kinds(lines)):
+        if not kind and line.strip().startswith("|"):
             block.append(line)
             continue
         flush()
@@ -147,7 +151,7 @@ def convert(src_text, title, subtitle):
     # Builder Center renders its own disclaimer under the tags, so one in the
     # body is a second copy rather than the required one. Strip it wherever the
     # source put it, which also makes a re-run of an already-built file a no-op.
-    body = body.replace(DISCLAIMER, "").rstrip()
+    body = DISCLAIMER_RE.sub("", body).rstrip()
     head = f"# {title}\n\n"
     if subtitle:
         head += f"*Subtitle: {subtitle}*\n\n"
@@ -164,7 +168,8 @@ def main():
 
     src = pathlib.Path(a.source)
     out = pathlib.Path(a.out)
-    text = convert(src.read_text(), a.title, a.subtitle)
+    source = src.read_text()
+    text = convert(source, a.title, a.subtitle)
     out.write_text(text)
 
     left = EMOJI_RE.findall(text)
@@ -182,12 +187,9 @@ def main():
         fails += 1
     else:
         print(f"  ok    widest table is {cols} columns")
-    if DISCLAIMER in text:
-        print("  FAIL  AWS disclaimer is in the body; Builder Center adds its "
-              "own under the tags, so this one renders as a duplicate")
-        fails += 1
-    else:
-        print("  ok    no duplicate AWS disclaimer (the platform adds its own)")
+    removed = len(DISCLAIMER_RE.findall(source))
+    print(f"  ok    removed {removed} AWS disclaimer(s); the platform adds its own"
+          if removed else "  ok    no AWS disclaimer in the source; the platform adds its own")
     if text.startswith("# "):
         print("  ok    title and subtitle carried as strippable lines")
     return 1 if fails else 0

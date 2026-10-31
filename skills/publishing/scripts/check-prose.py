@@ -26,9 +26,12 @@ command output that happens to print "probes" or "p50" is never flagged.
 """
 
 import argparse
+import bisect
 import pathlib
 import re
 import sys
+
+from bodytext import fence_kinds
 
 HERE = pathlib.Path(__file__).resolve().parent
 DEFAULT_STYLE = HERE.parent / "references" / "house-style.md"
@@ -69,22 +72,49 @@ def prose_lines(article_text):
                 out.append((i + 1, val.strip().strip('"')))
             i += 1
         i += 1
-    fenced = False
+    kinds = fence_kinds(lines)
     for n in range(i, len(lines)):
         line = lines[n]
         # A reference list quotes other people's titles verbatim.
         if re.match(r"#+\s*references\s*$", line.strip(), re.I):
             break
-        if line.lstrip().startswith("```"):
-            fenced = not fenced
-            continue
-        if fenced or line.startswith("    ") or line.startswith("\t"):
+        if kinds[n] or line.startswith("    ") or line.startswith("\t"):
             continue
         line = re.sub(r"`[^`]*`", " ", line)
         line = re.sub(r"\]\([^)]*\)", "]", line)
         line = re.sub(r"https?://\S+", " ", line)
         if line.strip():
             out.append((n + 1, line))
+    return out
+
+
+def paragraphs(article_text):
+    """(joined text, [(offset, line number), ...]) for each run of wrapped lines.
+
+    MEASURED 2026-10-31: the rules ran line by line, so a banned phrase split by
+    a hard wrap matched nothing -- 0 hits against 3 on the same text joined.
+    """
+    fm = 0
+    lines = article_text.splitlines()
+    if lines and lines[0].strip() == "---":
+        fm = next((i for i, x in enumerate(lines[1:], 2) if x.strip() == "---"), 0)
+    groups = []
+    for n, text in prose_lines(article_text):
+        prev = groups[-1][-1] if groups else None
+        joins = (prev and n == prev[0] + 1 and n > fm and prev[0] > fm
+                 and not re.match(r"\s*(#|\||[-*+] |\d+[.)] |>)", text)
+                 and not prev[1].lstrip().startswith(("#", "|")))
+        if joins:
+            groups[-1].append((n, text))
+        else:
+            groups.append([(n, text)])
+    out = []
+    for g in groups:
+        joined, spans = "", []
+        for n, text in g:
+            spans.append((len(joined), n))
+            joined += text.strip() + " "
+        out.append((joined.rstrip(), spans))
     return out
 
 
@@ -97,10 +127,12 @@ def main():
     rules = load_rules(pathlib.Path(a.style))
     article = pathlib.Path(a.article)
     fails = warns = 0
-    for n, text in prose_lines(article.read_text()):
+    for text, spans in paragraphs(article.read_text()):
         for sev, cat, rx, advice in rules:
             for m in rx.finditer(text):
                 hit = m.group(0).strip()
+                n = bisect.bisect_right([s for s, _ in spans], m.start())
+                n = spans[max(n - 1, 0)][1]
                 print(f"  {sev:<5} {cat:<10} line {n}: {hit!r}  -> {advice}")
                 if sev == "FAIL":
                     fails += 1

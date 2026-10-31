@@ -24,9 +24,10 @@ Checks:
   6. FRONT MATTER            title, description, tags present
   7. MEDIUM ARTIFACTS        if medium/ exists, its images are present and its
                              hosted HTML points at THIS article's directory
-  7c. HOSTED HTML FRESH      a rebuild of the article shows the same text and
-                             images as the committed -hosted.html, which is the
-                             paste for Medium and Substack
+  7c. HOSTED HTML FRESH      a rebuild of the article gives the same text, image
+                             names and image BYTES as the committed -hosted.html,
+                             which is the paste for Medium and Substack; every
+                             <img> in it is an absolute URL
   8. NO EMPTY LINKS          `](  )` and bare `](#)` are dead on arrival
 """
 
@@ -144,7 +145,14 @@ def hosted_fresh(art, hosted):
     passed, because they look at image paths and commits. So rebuild it into a
     temporary directory and compare what a reader would see -- text and image
     names, not bytes, since a pandoc upgrade changes the markup around the same
-    words. The committed file is never rewritten."""
+    words. The committed file is never rewritten.
+
+    MEASURED 2026-10-31, two holes. Table text lives only inside its PNG and the
+    PNG's name is positional, so a changed cell left text and names identical:
+    compare the image bytes too. And the rebuild took its --cover from the hosted
+    file itself, so a wrong cover always matched itself: the rebuild now uses
+    make-medium.py's default, the front matter's cover_image. A Pillow or font
+    upgrade fails this loudly, and re-running make-medium.py clears it."""
     import shutil
     import tempfile
     src = hosted.read_text()
@@ -155,13 +163,9 @@ def hosted_fresh(art, hosted):
     if not shutil.which("pandoc"):
         warn(f"{hosted.name}: pandoc not installed; freshness not checked")
         return
-    covers = [n for n in re.findall(r'/medium/img/([^"/]*cover[^"/]*)"', src)
-              if (art.parent / n).exists()]
     with tempfile.TemporaryDirectory() as tmp:
         cmd = [sys.executable, str(pathlib.Path(__file__).with_name("make-medium.py")),
                art.name, tmp, f"--img-base={refs[0]}"]
-        if covers:
-            cmd.append(f"--cover={covers[0]}")
         r = subprocess.run(cmd, cwd=art.parent, capture_output=True, text=True)
         fresh = pathlib.Path(tmp) / hosted.name
         if r.returncode != 0 or not fresh.exists():
@@ -169,6 +173,11 @@ def hosted_fresh(art, hosted):
                  f"({(r.stderr or r.stdout).strip().splitlines()[-1:]})")
             return
         (now_t, now_i), (was_t, was_i) = visible(fresh.read_text()), visible(src)
+        changed = [n for n in now_i if n in was_i
+                   and (hosted.parent / "img" / n).exists()
+                   and (pathlib.Path(tmp) / "img" / n).exists()
+                   and (hosted.parent / "img" / n).read_bytes()
+                   != (pathlib.Path(tmp) / "img" / n).read_bytes()]
     if now_i != was_i:
         fail(f"{hosted.name} is stale: a rebuild references images {now_i} "
              f"where the committed file has {was_i}; re-run make-medium.py")
@@ -178,6 +187,9 @@ def hosted_fresh(art, hosted):
         fail(f"{hosted.name} is stale: its text differs from a rebuild of "
              f"{art.name} at '…{was_t[max(0, i - 30):i + 40]}…' (rebuild: "
              f"'…{now_t[max(0, i - 30):i + 40]}…'); re-run make-medium.py")
+    elif changed:
+        fail(f"{hosted.name} is stale: a rebuild draws different image(s) "
+             f"{changed[:3]}; re-run make-medium.py")
     else:
         ok(f"{hosted.name} matches a fresh build of {art.name}")
 
@@ -200,12 +212,14 @@ def matches_head(root, path):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("article")
-    ap.add_argument("--repo-root", default=".")
+    ap.add_argument("--repo-root", help="default: git toplevel of the article")
     a = ap.parse_args()
 
     src = pathlib.Path(a.article).resolve()
-    root = pathlib.Path(a.repo_root).resolve()
     d = src.parent
+    root = pathlib.Path(a.repo_root or subprocess.run(
+        ["git", "-C", str(d), "rev-parse", "--show-toplevel"],
+        capture_output=True, text=True).stdout.strip() or d).resolve()
     text = src.read_text()
     fm = front_matter(text)
 
@@ -306,12 +320,17 @@ def main():
         hosted = sorted(med.glob("*-hosted.html"))
         imgdir = med / "img"
         imgs = sorted(f for f in imgdir.iterdir()
-                      if f.suffix.lower() in (".png", ".jpg", ".jpeg")
+                      if f.suffix.lower() in (".png", ".jpg", ".jpeg", ".gif", ".webp")
                       ) if imgdir.exists() else []
         if not hosted:
             warn("medium/ exists but has no -hosted.html")
         for h in hosted:
             refs = re.findall(r'src="(https://[^"]+/medium/img/[^"]+)"', h.read_text())
+            relative = [s for s in re.findall(r'<img[^>]*\ssrc="([^"]+)"', h.read_text())
+                        if not s.startswith(("http://", "https://"))]
+            if relative:
+                fail(f"{h.name} has {len(relative)} relative image(s) a destination "
+                     f"cannot fetch: {relative[:3]}")
             if refs:
                 seg = refs[0].split("/medium/img/")[0].rstrip("/").split("/")[-1]
                 if seg != d.name:
@@ -398,7 +417,8 @@ def main():
             #      and the real number is never examined
             # Match number words explicitly, and allow adjectives after them.
             numbers = "|".join(sorted(WORDS, key=len, reverse=True)) + r"|\d+"
-            pat = rf"\b({numbers})\s+(?:\w+\s+){{0,2}}{noun}\b"
+            # A third, MEASURED 2026-10-31: "one of the scripts" read as a count.
+            pat = rf"\b({numbers})\s+(?:(?!(?:of|or|to)\b)\w+\s+){{0,2}}{noun}\b"
             for m in re.finditer(pat, text, re.I):
                 raw = m.group(1).lower()
                 n = WORDS.get(raw, int(raw) if raw.isdigit() else None)
