@@ -13,6 +13,7 @@ import importlib.util
 import io
 import json
 import pathlib
+import re
 import subprocess
 import sys
 import tempfile
@@ -218,6 +219,15 @@ class Freshness(unittest.TestCase):
     def test_wrong_cover_is_stale(self):
         self.build("--cover=cover.aaaa.jpg")
         self.assertIn("is stale", self.check())
+
+    def test_count_check(self):
+        for phrase, flagged in (("one of the scripts", False), ("44 against the scripts", False),
+                                ("99 small scripts", True)):
+            stale = re.compile(r"\b(99|44|one)\s+"
+                               r"(?:(?!(?:of|or|to|against|in|on|for|from|by|with)\b)\w+\s+){0,2}"
+                               r"scripts\b")
+            self.assertEqual(bool(stale.search(phrase)), flagged, phrase)
+        self.assertIn("(?!(?:of|or|to|against", (SCRIPTS / "check-article.py").read_text())
 
     def test_relative_image_fails(self):
         h = self.d / "medium" / "a-hosted.html"

@@ -54,10 +54,10 @@ REFERENCE_DEF = re.compile(r"^\[[^\]]+\]:")
 def fence_kinds(lines):
     """Classify each line as "", "open", "body" or "close".
 
-    THE ONE FENCE PARSER. MEASURED 2026-10-31: nine files each tested
-    `startswith("```")`, so a `~~~` block was prose to all of them, and a four-
-    backtick fence holding a three-backtick example closed at its first inner
-    line. CommonMark's rule: a close uses the opener's character, is at least as
+    THE ONE FENCE PARSER. MEASURED 2026-10-31: nine files had their own
+    fence logic and eight tested only for backticks, so a `~~~` block was prose
+    to them, and a four-backtick fence holding a three-backtick example closed at
+    its first inner line. CommonMark's rule: a close uses the opener's character, is at least as
     long, and carries nothing else. A fence never closed runs to the end. Any
     indent opens one, because a fence inside a list item is indented.
     """

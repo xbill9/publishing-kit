@@ -417,8 +417,9 @@ def main():
             #      and the real number is never examined
             # Match number words explicitly, and allow adjectives after them.
             numbers = "|".join(sorted(WORDS, key=len, reverse=True)) + r"|\d+"
-            # A third, MEASURED 2026-10-31: "one of the scripts" read as a count.
-            pat = rf"\b({numbers})\s+(?:(?!(?:of|or|to)\b)\w+\s+){{0,2}}{noun}\b"
+            # A third, MEASURED 2026-10-31: "one of the scripts" and "44 against the
+            # scripts" read as counts.
+            pat = rf"\b({numbers})\s+(?:(?!(?:of|or|to|against|in|on|for|from|by|with)\b)\w+\s+){{0,2}}{noun}\b"
             for m in re.finditer(pat, text, re.I):
                 raw = m.group(1).lower()
                 n = WORDS.get(raw, int(raw) if raw.isdigit() else None)

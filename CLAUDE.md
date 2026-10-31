@@ -68,7 +68,7 @@ Requirements section — there is no manifest to update.
 ## Rules that cost this repo a retry each
 
 - **One fence parser.** Code fences are classified by `bodytext.fence_kinds`, and
-  nowhere else. Nine separate `startswith("```")` tests once disagreed about `~~~`.
+  nowhere else. Nine files once kept their own fence logic, and eight of them missed `~~~`.
 - **Never fork a script.** A wrapper *calls* `make-medium.py`; it does not copy
   from it. Unwrapping logic exists once, in `scripts/bodytext.py`.
 - **Defaults anchor to the article, not the cwd.** Flags derive from
