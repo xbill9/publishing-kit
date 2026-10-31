@@ -1,0 +1,32 @@
+# Measured 2026-10-31 from this repository's git history. Commands shown; output verbatim.
+
+$ git log --oneline dc4f31f | wc -l  (commits up to the start of the audit)
+203
+
+$ first commit date, and last commit date before the audit
+2026-08-30
+2026-10-28
+
+$ SKILL.md line count, per version bump
+0.26.0 2026-09-09 740
+0.30.0 2026-10-02 996
+audit-start 1061 lines
+
+$ version bumps
+7
+
+$ grep -c MEASURED / Correction across SKILL.md and references at dc4f31f
+MEASURED 143
+Correction 2
+
+$ installed plugin against the repo at audit start
+installed 0.28.0  gitCommitSha a49983f  lastUpdated 2026-09-21
+repo manifest 0.32.0
+git rev-list --count a49983f..dc4f31f = 89
+
+$ commits after the 0.32.0 bump with no new version
+git rev-list --count 631cf11..dc4f31f = 29
+ 16 files changed, 549 insertions(+), 26 deletions(-)
+
+$ fence tests, before and after
+files with their own fence test at dc4f31f: 9

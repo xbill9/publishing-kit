@@ -1,0 +1,11 @@
+# Audit of publishing-kit, 2026-10-31. Summary of the run, captured the same day.
+preflight --live on the dogfood article before the audit: exit 0, all checks passed
+ruff before the audit: All checks passed
+code review of skills/publishing/scripts: 10 ranked findings, 10 further findings
+dogfood run in a scratch clone: 2 further defects
+regression tests added: 44
+regression tests against the scripts as they stood before the fixes: 39 failed or errored
+regression tests after the fixes: 44 passed
+check-facts after the number fix: 320px untraced, previously traced to plugin-install.txt, a file with no 320 in it
+fence logic: 9 files had their own, 8 tested only for backticks, check-links.py alone handled ~~~
+make-advocu page size: 100 per page; account listing 481 articles; the article on page 2

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Agent Skills Drift: A Feedback Loop for Keeping One True</title>
+  <meta name="description" content="An agent skill goes stale in six separate ways while its checks stay green. A step by step guide to measuring that drift and closing it with a feedback loop, using one publishing skill&#x27;s own audit." />
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+  <style>
+    body{font-family:-apple-system,'Segoe UI',Roboto,'Liberation Sans',Arial,sans-serif;
+         font-size:18px;line-height:1.58;max-width:42em;color:#242424;}
+    h1,h2,h3,h4{font-weight:700;line-height:1.25;margin-top:1.8em;}
+    h4{font-size:1.25em;}
+    img{max-width:100%;height:auto;display:block;margin:1.6em 0;}
+    pre{background:#f7f7f7;border:1px solid #e6e6e6;border-radius:4px;
+        padding:12px 14px;overflow-x:auto;font-size:14px;line-height:1.45;}
+    code{font-family:'Liberation Mono',Menlo,Consolas,monospace;}
+    :not(pre)>code{background:#f2f2f2;padding:1px 5px;border-radius:3px;font-size:.9em;}
+    blockquote{border-left:3px solid #ddd;margin-left:0;padding-left:1em;color:#555;}
+    hr{border:0;border-top:1px solid #e6e6e6;margin:2.4em 0;}
+  </style>
+</head>
+<body>
+<p>This article provides a step by step guide to finding drift in an
+agent skill and closing it with a repeatable feedback loop. The working
+example is publishing-kit, an agent skill for Claude Code, Codex and
+Antigravity that publishes one markdown article to five
+destinations.</p>
+<figure><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/skill-drift/medium/img/cover.0c041943.jpg" alt="Agent Skills Drift: A Feedback Loop for Keeping One True" /></figure>
+<p><a
+href="https://github.com/xbill9/publishing-kit">https://github.com/xbill9/publishing-kit</a></p>
+<p><strong>A skill is a set of claims about a world that keeps moving.
+Every claim has a shelf life, so maintenance is a loop you run on a
+schedule.</strong></p>
+<hr />
+<h4 id="what-is-skill-drift">What Is Skill Drift?</h4>
+<p>A skill is instructions plus scripts, and both describe something
+outside the skill: an editor, an API, a file format, or another
+script.</p>
+<p>Drift is the distance between what the skill says and what is true
+today. It grows without any error message, because the skill keeps
+loading and its checks keep passing.</p>
+<hr />
+<h4 id="why-does-a-green-check-prove-so-little">Why Does a Green Check
+Prove So Little?</h4>
+<p>The kit runs a pre-flight against its own article. On the day of this
+audit that run exited 0:</p>
+<pre class="text"><code>$ python3 skills/publishing/scripts/preflight.py articles/publishing-kit-skill/devto-publishing-kit.md --live
+all checks passed</code></pre>
+<p>The same day, a code review of the scripts returned 20 findings and
+running every generator by hand added 2 more. One of those unpublished
+live articles.</p>
+<p>The pre-flight walks a happy path. An article that never contains a
+<code>~~~</code> block can never show that 8 files mishandle one.</p>
+<hr />
+<h4 id="step-1--measure-install-drift">Step 1 — Measure Install
+Drift</h4>
+<p>Hosts install a skill as a snapshot, so the copy a session loads can
+lag the repository by weeks. Compare the two:</p>
+<pre class="text"><code>$ grep &#39;&quot;version&quot;&#39; .claude-plugin/plugin.json
+  &quot;version&quot;: &quot;0.32.0&quot;,
+$ grep -A4 &#39;publishing@publishing-kit&#39; ~/.claude/plugins/installed_plugins.json | grep version
+        &quot;version&quot;: &quot;0.28.0&quot;,
+$ git rev-list --count a49983f..dc4f31f
+89</code></pre>
+<p>Every fix in those 89 commits existed in the repository and in no
+session. The whole Substack destination was among them.</p>
+<hr />
+<h4 id="step-2--measure-version-drift">Step 2 — Measure Version
+Drift</h4>
+<p>A version string identifies a release. It says nothing about whether
+the content changed, and an updater that compares strings inherits that
+blind spot.</p>
+<pre class="text"><code>$ git rev-list --count 631cf11..dc4f31f
+29
+$ git diff --stat 631cf11 dc4f31f -- skills .claude-plugin | tail -1
+ 16 files changed, 549 insertions(+), 26 deletions(-)</code></pre>
+<p>Those 29 commits changed behavior under an unchanged version. Bump
+the version in the same session as the change, so the update has
+something to see.</p>
+<hr />
+<h4 id="step-3--find-warnings-that-should-be-guards">Step 3 — Find
+Warnings That Should Be Guards</h4>
+<p>A warning in a document depends on the next reader. The kit's notes
+recorded that <code>--update</code> pushes the source's
+<code>published: false</code> and takes a live article down. The script
+still did it and printed <code>updated</code>.</p>
+<pre class="text"><code>$ python3 -m unittest tests.test_regressions.DevtoUpdate
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.002s
+ 
+OK</code></pre>
+<p>The script now reads the listing first, keeps a live article live,
+and exits non-zero if the article leaves the published listing.</p>
+<p>Search the skill for words like "remember", "always" and "make sure".
+Each one is a candidate for a guard inside the script.</p>
+<hr />
+<h4 id="step-4--test-the-checks-themselves">Step 4 — Test the Checks
+Themselves</h4>
+<p>A check drifts when its logic stops matching what its name promises.
+The fact checker joined every number in an evidence file into one string
+of digits:</p>
+<pre class="python"><code>&quot;&quot;.join([&quot;12&quot;, &quot;3.4&quot;])     # &quot;123.4&quot;, so a claim of 123.4 ms traced</code></pre>
+<p>Comparing whole numbers fixed that and failed the kit's own article
+on the next run. Its <code>320px</code> had been traced to a file with
+no 320 in it.</p>
+<p>Give every check an input it must reject, and run that input. A check
+that has never failed tells you nothing about what it can catch.</p>
+<hr />
+<h4 id="step-5--collapse-duplicated-logic">Step 5 — Collapse Duplicated
+Logic</h4>
+<p>Copies drift apart. At audit time 9 files carried their own logic for
+a code fence. One handled <code>~~~</code>, and the other 8 treated it
+as prose.</p>
+<p>One script therefore saw a code block where the next saw paragraphs,
+and a fix in one file reached none of the others.</p>
+<p>One function now classifies fences, and the repository's rules forbid
+a second.</p>
+<hr />
+<h4 id="step-6--date-every-claim-about-a-destination">Step 6 — Date
+Every Claim About a Destination</h4>
+<p>Destinations change without notice, so an undated claim about one has
+no expiry. The kit labels each behavioral claim with the day it was
+taken:</p>
+<pre class="text"><code>MEASURED 2026-09-01: PUT {&quot;article&quot;: {&quot;published&quot;: true}} returns 200 and changes nothing.</code></pre>
+<p>The skill carries 143 of those labels. A date tells a reader how far
+to trust the claim and tells a reviewer where to look first.</p>
+<p>When a claim reverses, keep it visible and write a
+<strong>Correction</strong> beside it with the new measurement. A quiet
+edit removes the record that the old belief was ever held, and the next
+session can repeat it.</p>
+<hr />
+<h4 id="the-feedback-loop">The Feedback Loop</h4>
+<p>Six kinds of drift, one loop. Each pass turns one surprise into
+something the next session cannot repeat.</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/skill-drift/medium/img/devto-skill-drift-diagram-1.png" alt="diagram" /></p>
+<p>Step 3 sets the order of preference. Code beats a test, a test beats
+a document, and a document beats memory, because each one depends less
+on someone paying attention.</p>
+<p>Step 4 keeps the loop true. The regression tests here failed 39 of 44
+against the scripts as they stood, and all 44 pass now. A test that
+passes on broken code proves nothing.</p>
+<p>Step 5 is the step most often skipped, and skipping it produced the
+89 commit gap from Step 1.</p>
+<hr />
+<h4 id="compare-and-contrast">Compare and Contrast</h4>
+<p><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/skill-drift/medium/img/devto-skill-drift-table-1.png"
+alt="Table: Drift, Symptom, Detect with, Close with" /></p>
+<hr />
+<h4 id="how-often-should-the-loop-run">How Often Should the Loop
+Run?</h4>
+<p>Run the loop on three triggers:</p>
+<ul>
+<li>🟢 <strong>Every failed or awkward run.</strong> A retry is the
+cheapest signal available, so write it down while it is fresh.</li>
+<li>🟢 <strong>Every release.</strong> Run the tests, run the live
+pre-flight, bump the version and update the install.</li>
+<li>🟢 <strong>On a calendar.</strong> A review reads the code cold and
+catches what a passing run cannot. It also finds claims that no recent
+run touched.</li>
+</ul>
+<p>Give the calendar review to a reader with no stake in the code. Hand
+it the code and withhold your conclusions, so it can disagree.</p>
+<hr />
+<h4 id="so-which-one-first">So, Which One First?</h4>
+<p>Start with install drift. It takes one command, and until it is
+closed every other fix stays out of reach of your sessions.</p>
+<p>Then add one rejecting input to the check you trust most. If that
+check accepts bad input, you have learned what your green runs are
+worth.</p>
+<hr />
+<h4 id="summary">Summary</h4>
+<p>The goal of this article was to find and close drift in an agent
+skill. The key to the solution was treating every claim as perishable
+and every surprise as input to a loop. The publishing-kit results
+were:</p>
+<ul>
+<li>🟢 22 defects surfaced on a day when the pre-flight passed</li>
+<li>🟢 44 regression tests now keep the failing inputs, each beside a
+passing case</li>
+<li>❌ The installed skill was 89 commits behind the repository</li>
+<li>⚠️ The <code>--update</code> guard is tested against a fake API, and
+no live article has gone through it yet</li>
+</ul>
+<p>Scope: one skill, one repository and one audit on 2026-10-31. Counts
+come from that repository's git history, and the defects come from one
+code review and one manual run, so they are a lower bound on what
+remains.</p>
+<p>With this approach a skill stays true for as long as someone keeps
+running the loop. The full source and every measurement are in the
+repository.</p>
+<h4 id="references">References</h4>
+<ul>
+<li><a
+href="https://github.com/xbill9/publishing-kit">publishing-kit</a></li>
+<li><a
+href="https://github.com/xbill9/publishing-kit/blob/main/skills/publishing/SKILL.md">The
+skill's own instructions</a></li>
+<li><a
+href="https://github.com/xbill9/publishing-kit/tree/main/articles/skill-drift">Evidence
+for this article</a></li>
+</ul>
+</body>
+</html>
