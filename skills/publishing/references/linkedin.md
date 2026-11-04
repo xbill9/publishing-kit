@@ -414,3 +414,9 @@ from its source instead, and pass the post text as a JSON string literal from
 `json.dumps(open(txt).read())` so the emoji and blank lines arrive exact. With
 that, `li.verifyPost()` reported `normalizedEqual: true` and 16 `<p>` for 16
 source lines.
+
+## The helper's image check reads false with the image attached
+
+MEASURED 2026-11-04 on the ProseMirror composer. After `file_upload`, `li.moveProxyFileToEditor()` reported `preview: "1200x627"`, and `li.next()` returned `imageAttached: false`. `li.verifyPost()` also returned false, while a screenshot showed the cover in the composer and a `blob:` image was on the page. The post went out with the cover. `attachedImage()` requires `naturalWidth >= 600` on a `blob:`/`data:` image, and the composer's thumbnail evidently fails that. Confirm the cover with a screenshot, or from the published post, before treating `false` as missing. The fix belongs in `attachedImage()` once the thumbnail's natural size is read.
+
+Two hyphens render close together in the post font: `--exec` looks like one dash on the post page, and `innerText` holds two U+002D. Nothing is converted.
