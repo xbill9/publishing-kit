@@ -396,6 +396,8 @@ bytes differ from the two-bar run of the same command without `--flow`
 it used to force text back on at every size. The two-bar image is still what
 `--no-text` draws without `--flow`.
 
+**Two articles with the same `--flow` shape get the same cover.** MEASURED 2026-11-04: `--mode devto --no-text --flow` with three `--dest` (blue, orange, muted) wrote `devto-cover.3ce8c43b.jpg`, the hash already published on the TorchTPU native-Rust article, because the textless flow draws one page and one shape per destination and ignores every label. A content-addressed name that matches another article's is that article's cover. Check the hash against the other covers in the repo before using it, and vary the destinations or draw the article's own subject when it collides.
+
 **Which cover to draw is the author's choice, not the kit's.** The house style
 sets the default (`references/house-style.md` → "Covers"); for this author it is
 abstract and textless.
@@ -526,6 +528,8 @@ flips the front matter in the payload only, and then **verifies from the listing
 rather than trusting the response. The source file stays `published: false` so the
 pre-flight keeps meaning something. `--unpublish` goes back, and is the only way
 back, since there is no delete.
+
+**`--publish` can answer 500 and do nothing.** MEASURED 2026-11-04 on article 4972235: the first `--publish` returned `500 {"status":500,"error":"Internal Server Error"}` and `--list` still showed it as a draft; the same command a minute later printed `published` and the listing agreed. Read `--list` after a 500 before retrying, so a publish that did land is not sent twice.
 
 **A slug is fixed at creation and a rename does not move it.** A draft made under
 a working title keeps that title's URL after you retitle it, so create it with the
