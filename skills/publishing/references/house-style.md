@@ -181,6 +181,15 @@ late and a stray keystroke toggles them (`browser-publishing.md`). Notify is
 the author's choice, but it still sends an email that cannot be recalled, so
 publishing waits for an explicit go.
 
+**An author's request to publish to Medium or Substack is that go.** Do not ask
+about the email or the paywall again; apply this section. Ask only when the
+request says otherwise (stated 2026-11-05, after being asked twice).
+
+**Substack uses the same defaults**: "Send via email and the Substack app"
+**on**, audience Everyone, comments Everyone, publish without subscribe
+buttons — `ss.publish({email: true, audience: "everyone", comments:
+"everyone", scheduled: false})`.
+
 ## Per-destination differences
 
 | | dev.to | Builder Center | Medium | LinkedIn |
