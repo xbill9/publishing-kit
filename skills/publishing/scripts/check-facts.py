@@ -54,7 +54,7 @@ from bodytext import strip_fenced
 # refuses to run if any pattern misses its own example, because a zero from a
 # pattern that cannot fire is not a result.
 PATTERNS = [
-    (r"\$\s?\d[\d,]*\.?\d*", "price", "$0.42"),
+    (r"\$\s?\d+(?:,\d{3})*(?:\.\d+)?", "price", "$0.42"),
     (r"\b\d[\d,]*\.\d+\s*(?:tok/s|tokens/s|GB/s|GiB/s|MB/s|ms|s\b|%)", "measurement",
      "73.75 tok/s"),
     (r"\b\d[\d,]{2,}\s*(?:tokens?|MiB|GiB|GB|MB|bytes|B)\b", "quantity", "15,360 MiB"),
