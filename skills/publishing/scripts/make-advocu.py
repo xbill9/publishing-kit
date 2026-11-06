@@ -178,8 +178,18 @@ def find_cover(article, fm, explicit):
     if explicit:
         p = pathlib.Path(explicit).expanduser().resolve()
         return p if p.exists() else None
+    # A directory can hold several articles. MEASURED 2026-11-06: docs/ held four
+    # devto-*.md and one builder-cover-l4.jpg, and the alphabetical first hit put the
+    # L4 article's cover on another article. With siblings, a builder cover counts
+    # only when its name carries a token of this article's stem that no sibling has.
+    siblings = [p for p in article.parent.glob("devto-*.md") if p != article]
+    unique = set(article.stem.split("-"))
+    for s in siblings:
+        unique -= set(s.stem.split("-"))
     for pattern in ("builder-cover*.jpg", "builder-cover*.png", "builder-cover*.webp"):
         hits = sorted(article.parent.glob(pattern))
+        if siblings:
+            hits = [h for h in hits if unique & set(h.name.replace(".", "-").split("-"))]
         if hits:
             return hits[0]
     url = field(fm, "cover_image")
