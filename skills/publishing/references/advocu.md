@@ -397,3 +397,9 @@ clicks and typing, with no value setters:
 - The links file named the article `devto` (the author's own account); before
   `a3a5903`, `make-advocu.py` read only `devto-gde` and failed with "no
   published URL".
+
+## The activity-type card needs a real click
+
+MEASURED 2026-11-10, filing the coding-agent-updater article in a visible tab. `Add new activity` and `New activity` opened with the JS `pointerdown -> mousedown -> pointerup -> mouseup -> click` press, but the same press on the `Content creation` card's text left the "Select your activity type" modal unchanged. A coordinate click on the card, taken from a screenshot, opened the AI-link / Regular form choice, and a second coordinate click opened the Regular form. Everything after that (native value setter for title, reach and link, `insertText` for the description, the select and date picker by press, `file_upload` to the labelled step-2 input) worked by script, and Submit moved `Activities` from 383 to 384, with the entry at the top of a fresh load.
+
+Advocu's tag list has `AI - Antigravity` and `AI - Antigravity CLI` beside `Open Source`.
