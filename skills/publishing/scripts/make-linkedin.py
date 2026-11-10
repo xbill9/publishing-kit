@@ -75,6 +75,14 @@ with an unpublished link in it cannot be posted by accident. A value of SKIP
 means the article is deliberately not published there; that destination is left
 out of the post (bodytext.skipped).
 
+EVERY POST LINKS THE GITHUB REPO
+--------------------------------
+Standing rule from the author, 2026-11-10: the post carries the article's GitHub
+repository as a `GitHub:` link after the write-ups. With no `repo` key in
+links.txt, the script reads the article's own git origin and uses that when it is
+on github.com; with no `repo` key and no GitHub origin it fails. `repo = SKIP`
+leaves the link out for an article that has no public repo.
+
 THE COVER IMAGE COMES WITH THE POST
 -----------------------------------
 Every article already has a cover (check-article.py fails without one), and a
@@ -103,6 +111,7 @@ import importlib.util
 import pathlib
 import re
 import statistics
+import subprocess
 import sys
 
 from bodytext import links_path, skipped
@@ -223,7 +232,9 @@ def summary_bullets(text, n=4, section="Summary"):
     return [strip_markdown(b) for b in out[:n]]
 
 
-def read_links(path, pairs):
+def read_links(path, pairs, declared=None):
+    """key -> url, SKIP and blank entries dropped. `declared`, when given, collects
+    every key named at all, so a caller can tell `repo = SKIP` from no repo line."""
     links = {}
     if path and pathlib.Path(path).exists():
         for ln in pathlib.Path(path).read_text().splitlines():
@@ -235,7 +246,27 @@ def read_links(path, pairs):
     for p in pairs:
         k, _, v = p.partition("=")
         links[k.strip()] = v.strip()
+    if declared is not None:
+        declared.update(links)
     return {k: v for k, v in links.items() if not skipped(v)}
+
+
+def github_repo(article):
+    """https://github.com/<owner>/<repo> for the article's git origin, or None."""
+    try:
+        url = subprocess.run(["git", "-C", str(pathlib.Path(article).parent), "remote", "get-url", "origin"],
+                             capture_output=True, text=True, timeout=10).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return None
+    m = re.match(r"^(?:https?://(?:[^@/]+@)?github\.com/|git@github\.com:|ssh://git@github\.com/)"
+                 r"([\w.-]+)/([\w.-]+?)(?:\.git)?/?$", url)
+    return f"https://github.com/{m.group(1)}/{m.group(2)}" if m else None
+
+
+def label(key, url):
+    if key == "repo" and re.match(r"https://github\.com/", url):
+        return "GitHub"
+    return LABELS.get(key, key)
 
 
 def escape_little(s):
@@ -322,7 +353,7 @@ def build(article, links, hook_override, template, section="Summary"):
         "hook": hook,
         "description": desc,
         "bullets": "\n".join(f"- {b}" for b in bullets),
-        "links": "\n".join(f"{LABELS.get(k, k)}: {links[k]}" for k in ordered),
+        "links": "\n".join(f"{label(k, links[k])}: {links[k]}" for k in ordered),
     }
 
     # [[key]] ... [[/key]] survives only if that value is non-empty. Without this a
@@ -382,7 +413,8 @@ def main():
         a.hook = saved["hook"]
     lf = (links_path(src) if not a.links else
           src.parent / a.links if not pathlib.Path(a.links).is_absolute() else a.links)
-    links = read_links(lf, a.url)
+    declared = set()
+    links = read_links(lf, a.url, declared)
     # "linkedin" is this post's own URL, which make-slack.py and make-gchat.py read
     # out of the same links.txt. A post cannot link to itself and the URL does not
     # exist until it is posted, so the key is neither rendered nor required here.
@@ -393,6 +425,15 @@ def main():
 
     if not links:
         fail("no links: LinkedIn is the destination whose whole job is the link")
+    # Standing rule (2026-11-10): every post links the GitHub repo. See the header.
+    if "repo" not in declared:
+        gh = github_repo(src)
+        if gh:
+            links["repo"] = gh
+            ok(f"GitHub link from the article's git origin: {gh}")
+        else:
+            fail("no GitHub link: the article's git origin is not on github.com and links.txt "
+                 "has no repo line. Add `repo = <url>`, or `repo = SKIP` for no public repo.")
     hook, post = build(src, links, a.hook, load_template(a.template), a.bullets_from)
     if not summary_bullets(src.read_text(), section=a.bullets_from):
         warn(f"no bullets under '{a.bullets_from}'; the post carries the description "

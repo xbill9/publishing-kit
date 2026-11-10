@@ -354,6 +354,13 @@ template gaps rather than taste:
 | Links labelled by community (`dev.to (Google Developer Experts)`) | One `dev.to:` label, link on the **next line**, not the same line |
 | No hashtags | **`#debian #Claude #sysinternals #drivers`**, last line |
 
+**Correction, stated by the author 2026-11-10: the repo goes back in.** Every
+post links the article's GitHub repository, labelled `GitHub:`, after the
+write-ups. `make-linkedin.py` fills it from the article's git origin when
+`links.txt` has no `repo` line and fails when it can find none; `repo = SKIP`
+opts out. The coding-agent-updater post went out without it and was edited to add
+it.
+
 `make-slack.py` and `make-gchat.py` both take `--hashtags`; LinkedIn is the only
 generator in the kit that emits none, and it is the destination where they matter
 most. **Closing that gap is a script change, not a template edit** —

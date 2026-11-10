@@ -777,6 +777,12 @@ not it is used as markup**: `|  {  }  @  [  ]  (  )  <  >  #  \  *  _  ~`. An
 article body is full of them. `--api` writes the escaped variant beside the plain
 one. Text pasted into the composer needs no escaping.
 
+**Every post links the GitHub repo.** The author's standing rule, 2026-11-10.
+`make-linkedin.py` takes `repo` from `links.txt`, else from the article's git
+origin when it is on github.com, and renders it last as `GitHub: <url>`. No
+`repo` line and no GitHub origin fails the run; `repo = SKIP` is the way to post
+without one, for an article with no public repo.
+
 **Label the two dev.to links differently.** Two articles routed to two
 organizations are two different URLs, and "dev.to" twice reads as a duplicate.
 

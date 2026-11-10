@@ -429,5 +429,43 @@ class BrowserHelpers(unittest.TestCase):
             self.assertIn("should_send_email", got["refused"], stored)
 
 
+class LinkedInRepo(unittest.TestCase):
+    """Standing rule 2026-11-10: every LinkedIn post links the article's GitHub repo."""
+
+    def post(self, origin, links_txt):
+        d = pathlib.Path(self.enterContext(tempfile.TemporaryDirectory()))
+        subprocess.run(["git", "init", "-q", str(d)], check=True)
+        if origin:
+            subprocess.run(["git", "-C", str(d), "remote", "add", "origin", origin], check=True)
+        art = d / "a.md"
+        art.write_text('---\ntitle: "T"\ndescription: "D."\npublished: false\n---\n\nBody.\n')
+        (d / "links.txt").write_text(links_txt)
+        out = d / "post.txt"
+        r = run("make-linkedin", art, "--no-cover", "--no-fetch", "--out", out)
+        return r, (out.read_text() if out.exists() else "")
+
+    def test_repo_comes_from_the_git_origin(self):
+        r, post = self.post("git@github.com:someone/thing.git", "devto = https://dev.to/x/y\n")
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertIn("GitHub: https://github.com/someone/thing\n", post)
+
+    def test_control_skip_leaves_it_out(self):
+        r, post = self.post("git@github.com:someone/thing.git", "devto = https://dev.to/x/y\nrepo = SKIP\n")
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertNotIn("github.com", post)
+
+    def test_no_github_origin_and_no_repo_line_fails(self):
+        r, _ = self.post("https://gitlab.com/someone/thing.git", "devto = https://dev.to/x/y\n")
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("no GitHub link", r.stdout)
+
+    def test_explicit_repo_line_wins(self):
+        r, post = self.post("git@github.com:someone/thing.git",
+                            "devto = https://dev.to/x/y\nrepo = https://github.com/other/repo\n")
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertIn("GitHub: https://github.com/other/repo\n", post)
+        self.assertNotIn("someone/thing", post)
+
+
 if __name__ == "__main__":
     unittest.main()
