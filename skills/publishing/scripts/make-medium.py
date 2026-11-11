@@ -764,6 +764,8 @@ if __name__ == "__main__":
     src = Path(args[0])
     outdir = Path(args[1]) if len(args) > 1 else src.resolve().parent / "medium"
     img_base = flags.get("--img-base") or default_img_base(src, outdir)
+    if not img_base.endswith("/"):
+        img_base += "/"  # a base without its slash glued "img" onto every filename (imgdevto-...png, 404), 2026-11-11
     cov = flags.get("--cover")
     if cov and not Path(cov).exists():
         sys.exit(f"--cover {cov}: no such file")
