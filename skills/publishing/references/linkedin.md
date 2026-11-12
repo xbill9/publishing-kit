@@ -427,3 +427,14 @@ source lines.
 MEASURED 2026-11-04 on the ProseMirror composer. After `file_upload`, `li.moveProxyFileToEditor()` reported `preview: "1200x627"`, and `li.next()` returned `imageAttached: false`. `li.verifyPost()` also returned false, while a screenshot showed the cover in the composer and a `blob:` image was on the page. The post went out with the cover. `attachedImage()` requires `naturalWidth >= 600` on a `blob:`/`data:` image, and the composer's thumbnail evidently fails that. Confirm the cover with a screenshot, or from the published post, before treating `false` as missing. The fix belongs in `attachedImage()` once the thumbnail's natural size is read.
 
 Two hyphens render close together in the post font: `--exec` looks like one dash on the post page, and `innerText` holds two U+002D. Nothing is converted.
+
+## The post's id lives only in an anchor href on the activity page
+
+MEASURED 2026-11-12. After Post, the composer closed with no toast. On
+`/in/<vanity>/recent-activity/all/` the new post rendered at the top, but no
+element carried its id in a `data-urn` or any other attribute, even after a
+reload: every `urn:li:activity:` in the page belonged to older posts. The id was
+in an `href` on an anchor inside the post's card, URL-encoded, as
+`urn%3Ali%3Ashare%3A<id>`. Walk up from the title's text node to the card (the
+first ancestor with more than three buttons), decode the anchors' hrefs and take
+the `share` match; `/feed/update/urn:li:share:<id>/` opened the post.
