@@ -237,3 +237,15 @@ MEASURED 2026-10-31. In the Publish modal, `.click()` on the `Send via email and
 ## A link whose text is a bare root URL leaves its list
 
 MEASURED 2026-11-05 on draft 223663994. The References list item `Strands Agents: <a href="https://strandsagents.com/">https://strandsagents.com/</a>` saved as a list item holding only `Strands Agents: `, followed by a top-level plain paragraph `https://strandsagents.com/` with no link mark, which split the list in two. The nine other links in the same paste, all with a path after the host, kept their marks and stayed in their lists (9 of 10 targets in `ss.audit().links`, so the check could and did produce a positive). Re-pasted with the link text changed to `strandsagents.com`, href unchanged: 10 of 10 targets, one 10-item References list. Compare `ss.audit().links` with the source's distinct `href` set after every paste. Whether a root URL with no trailing slash triggers the same behaviour is UNTESTED.
+
+## Repairing the bare-domain links in place
+
+MEASURED 2026-11-12 on draft 224638560. Three References items (`https://docs.ag-ui.com`, `https://modelcontextprotocol.io`, `https://www.frankfurter.dev`, no trailing slash, so the 2026-11-05 question is answered: a root URL without a slash does it too) saved both ways at once: each list item kept only `Label: `, and each URL became a top-level plain paragraph that split the list into four. `ss.audit().links` read 10 of 13 targets. The repair, all through the editor's Tiptap instance, held through autosave and read 13 of 13 with one 13-item list in `GET /api/v1/drafts/<id>`:
+
+1. Re-insert each link into its item with the `insertContent` route above.
+2. Delete each stray paragraph: walk `editor.state.doc.forEach`, match the paragraph's text, `view.dispatch(state.tr.delete(offset, offset + node.nodeSize))`, one per dispatch with positions recomputed.
+3. Join the split lists: `view.dispatch(state.tr.join(offset))` at each top-level node whose previous sibling is also a list.
+
+**The editor's node names are camelCase and the stored JSON's are snake_case.** In the live document the list is `bulletList` (and `horizontalRule`); `ss.audit()` reads the saved draft, where the same node is `bullet_list`. A join loop matching `bullet_list` against the live doc found nothing and reported no error.
+
+**`ss.audit().last` is the first text of the last block**, so after a list is rejoined it reads the list's first item. Read the item order from the stored draft before calling it truncated.
