@@ -76,6 +76,20 @@ MEASURED 2026-10-05:
   `ss.audit()` counts `latex_block` among the types, so a stray one shows up.
 - A `gitgist` node exists. Whether a pasted gist URL becomes one is not measured.
 
+## A link whose text is a bare domain loses its text
+
+MEASURED 2026-11-12, pasting a `-hosted.html` built by `make-medium.py`. Four
+reference items of the form `Label: <a href="https://strandsagents.com/">https://strandsagents.com</a>`
+saved as `Label: ` with no text and no link; the other eight links in the same
+list, whose text held a path (`https://github.com/<user>/<repo>`), kept both.
+The four targets were `strandsagents.com`, `docs.ag-ui.com`,
+`modelcontextprotocol.io` and `www.frankfurter.dev`. `ss.audit().links` caught it
+(8 distinct targets against 12 in the source). Repair that held through autosave:
+the editor's Tiptap API, `pm.editor.chain().setTextSelection(pos).insertContent({type:"text",
+text:url, marks:[{type:"link", attrs:{href:url}}]}).run()` with `pos` from
+`editor.view.posAtDOM(<li p>, childCount)`; the next audit read 12 of 12.
+Compare the audit's link set with the source's before calling a draft done.
+
 ## Headings: Substack has six sizes
 
 `make-medium.py` demotes sections to `<h4>` because Medium has two heading sizes.
