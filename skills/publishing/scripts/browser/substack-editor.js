@@ -13,6 +13,7 @@
 //   await ss.paste()                           -> {pasted:true, chars}
 //   ss.setTitle(TITLE, SUBTITLE)               -> {title, subtitle}
 //   await ss.audit()                           -> counts from the SAVED draft
+//   await ss.restoreLinks(html)                -> re-adds bare-domain links the paste dropped
 //   await ss.clear(<draft id>)                 only to replace a body you pasted
 //
 // Publishing, ONLY when the author said to publish in this session and chose
@@ -241,5 +242,35 @@ window.ss = (() => {
     return { published: false };
   }
 
-  return { prepare, paste, setTitle, audit, clear, openPublish, settings, publish, published };
+
+  // MEASURED 2026-11-12, twice: a list item whose link text is a bare domain
+  // (`A2UI: <a href="https://a2ui.org/">https://a2ui.org</a>`) saves as `A2UI: `
+  // with no text and no link. Re-insert each missing anchor from the source HTML
+  // through the editor's own Tiptap API, then compare audit().links again.
+  async function restoreLinks(html) {
+    const ed = editor(); if (!ed || !ed.editor) return { refused: "no Tiptap editor" };
+    const E = ed.editor; const norm = (u) => u.replace(/\/$/, "");
+    const got = new Set((await audit()).links.map(norm));
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const want = [...doc.querySelectorAll("li")].map((li) => {
+      const a = li.querySelector("a[href]"); if (!a) return null;
+      return { label: li.textContent.slice(0, li.textContent.indexOf(a.textContent)).trim(), url: norm(a.href), text: a.textContent.trim() };
+    }).filter((x) => x && !got.has(x.url));
+    const done = [];
+    for (const w of want) {
+      const lis = [...ed.querySelectorAll("li")].filter((l) => l.innerText.trim() === w.label);
+      if (lis.length !== 1) { done.push({ label: w.label, refused: `matches ${lis.length}` }); continue; }
+      const para = lis[0].querySelector("p") || lis[0];
+      const end = E.view.posAtDOM(para, para.childNodes.length);
+      const before = E.state.doc.textBetween(Math.max(0, end - 1), end);
+      E.chain().setTextSelection(end).insertContent({ type: "text", text: (before === " " ? "" : " ") + w.text, marks: [{ type: "link", attrs: { href: w.url } }] }).run();
+      done.push({ label: w.label, ok: true });
+    }
+    await sleep(4000);
+    const after = new Set((await audit()).links.map(norm));
+    const src = [...new Set([...doc.querySelectorAll("a[href]")].map((a) => norm(a.href)))];
+    return { restored: done, missing: src.filter((u) => !after.has(u)) };
+  }
+
+  return { prepare, paste, setTitle, audit, clear, openPublish, settings, publish, published, restoreLinks };
 })();
