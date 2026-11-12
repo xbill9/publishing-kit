@@ -8,6 +8,86 @@ the article is already out by the time it matters — so nothing in this kit cal
 Everything below was established in the Google Developer Experts workspace on
 2026-09-01.
 
+## The API route: a draft with every field, then the browser for the image and Submit
+
+MEASURED 2026-11-12, against `https://api.advocu.com/personal-api/v1/gde` with a
+token generated at Settings -> Integrations -> API. **Try this route first; the
+browser form below is the fallback and also the finishing step.**
+
+```
+python3 scripts/make-advocu.py <article>.md --draft --tag "Open Source" --tag "AI"
+```
+
+The token is read from `$ADVOCU_API_KEY` or `~/.advocu.key`, never argv. Every
+request carries `Authorization: Bearer <token>` and `Content-Type: application/json`.
+The page states a limit of 30 requests per minute per IP address, answered with
+HTTP 429 past that; the limit itself was not reached here.
+
+**What the API has:**
+
+| Call | Measured |
+| --- | --- |
+| `GET /activities` | `{"content": [...]}` and nothing else: no total, no next-page marker. `page` is zero-based, `size` defaults to 10 and `size=1000` is a 400 *"Page size must be between 1 and 100."* Stop on a page shorter than `size`. Four pages of 100 returned 387 activities with 387 distinct ids. Also takes `from`, `to` (submission date) and `updatedAfter`. |
+| `POST /activity-drafts/content-creation` | 201 `{"id": "..."}`. Body: `contentType`, `title` (3 to 200 characters), `description` (2000), `tags`, `metrics.readers` (1 or more), `activityDate` (`YYYY-MM-DD`), `activityUrl` (`http(s)://`, 500), `additionalInfo` (2000), `private`. |
+| `PATCH /activities/{activityId}` | Documented with the same fields under a `data` key. **Not exercised here.** |
+
+The other draft endpoints are `interaction-with-googlers`, `mentoring`,
+`product-feedback-given`, `public-speaking`, `stories` and `workshop`. Public
+speaking's body adds `eventFormat` (`In-Person`, `Virtual`, `Hybrid`), `country`,
+`inPersonAttendees` and `metrics.attendees`; read from the API page, not posted.
+
+**Three properties that decide the workflow:**
+
+- **There is no image field.** `imageUrl` appears on activities that `GET`
+  returns, and sending it in a draft is a 400 *"extraneous key [imageUrl] is not
+  permitted"*. The WebP cover is attached in the browser, on step 2.
+- **There is no submit.** The API creates a draft. Turning it into an activity is
+  the Submit button in the browser.
+- **Drafts cannot be listed, read or deleted through the API.** `GET
+  /activities` returns submitted activities only; `GET` and `DELETE` on
+  `/activity-drafts/{id}` are 405. A draft created by mistake is removed in the
+  browser. So `make-advocu.py` writes `draft id: <id>` into the sheet and refuses
+  a second `--draft` while that line is there (`--again` overrides), and it reads
+  every page of `GET /activities` first and refuses when a submitted activity
+  already has the same Link to Content.
+
+**Every field is optional, so an empty body is accepted.** `POST` with `{}`
+returned 201 and left a blank draft in the Drafts tab. Anything that is sent is
+validated, and the 400 names the field:
+
+| Sent | Answer |
+| --- | --- |
+| `"contentType": "Nonsense"` | `#/contentType: Nonsense is not a valid enum value` |
+| `"activityDate": "12/11/2026"` | `does not match pattern ^[0-9]{4}-[0-9]{2}-[0-9]{2}$` |
+| `"tags": ["python"]` | `#/tags/0: python is not a valid enum value` |
+| `"metrics": {"readers": 0}` | `0 is not greater or equal to 1` |
+| `"activityUrl": "dev.to/x"` | `does not match pattern ^https?:\/\/(www\.)?.*$` |
+| `"title": "ab"` | `expected minLength: 3, actual: 2` |
+
+None of those six created a draft: the Drafts count read 1 before and after. So
+the server is the tag check. Pass Advocu's own tags with `--tag`; the article's
+front-matter tags are never sent. The API page lists 86 values for a draft's
+`tags`.
+
+**What arrived, read back in the browser.** One `--draft` run for a dev.to
+article moved `Drafts (1)` to `Drafts (2)`. Opening the draft's Edit showed
+Content type `Articles`, the title, the description as one paragraph in the
+editor, both tags as chips (`Open Source`, `AI`), reach `3000`, the date
+`2026-10-31` and the link. The date is the field that a scripted browser run gets
+wrong (see below), and here it needed no picker.
+
+**Finishing in the browser.** `My activities` -> `Drafts` -> `Edit` on the draft
+-> `Next`. Step 2 has the image drop zone and the private switch (off). Label the
+file input, `find` it and `file_upload` the WebP: the list item read
+`ant-upload-list-item-done` with the filename. `Save draft` answered *"Success!
+All changes have been saved"* and the Drafts count stayed at 2. Step 2's buttons
+are `Previous`, `Submit` and `Save draft`; Submit is the author's call.
+
+**When the API route does not work** (no token, a 4xx or 5xx, no network)
+`make-advocu.py --draft` prints Advocu's own error, still writes the complete
+sheet and exits 2. File the activity through the Regular form as described in
+the rest of this file.
+
 ## The AI route takes a link, not your post
 
 `Add new activity` → `New activity` → `Content creation` offers two paths:

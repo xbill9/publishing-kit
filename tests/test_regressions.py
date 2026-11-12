@@ -18,6 +18,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "skills" / "publishing" / "scripts"
@@ -287,6 +288,89 @@ class Announce(unittest.TestCase):
         sheet = (self.d / "advocu-a.md").read_text()
         self.assertIn("https://localhost:1/x", sheet)
         self.assertNotIn("SKIP", sheet)
+
+
+class AdvocuDraft(unittest.TestCase):
+    """The API is faked: a real run would leave a draft nobody can delete by API."""
+
+    URL = "https://dev.to/gde/x-1"
+
+    def setUp(self):
+        self.t = tempfile.TemporaryDirectory()
+        self.addCleanup(self.t.cleanup)
+        self.d = pathlib.Path(self.t.name)
+        (self.d / "a.md").write_text("---\ntitle: Title\ndescription: Desc\ntags: python\n---\n\nBody\n")
+        (self.d / "links.txt").write_text(f"devto-gde = {self.URL}\n")
+        self.m = load("make-advocu")
+        self.m.cl.fetch_chain = lambda *a, **k: (200,)
+        self.m.cl.verdict = lambda *a, **k: None
+        self.m.api_key = lambda *a, **k: "k"
+        self.calls, self.listing, self.post = [], [[]], {"id": "abc123"}
+
+        def api(method, path, key, body=None):
+            self.calls.append((method, path, body))
+            if method == "GET":
+                return {"content": self.listing[int(re.search(r"page=(\d+)", path).group(1))]}
+            if isinstance(self.post, Exception):
+                raise self.post
+            return self.post
+        self.m.api = api
+
+    def main(self, *extra):
+        argv = ["make-advocu.py", str(self.d / "a.md"), "--no-cover", "--date", "2026-01-01", *extra]
+        self.m.FAILS.clear(); self.m.WARNS.clear()
+        with unittest.mock.patch.object(sys, "argv", argv), contextlib.redirect_stdout(io.StringIO()):
+            return self.m.main()
+
+    def posts(self):
+        return [c for c in self.calls if c[0] == "POST"]
+
+    def sheet(self):
+        return (self.d / "advocu-a.md").read_text()
+
+    def test_draft_posts_every_field_and_no_image(self):
+        self.assertEqual(self.main("--draft", "--tag", "AI - Gemma"), 0)
+        (_, path, body), = self.posts()
+        self.assertEqual(path, "/activity-drafts/content-creation")
+        self.assertEqual(body, {"contentType": "Articles", "title": "Title", "description": "Desc",
+                                "metrics": {"readers": 3000}, "activityDate": "2026-01-01",
+                                "activityUrl": self.URL, "private": False, "tags": ["AI - Gemma"]})
+        self.assertIn("draft id: abc123", self.sheet())
+
+    def test_article_tags_are_not_sent(self):
+        self.main("--draft")
+        self.assertNotIn("tags", self.posts()[0][2])
+
+    def test_second_draft_refused_and_id_kept(self):
+        self.assertEqual(self.main("--draft"), 0)
+        self.assertEqual(self.main("--draft"), 1)
+        self.assertEqual(len(self.posts()), 1)
+        self.assertIn("draft id: abc123", self.sheet())
+        self.assertEqual(self.main("--draft", "--again"), 0)
+        self.assertEqual(len(self.posts()), 2)
+
+    def test_plain_rerun_keeps_the_id(self):
+        self.main("--draft")
+        self.assertEqual(self.main(), 0)
+        self.assertIn("draft id: abc123", self.sheet())
+
+    def test_filed_on_page_two_is_found(self):
+        other = {"data": {"activityUrl": "https://dev.to/gde/other"}}
+        self.listing = [[other] * 100, [{"activityId": "zz", "data": {"activityUrl": self.URL + "/"}}]]
+        self.assertEqual(self.main("--draft"), 1)
+        self.assertEqual(self.posts(), [])
+        self.assertEqual(len(self.calls), 2)
+
+    def test_api_failure_exits_2_with_the_sheet(self):
+        self.post = self.m.ApiError("HTTP 500 from POST")
+        self.assertEqual(self.main("--draft"), 2)
+        self.assertNotIn("draft id:", self.sheet())
+        self.assertIn(self.URL, self.sheet())
+
+    def test_failing_sheet_posts_nothing(self):
+        (self.d / "links.txt").write_text("devto-gde = PENDING\n")
+        self.assertEqual(self.main("--draft"), 1)
+        self.assertEqual(self.calls, [])
 
 
 class DevtoUpdate(unittest.TestCase):

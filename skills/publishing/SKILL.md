@@ -1045,7 +1045,19 @@ rather than as part of it.
 
 ```
 python3 scripts/make-advocu.py <article>.md --reach <n>
+python3 scripts/make-advocu.py <article>.md --draft --tag "Open Source"
 ```
+
+**Use the API first, and the browser form when it fails.** MEASURED 2026-11-12:
+`--draft` posts the sheet to Advocu's Personal API (token in `$ADVOCU_API_KEY` or
+`~/.advocu.key`) and a draft appears in the Drafts tab with all seven fields
+set, date and tags included. The API has no image field and no submit, so the
+run still ends in the browser: open the draft, attach the WebP cover on step 2,
+then Submit. Drafts cannot be listed or deleted through the API, so the sheet
+keeps `draft id:` and a second `--draft` refuses. Tags are Advocu's own
+vocabulary and the server rejects any other with a 400 that names the tag. Exit
+code 2 means the API route did not work and the sheet is complete: file it
+through the form.
 
 MEASURED 2026-09-01. `Add new activity` → `New activity` → `Content creation`
 offers **Generate your activity with AI**, which asks you to *"paste the link to
