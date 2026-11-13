@@ -83,6 +83,13 @@ same dates inside code blocks kept their hyphens. Medium's typography pass does
 this after the paste; the source and the dev.to copy are unaffected. Keep a date
 that must stay copyable inside inline code, or accept the dashes.
 
+**A spaced em dash between two numbers becomes an en dash range.** MEASURED
+2026-11-13: the heading `Step 5 — 64 Requests at Once` (U+2014 with spaces, the
+house `Step N —` form) was stored in the published model as `Step 5–64 Requests
+at Once` (U+2013, spaces gone), which reads as a range. The Substack copy of the
+same hosted HTML kept it. A `Step N —` heading whose title starts with a digit
+needs a word first (`Step 5 — At 64 Requests`) or reads wrong on Medium.
+
 ## Hard-wrapped source is safe here, unlike dev.to
 
 MEASURED 2026-08-31 in Medium's own editor, by dispatching a paste with a
