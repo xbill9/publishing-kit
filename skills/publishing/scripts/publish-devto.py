@@ -269,7 +269,11 @@ def main():
         sys.exit(f"\nupdated {aid}, but it left the published listing. "
                  f"Run --publish {aid} and check --list.")
     print(f"\nupdated {aid}" + (" (still published)" if live else " (draft)"))
-    show(r)
+    # The PUT response reports published=false on an article the listing still
+    # has published (MEASURED 2026-11-14, ids 5038143 and 5038144), so print
+    # the row from the listing that was just checked, not from the response.
+    rows = [x for x in listing("/articles/me" if live else "/articles/me/unpublished") if x["id"] == aid]
+    show(rows[0] if rows else r)
     return 0
 
 
