@@ -73,6 +73,7 @@ FAIL | filler | \bhonest(ly)?\b|\bthe truth\b|\bfrankly\b|\bto be fair\b|\bcandi
 FAIL | filler | \bactually\b|\bgenuinely\b|\bquietly\b|\bsilently\b|\bsurprising(ly)?\b | delete
 FAIL | filler | \buntil it (did|didn'?t|did not)\b|\bhere'?s the (thing|catch)\b|\bthe catch\b|\bspoiler\b | state the fact
 FAIL | filler | \bthe interesting (part|thing)\b|\bwhat matters (is|here)\b | state the fact
+FAIL | filler | \byou pay for\b|\bthe [\w-]+ you pay for\b | state the cost as a number
 FAIL | contrast | (^|[.!?:]\s+)(this|that|it|they|these|those|the [\w-]+( [\w-]+)?) (is|are|was|were)( not|n'?t) | write the positive fact
 FAIL | contrast | , not (a|an|the) [\w-]+( [\w-]+)?[.:;,] | write the positive fact; drop the foil
 FAIL | contrast | \bnot about\b|\bis about\b[^.]*\bnot\b | write the positive fact
