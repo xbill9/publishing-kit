@@ -231,3 +231,7 @@ the reload had turned the scripted text into a real Slack draft. One more
 cover attached, composer empty. So if the first click does nothing, reload,
 re-read the button's position off a screenshot, and click once more; do not
 re-insert or re-attach, because the draft already holds both.
+
+## A real click on Send does post
+
+MEASURED 2026-11-15 in `#boost-ai-engineering`, visible tab. Cover attached first through the light-DOM file input (given an `aria-label`, then `file_upload`), then the text put in with a synthetic `ClipboardEvent("paste")` carrying `text/plain` on `[data-qa="texty_input"] .ql-editor` (Quill's paste handler, not `insertText`), then a real `Escape` key and a **real mouse click** from the browser tool on the green Send button. The message posted once with the cover and the link unfurls, and it was still there, once, after a full reload. Slack turned every bare URL into a link in the composer before sending, which is a sign the paste reached its model. What differs from the 2026-09-21 failure is the trusted click, the paste route and the visible tab together; which one is necessary is not isolated.
