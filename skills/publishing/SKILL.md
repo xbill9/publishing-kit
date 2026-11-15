@@ -327,6 +327,24 @@ guard only checked the `--ledger` path and did not fire on a `CLAIMS.md` copied
 into the evidence directory — the control caught it, which is the whole argument
 for running one.
 
+**A fifth state, for an article about a paper: DISPUTED.** When the article
+reports someone else's paper, audit the paper first and pass the audit's JSON in
+`--evidence`. Any JSON object with a `paper_value`, a `computed` and a `verdict`
+(`VERIFIED`, `MISMATCH`, `NOT CHECKABLE`) is read as an audit record; the
+research-kit plugin's `math-sandbox` and `ablation-stat-auditor` write them. MEASURED 2026-11-15: on
+that kit's Gemma 4 LoopBreaker run, the explainer narration states the paper's
+Fisher p of 4.2e-9 twice, and check-facts reported it as neither traced nor
+untraced, because no pattern read scientific notation; the comic states the
+Wilson bound 48.1%, which the audit recomputes to 48.2%, and that traced `ok` to
+the audit file because the paper's value is written in it. A claim equal to the
+paper value of a `MISMATCH` or `NOT CHECKABLE` record now fails as `DISPUTED`,
+whatever other file it also appears in. Where a record's paper value and
+recomputed value hold the same count of numbers, only the numbers that differ at
+the paper's printed precision are disputed, so `39.5%` from "39.5% [31.5, 48.1]"
+still traces. To state a disputed number on purpose, write the recomputed value
+beside it and add a row containing the claim under `## DISPUTED` in the ledger;
+the run then prints it as `NOTED`.
+
 Two other things a script cannot do, so do them by hand:
 
 - **Check vendor and identity claims**, not just numbers. Archiving the EC2

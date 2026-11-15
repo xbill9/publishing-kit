@@ -37,6 +37,22 @@ a hole by design:
 
 LOG citations are printed, counted separately, and do not fail the run. They are a
 claim about provenance, so they are only ever as good as the ledger.
+
+A fifth state, added 2026-11-15: DISPUTED. An audit of a paper (research-kit's
+math-sandbox, ablation-stat-auditor) writes JSON records that carry the paper's
+number AND a verdict on it:
+
+    {"statement": ..., "paper_value": 4.2e-09, "computed": 7.1786e-09,
+     "verdict": "MISMATCH", "reason": ...}
+
+Fed as --evidence, such a file used to trace the paper's wrong number, because the
+number is in it. Now a claim equal to the paper_value of a MISMATCH or NOT
+CHECKABLE record fails as DISPUTED, whichever other file it also appears in. For a
+MISMATCH whose paper_value and computed hold the same count of numbers, only the
+numbers that disagree at the paper's own precision are disputed (39.5% is right
+in "39.5% [31.5, 48.1]"; 48.1 is not). A disputed claim the article states on
+purpose, with its caveat, is acknowledged by a row under `## DISPUTED` in the
+ledger that contains the claim literally.
 """
 
 import argparse
@@ -47,6 +63,35 @@ import sys
 
 from bodytext import strip_fenced
 
+SUP = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺", "0123456789-+")
+WORDS = {w: i for i, w in enumerate(
+    "zero one two three four five six seven eight nine ten eleven twelve thirteen "
+    "fourteen fifteen sixteen seventeen eighteen nineteen twenty".split())}
+_W = "|".join(sorted(WORDS, key=len, reverse=True))
+# Mantissa, then one of: e-09 | × 10⁻⁹ | x 10^-9 / *10**-9 | "times ten to the minus nine".
+# The exponent must be marked (superscript, ^ or **): a bare "1920×1080" or
+# "1920x1080" is a dimension, and an unmarked form read it as 1920 × 10^80.
+SCI_PAT = (r"(?<![\w.])\d+(?:\.\d+)?(?:[eE][-+]?\d+(?!\w|\.\d)"
+           r"|\s?[×x*·]\s?10(?:\s?(?:\^|\*\*)\s?[-+−]?\d+|[⁻⁺]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+)"
+           r"|\s(?:times|x) ten to the (?:power of )?(?:minus |negative |plus )?(?:" + _W + r"|\d+)\b)")
+SCI = re.compile(SCI_PAT)
+
+
+def sci_token(m):
+    """Canonical text for a scientific-notation number: 4.2e-09, 4.2 × 10⁻⁹ -> 4.2e-9."""
+    t = m.group(0)
+    mant = re.match(r"\d+(?:\.\d+)?", t).group(0)
+    rest = t[len(mant):].translate(SUP).replace("−", "-")
+    w = re.search(r"(minus |negative )?(" + _W + r"|\d+)$", rest)
+    if w and re.search(r"ten to the", rest):
+        exp = WORDS.get(w.group(2), None)
+        exp = int(w.group(2)) if exp is None else exp
+        exp = -exp if w.group(1) else exp
+    else:
+        exp = int(re.search(r"[-+]?\d+$", rest.replace("**", "^")).group(0))
+    return f"{mant}e{exp}"
+
+
 # Claims worth tracing. Ordinary prose numbers ("three reasons", "two platforms")
 # are excluded by the shape of these patterns rather than by a stop-list.
 #
@@ -55,7 +100,7 @@ from bodytext import strip_fenced
 # pattern that cannot fire is not a result.
 PATTERNS = [
     (r"\$\s?\d+(?:,\d{3})*(?:\.\d+)?", "price", "$0.42"),
-    (r"\b\d[\d,]*\.\d+\s*(?:tok/s|tokens/s|GB/s|GiB/s|MB/s|ms|s\b|%)", "measurement",
+    (r"\b\d[\d,]*\.\d+\s*(?:tok/s|tokens/s|GB/s|GiB/s|MB/s|ms|s\b|%|bits?\b)", "measurement",
      "73.75 tok/s"),
     (r"\b\d[\d,]{2,}\s*(?:tokens?|MiB|GiB|GB|MB|bytes|B)\b", "quantity", "15,360 MiB"),
     (r"\bv?\d+\.\d+\.\d+(?:rc\d+)?(?:\.dev\d+)?\b", "version", "v0.26.0"),
@@ -75,6 +120,13 @@ PATTERNS = [
     (r"\b\d+ of \d+\b", "count", "47 of 62"),
     (r"\b\d{2,5}x\d{2,5}\b", "dimensions", "1376x768"),
     (r"\b\d+(?:\.\d+)?\s?px\b", "pixels", "95px"),
+    # Until 2026-11-15 no pattern matched scientific notation, so a narration
+    # stating "Fisher p = 4.2e-9" twice -- the most disputed number in the paper
+    # it described -- was never extracted as a claim.
+    (SCI_PAT, "scientific", "4.2e-9"),
+    (SCI_PAT, "scientific", "4.2 × 10⁻⁹"),
+    (SCI_PAT, "scientific", "4.2 times ten to the minus nine"),
+    (r"\bp\s?[=<]\s?0?\.\d+\b(?!\s?(?:[eE]|[×x*]\s?10|times))", "p-value", "p = 0.0141"),
 ]
 
 # Claims and evidence compare as NUMBERS, not as a stream of digits. MEASURED
@@ -87,7 +139,13 @@ LITERAL_ONLY = ("cloud-id", "digest")     # hex: digits inside them mean nothing
 
 
 def numbers(s):
-    return [n.replace(",", "") for n in NUM.findall(s)]
+    """Whole numbers in order; a scientific-notation number is ONE number."""
+    out, last = [], 0
+    for m in SCI.finditer(s):
+        out += [n.replace(",", "") for n in NUM.findall(s[last:m.start()])]
+        out.append(sci_token(m))
+        last = m.end()
+    return out + [n.replace(",", "") for n in NUM.findall(s[last:])]
 
 
 def key(nums):
@@ -108,19 +166,76 @@ def load_evidence(paths):
                 t = f.read_bytes().decode("utf-8")
             except (OSError, UnicodeDecodeError):
                 continue
+            disputed = []
             if f.suffix == ".json":
                 try:  # flatten so nested numbers are searchable as text
-                    t += "\n" + json.dumps(json.loads(t))
+                    doc = json.loads(t)
+                    t += "\n" + json.dumps(doc)
+                    disputed = disputed_numbers(doc)
                 except Exception:
                     pass
-            blobs.append((f, t, key(numbers(t))))
+            blobs.append((f, t, key(numbers(t)), disputed))
     return blobs
+
+
+# research-kit audit records: a JSON object with "paper_value" and "verdict".
+DISPUTED_VERDICTS = ("MISMATCH", "NOT CHECKABLE")
+
+
+def _flat(v):
+    if isinstance(v, bool) or v is None:
+        return []
+    if isinstance(v, (int, float)):
+        return [v]
+    if isinstance(v, dict):
+        return [x for y in v.values() for x in _flat(y)]
+    if isinstance(v, list):
+        return [x for y in v for x in _flat(y)]
+    return []
+
+
+def _agrees(paper, computed):
+    """Does `computed` round to `paper` at the precision the paper printed it?"""
+    tok = numbers(json.dumps(paper))[0]
+    if "e" in tok:  # significant figures of the mantissa
+        mant = tok.split("e")[0]
+        sig = len(mant.replace(".", "").lstrip("0")) or 1
+        return float(f"{computed:.{sig - 1}e}") == float(f"{paper:.{sig - 1}e}")
+    dec = len(tok.split(".")[1]) if "." in tok else 0
+    return round(computed, dec) == round(paper, dec)
+
+
+def disputed_numbers(doc):
+    """[(number token, verdict, record id or statement)] for every paper number an
+    audit record disputes."""
+    out = []
+
+    def walk(x):
+        if isinstance(x, list):
+            for y in x:
+                walk(y)
+        if not isinstance(x, dict):
+            return
+        v = str(x.get("verdict", "")).strip().upper()
+        if "paper_value" in x and v in DISPUTED_VERDICTS:
+            paper, comp = _flat(x["paper_value"]), _flat(x.get("computed"))
+            label = str(x.get("id") or x.get("statement") or "")[:60]
+            pairs = len(paper) == len(comp) and v == "MISMATCH"
+            for i, pv in enumerate(paper):
+                if pairs and _agrees(pv, comp[i]):
+                    continue
+                out.append((numbers(json.dumps(pv))[0], v, label))
+        for y in x.values():
+            walk(y)
+
+    walk(doc)
+    return out
 
 
 DATE = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
 
 
-def load_ledger(path):
+def load_ledger(path, heading="LOG"):
     """Dated rows under the ledger's `## LOG` heading, as (row, date).
 
     Only that section. The ledger's other tables restate numbers that ARE
@@ -133,13 +248,13 @@ def load_ledger(path):
     section = False
     for ln in path.read_text().splitlines():
         if ln.startswith("## "):
-            section = re.match(r"##\s+LOG\b", ln) is not None
+            section = re.match(rf"##\s+{heading}\b", ln) is not None
             continue
         if not section or not ln.strip().startswith("|"):
             continue
         d = DATE.search(ln)
-        if d:
-            rows.append((ln, d.group(0)))
+        if d or heading != "LOG":
+            rows.append((ln, d.group(0) if d else ""))
     return rows
 
 
@@ -193,6 +308,7 @@ def main():
         print(f"  FAIL  ledger does not exist: {ledger}")
         return 1
     log_rows = load_ledger(ledger)
+    noted_rows = load_ledger(ledger, "DISPUTED")
 
     missing = [e for e in a.evidence if not pathlib.Path(e).exists()]
     blobs = load_evidence(a.evidence)
@@ -217,8 +333,8 @@ def main():
     # every claim traces to it and the run is green by construction. Checking the
     # --ledger path is not enough -- the ledger arrives as an ordinary evidence
     # blob whatever it is called. Detect it by shape, in the files actually read.
-    ledgers = [f for f, raw, _ in blobs
-               if f.name == "CLAIMS.md" or re.search(r"^##\s+LOG\b", raw, re.M)]
+    ledgers = [f for f, raw, _, _ in blobs
+               if f.name == "CLAIMS.md" or re.search(r"^##\s+(?:LOG|DISPUTED)\b", raw, re.M)]
     if ledgers:
         for f in ledgers:
             print(f"  FAIL  a claim ledger is inside the evidence set: {f}")
@@ -227,12 +343,30 @@ def main():
               "outside --evidence.")
         return 1
 
-    unverified, cited = [], []
+    disputes = {}
+    for f, _, _, ds in blobs:
+        for tok, verdict, label in ds:
+            disputes.setdefault(tok, (verdict, label, f.name))
+
+    unverified, cited, disputed, noted = [], [], [], []
     for c, kind in sorted(claims.items()):
         nums = numbers(c)
+        # A verdict outranks a match: the paper's wrong number is in the audit
+        # file (as the paper's claim) and usually in the paper too, so it would
+        # always trace. Checked first, on whole numbers, for every claim kind.
+        d = None if kind in LITERAL_ONLY else next((disputes[t] for t in nums if t in disputes), None)
+        if d:
+            row = next((r for r in noted_rows if c in r[0]), None)
+            if row:
+                print(f"  NOTED {kind:12s} {c:28s} <- {d[0]} in {d[2]}, caveat in {ledger.name}")
+                noted.append((kind, c))
+            else:
+                print(f"  DISPUTED {kind:9s} {c:28s} <- {d[0]} in {d[2]} ({d[1]})")
+                disputed.append((kind, c))
+            continue
         n = key(nums) if kind not in LITERAL_ONLY and len("".join(nums)) >= 3 else None
         hit = None
-        for f, raw, stream in blobs:
+        for f, raw, stream, _ in blobs:
             if c in raw or (n and n in stream):
                 hit = f.name
                 break
@@ -249,8 +383,10 @@ def main():
             print(f"  TRACE {kind:12s} {c:28s} <- nothing")
             unverified.append((kind, c))
 
-    traced = len(claims) - len(unverified) - len(cited)
-    print(f"\n{traced} traced, {len(cited)} cited from the log, {len(unverified)} untraced")
+    traced = len(claims) - len(unverified) - len(cited) - len(disputed) - len(noted)
+    print(f"\n{traced} traced, {len(cited)} cited from the log, {len(unverified)} untraced"
+          + (f", {len(disputed)} disputed" if disputed or disputes else "")
+          + (f", {len(noted)} disputed with a caveat" if noted else ""))
     if cited:
         print("\nA log citation is a claim about provenance, not a measurement. It "
               "says the number was taken on that date and deliberately not re-run, "
@@ -259,7 +395,12 @@ def main():
         print("\nEach untraced claim is either: measured but the artifact was not "
               "supplied, arithmetic (label it as such in the text), or asserted "
               "from memory -- which is the one to fix.")
-    return 1 if unverified and not a.warn_only else 0
+    if disputed:
+        print("\nA disputed claim is the paper's number where an audit recomputed a "
+              "different one, or could not check it. State the recomputed value, or "
+              "keep the paper's with its caveat and add a row containing the claim "
+              "under `## DISPUTED` in the ledger.")
+    return 1 if (unverified or disputed) and not a.warn_only else 0
 
 
 if __name__ == "__main__":

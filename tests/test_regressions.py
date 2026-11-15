@@ -118,6 +118,63 @@ class Facts(unittest.TestCase):
             (d / "b.txt").write_text("ok 1")
             self.assertEqual([f.name for f, *_ in facts.load_evidence([d])], ["b.txt"])
 
+    def test_scientific_notation_is_one_number(self):
+        # Each spelling of the paper's p-value is the same number as the JSON float.
+        for s in ("4.2e-9", "4.2e-09", "4.2 × 10⁻⁹", "4.2×10^-9", "4.2 times ten to the minus nine"):
+            self.assertEqual(facts.numbers(f"p = {s}."), ["4.2e-9"], s)
+        self.assertTrue(self.traced("4.2 × 10⁻⁹", json.dumps({"p": 4.2e-09})))
+
+    def test_control_dimensions_are_not_scientific(self):
+        self.assertEqual(facts.numbers("1920x1080 and 1920×1080"), ["1920", "1080", "1920", "1080"])
+        self.assertEqual(facts.numbers("sha 1e10ab"), ["1", "10"])
+
+
+# Records in the shape research-kit's math-sandbox writes, taken from its Gemma 4
+# LoopBreaker run: the paper's Fisher p does not reproduce, and in the Wilson
+# record only the upper bound is wrong (39.5 and 31.5 round correctly).
+AUDIT = {"equations": [
+    {"id": "E8_fisher_trap25", "paper_value": 4.2e-09, "computed": 7.178606491749204e-09,
+     "verdict": "MISMATCH"},
+    {"id": "E6_rate_T1_row3", "paper_value": {"rate_pct": 39.5, "ci": [31.5, 48.1]},
+     "computed": {"rate_pct": 39.535, "wilson_ci": [31.518, 48.157]}, "verdict": "MISMATCH"},
+    {"id": "E3_dilution_bits", "paper_value": 4.51, "computed": {"a": 3.585, "b": 4.0589},
+     "verdict": "NOT CHECKABLE"},
+    {"id": "E5", "paper_value": 24.0, "computed": 24.031, "verdict": "VERIFIED"},
+]}
+
+
+class AuditVerdicts(unittest.TestCase):
+    def check(self, article, ledger=None):
+        with tempfile.TemporaryDirectory() as t:
+            d = pathlib.Path(t)
+            (d / "a.md").write_text(article)
+            (d / "ev").mkdir()
+            (d / "ev" / "audit.json").write_text(json.dumps(AUDIT))
+            (d / "ev" / "paper.md").write_text("p = 4.2e-9; 39.5% [31.5, 48.1]; 4.51 bits; 24.0%")
+            if ledger:
+                (d / "CLAIMS.md").write_text(ledger)
+            return run("check-facts", d / "a.md", "--evidence", d / "ev")
+
+    def test_disputed_paper_number_fails_though_it_is_in_the_evidence(self):
+        for claim in ("Fisher p = 4.2 × 10⁻⁹.", "upper bound 48.1%.", "recovering 4.51 bits"):
+            r = self.check(claim + "\n")
+            self.assertEqual(r.returncode, 1, r.stdout)
+            self.assertIn("DISPUTED", r.stdout)
+
+    def test_control_verified_and_correctly_rounded_numbers_trace(self):
+        r = self.check("It resolves 39.5% of tasks, CI from 31.5% up; end to end 24.0%.\n")
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertNotIn("DISPUTED", r.stdout)
+
+    def test_ledger_caveat_acknowledges(self):
+        art = "The paper prints Fisher p = 4.2e-9; it recomputes to 7.18e-9.\n"
+        r = self.check(art, "## DISPUTED\n\n| 4.2e-9 | paper's value, recomputed beside it |\n")
+        self.assertIn("NOTED", r.stdout)
+        self.assertNotIn("DISPUTED scientific 4.2e-9", r.stdout)
+        # Control: the same ledger row under another heading acknowledges nothing.
+        r = self.check(art, "## Notes\n\n| 4.2e-9 | paper's value |\n")
+        self.assertIn("DISPUTED", r.stdout)
+
 
 class Medium(unittest.TestCase):
     def cells(self, cell):
