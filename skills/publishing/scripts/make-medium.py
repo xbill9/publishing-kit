@@ -201,9 +201,9 @@ def table_alt(header: list[str], body: list[list[str]]) -> str:
     column's labels when the header row is empty, which is how a transposed
     table is shaped.
     """
-    # \u25cf is demoji()'s stand-in for a medal; it is a visual marker in the
+    # \u25cf/\u25d0/\u25cb are demoji()'s stand-ins for medals; it is a visual marker in the
     # rendered table and pure noise read aloud, so it does not belong in alt.
-    clean = lambda c: re.sub(r"[`*\[\]\u25cf]", "", c).strip()
+    clean = lambda c: re.sub(r"[`*\[\]\u25cf\u25d0\u25cb]", "", c).strip()
     cells = [clean(c) for c in header if clean(c)]
     if not cells:
         cells = [clean(r[0]) for r in body[:4] if r and clean(r[0])]
@@ -372,16 +372,21 @@ BOX = set("┌┐└┘├┤┬┴┼─│")
 # inside a table cell to get three glyphs is not worth it.
 #
 # A medal ALONE is a rank, so it becomes its ordinal. A medal BESIDE something is
-# a "this one won" marker, so it becomes a bullet the face actually has.
+# a "this one won" marker, so it becomes a bullet the face actually has, one per
+# medal: filled, empty, half (Liberation draws the half circle small, so it
+# goes to the rarest medal). MEASURED 2026-11-15: one bullet for all three drew
+# a gold 0.9841 and two silver 0.9803 as the same mark, a three-way tie that the
+# dev.to table does not show. Liberation Sans has all three glyphs.
 _MEDALS = {"\U0001F947": "1", "\U0001F948": "2", "\U0001F949": "3"}
+_MARKS = {"\U0001F947": "\u25cf", "\U0001F948": "\u25cb", "\U0001F949": "\u25d0"}
 
 
 def demoji(cell: str) -> str:
     text = cell.strip()
     if text and all(ch in _MEDALS or ch.isspace() for ch in text):
         return " ".join(_MEDALS[ch] for ch in text if ch in _MEDALS)
-    for medal in _MEDALS:
-        text = text.replace(medal, "\u25cf")
+    for medal, mark in _MARKS.items():
+        text = text.replace(medal, mark)
     return text.strip()
 
 
