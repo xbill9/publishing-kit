@@ -132,3 +132,32 @@ publishing, so these come from LinkedIn's own developer documentation.
 | dev.to proxies the cover rather than re-hosting it: `media2.dev.to/dynamic/image/.../<urlencoded source URL>` | `GET /api/articles/me`, three published articles |
 | `--content-address` is idempotent: identical bytes give the identical name | `toolchain-run.txt` |
 | Builder payload 23,214 chars / 22.7 KB, 531 lines before unwrap, 411 after | `builder-payload.txt` |
+
+## Corrections
+
+**Correction (2026-11-16).** Four rows above cite evidence files that were re-captured after the row was
+written, so the file no longer holds the row's number. The rows stay as written; the evidence wins:
+
+| Row | What the evidence holds now |
+| --- | --- |
+| install pinned at commit f7eaac2 | `install-is-a-snapshot.txt` (re-captured at 0.6.0): pinned and HEAD both `920fe6c` |
+| covers: 1376x768 105 KB / 1376x768 104 KB / 1200x675 15 KB | `toolchain-run.txt`: 106890 / 106731 / 15470 bytes, no dimensions for the two dev.to covers; 106890 bytes is 104.38 KiB or 106.89 kB |
+| Builder payload 22,542 chars / 22.0 KB | `builder-payload.txt`: 23234 chars |
+| Builder payload 23,214 chars / 22.7 KB | `builder-payload.txt`: 23234 chars |
+
+None of these numbers appears in the article.
+
+**Correction (2026-11-16), the article.** Five sentences in `devto-publishing-kit.md` said more than their
+evidence. Found by running research-kit's math-sandbox, ablation-stat-auditor and figure-forensics skills
+on this directory.
+
+| Was | Now | Evidence |
+| --- | --- | --- |
+| a stray break in every paragraph | in most paragraphs | `devto-hardwrap.txt`: 47 of 62 blocks; 15 had none |
+| a 1376x768 cover loses 95px off the top and bottom | would lose; the kit renders dev.to covers at 1376x578 | every dev.to cover in this directory is 1376x578, which the 1000x420 crop leaves whole |
+| The two numbers on the cover are real | These two numbers are real | neither `cover.77acc7c4.jpg` nor `cover.ae4d639e.jpg` carries them; they are in the table |
+| measured on 2026-08-31 | measured between 2026-08-30 and 2026-09-16 | `devto-hardwrap.txt` 2026-09-16, `devto-cover-crop.txt` 2026-09-10, Medium data URIs from the log at 2026-08-30 |
+| repo copy stays readable at 95 columns | keeps its line wrapping | 20 of 106 prose lines were longer than 95 characters, the longest 126 |
+
+The Medium row of the table ("0 of 4 ... 4 of 4") is now labelled as the kit log of 2026-08-30. It has no
+archived artifact and was not re-measured.

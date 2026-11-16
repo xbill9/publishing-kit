@@ -249,13 +249,14 @@ it.</li>
 </ul>
 <p>It also encodes the hard-won details you would otherwise learn the
 day after publishing: that dev.to renders markdown with hard breaks
-<strong>on</strong>, so a source wrapped at 95 columns arrives with a
-stray break in every paragraph; that dev.to does not host your cover but
-proxies it at 2.381:1, so a 1376x768 cover loses 95px off the top and
-bottom; that Medium drops <code>data:</code> URI images on paste, so the
-self-contained build arrives with no pictures at all; and that
-LinkedIn's Posts API cannot create a draft, because
-<code>PUBLISHED</code> is the only state it accepts on creation.</p>
+<strong>on</strong>, so a hard-wrapped source arrives with a stray break
+in most paragraphs; that dev.to does not host your cover but proxies it
+at 2.381:1, so a 1376x768 cover would lose 95px off the top and bottom,
+which is why the kit renders dev.to covers at 1376x578; that Medium
+drops <code>data:</code> URI images on paste, so the self-contained
+build arrives with no pictures at all; and that LinkedIn's Posts API
+cannot create a draft, because <code>PUBLISHED</code> is the only state
+it accepts on creation.</p>
 <h4 id="install">Install</h4>
 <p>The fastest path is the plugin marketplace:</p>
 <pre class="shell"><code>/plugin marketplace add xbill9/publishing-kit
@@ -315,8 +316,8 @@ URL serves something else.</p>
 <p><strong>The paragraphs look ragged.</strong>
 <code>check-article.py</code> reports hard-wrapped paragraphs with the
 line number of the first one, and <code>publish-devto.py</code> unwraps
-on the way out so your repo copy stays readable at 95 columns and the
-published page does not.</p>
+on the way out, so your repo copy keeps its line wrapping and the
+published page carries none of it.</p>
 <p><strong>An image is missing on Medium.</strong> You pasted
 <code>-embed.html</code>. Paste <code>-hosted.html</code>, which
 references real URLs Medium re-hosts, and commit the images first.</p>
@@ -346,8 +347,8 @@ this article, and its cover 🐕🍖</h4>
 <code>make-builder.py</code>, the Medium build by
 <code>make-medium.py</code>, and the dev.to draft posted by
 <code>publish-devto.py</code>.</p>
-<p>The two numbers on the cover are real, and both were found by using
-the kit on itself:</p>
+<p>These two numbers are real, and both were found by using the kit on
+itself:</p>
 <p><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/devto-publishing-kit-table-1.png"
 alt="Table: measured" /></p>
 <p>The first one had been happening to my articles for months. The
@@ -378,7 +379,7 @@ href="https://claude.com/claude-code">claude.com/claude-code</a></li>
 </ul>
 <p><em>Issues and PRs welcome. This is a third-party community project,
 not affiliated with dev.to, Medium, AWS or LinkedIn — and the
-destination behaviours described here were measured on 2026-08-31, so
-check them again before you trust them.</em></p>
+destination behaviours described here were measured between 2026-08-30
+and 2026-09-16, so check them again before you trust them.</em></p>
 </body>
 </html>

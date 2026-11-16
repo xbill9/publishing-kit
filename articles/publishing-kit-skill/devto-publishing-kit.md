@@ -49,9 +49,10 @@ should not be doing by hand.
   assertion before the paste, and a landmark count after it.
 
 It also encodes the hard-won details you would otherwise learn the day after publishing: that
-dev.to renders markdown with hard breaks **on**, so a source wrapped at 95 columns arrives with a
-stray break in every paragraph; that dev.to does not host your cover but proxies it at 2.381:1,
-so a 1376x768 cover loses 95px off the top and bottom; that Medium drops `data:` URI images on paste,
+dev.to renders markdown with hard breaks **on**, so a hard-wrapped source arrives with a
+stray break in most paragraphs; that dev.to does not host your cover but proxies it at 2.381:1,
+so a 1376x768 cover would lose 95px off the top and bottom, which is why the kit renders dev.to
+covers at 1376x578; that Medium drops `data:` URI images on paste,
 so the self-contained build arrives with no pictures at all; and that LinkedIn's Posts API cannot
 create a draft, because `PUBLISHED` is the only state it accepts on creation.
 
@@ -123,9 +124,9 @@ usually an image regenerated after its commit. Every other check in the kit
 reasons about local state — is the file there, is it tracked — and each of those can pass while
 the published URL serves something else.
 
-**The paragraphs look ragged.** `check-article.py` reports hard-wrapped paragraphs with the line
-number of the first one, and `publish-devto.py` unwraps on the way out so your repo copy stays
-readable at 95 columns and the published page does not.
+**The paragraphs look ragged.** `check-article.py` reports hard-wrapped paragraphs with the
+line number of the first one, and `publish-devto.py` unwraps on the way out, so your repo copy
+keeps its line wrapping and the published page carries none of it.
 
 **An image is missing on Medium.** You pasted `-embed.html`. Paste `-hosted.html`, which
 references real URLs Medium re-hosts, and commit the images first.
@@ -154,12 +155,12 @@ Every artifact here came out of the kit. The cover was rendered by `make-cover.p
 Center version was derived by `make-builder.py`, the Medium build by `make-medium.py`, and the
 dev.to draft posted by `publish-devto.py`.
 
-The two numbers on the cover are real, and both were found by using the kit on itself:
+These two numbers are real, and both were found by using the kit on itself:
 
 | | measured |
 | --- | --- |
 | dev.to, hard-wrapped paragraphs | **47 of 62** in a published article carried a stray break |
-| Medium, images pasted as data URIs | **0 of 4** survived; from real URLs, 4 of 4 |
+| Medium, images pasted as data URIs | **0 of 4** survived; from real URLs, 4 of 4 (kit log, 2026-08-30) |
 
 The first one had been happening to my articles for months. The second cost a full re-do the
 first time it happened. Both are missing from the destinations' docs, and both are now checks.
@@ -180,5 +181,5 @@ lines — while the check that should have caught it skipped block quotes too, a
 - **Claude Code:** [claude.com/claude-code](https://claude.com/claude-code)
 
 *Issues and PRs welcome. This is a third-party community project, not affiliated with dev.to,
-Medium, AWS or LinkedIn — and the destination behaviours described here were measured on
-2026-08-31, so check them again before you trust them.*
+Medium, AWS or LinkedIn — and the destination behaviours described here were measured
+between 2026-08-30 and 2026-09-16, so check them again before you trust them.*
