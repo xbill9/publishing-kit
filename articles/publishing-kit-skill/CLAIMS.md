@@ -161,3 +161,17 @@ on this directory.
 
 The Medium row of the table ("0 of 4 ... 4 of 4") is now labelled as the kit log of 2026-08-30. It has no
 archived artifact and was not re-measured.
+
+## DISPUTED
+
+Claims that research-kit's audits (`math-sandbox` `eq_verified_numbers.json`, `ablation-stat-auditor`
+`stat_audit.json`, in xbill9/claude-research-skills `examples/publishing-kit-article/`) mark MISMATCH or
+NOT CHECKABLE, kept in the article with the reason here.
+
+| Claim | Audit record | Why it stays |
+| --- | --- | --- |
+| 0 of 4 | E3_medium_data_uri_0_of_4, NOT CHECKABLE | no archived artifact; the article labels it "kit log, 2026-08-30" |
+| 4 of 4 | E3_medium_data_uri_0_of_4, NOT CHECKABLE | same row as 0 of 4 |
+| 320px | D3_card_width_is_devto, NOT CHECKABLE | `CARD_W` in make-cover.py; no archived measurement of dev.to's card width |
+| 2.381:1 | M5_substack_source_shape | number collision: 1000/420 = 2.380952 is VERIFIED as D1_proxy_ratio; the match is a 1 in M5's code-block line counts |
+| 95px | M1_own_source_95_columns | number collision: the crop is VERIFIED at 95.04 px a side; M1 is the 95-column source wrap |
