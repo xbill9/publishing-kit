@@ -9,7 +9,7 @@ SCRIPTS    := $(SKILL_DIR)/scripts
 DOGFOOD    := articles/publishing-kit-skill/devto-publishing-kit.md
 DIST_DIR   := dist
 
-.PHONY: all help deps lint test live pinned manifest footprint install skill-install skill-package clean
+.PHONY: all help deps lint test check validate live pinned manifest footprint install skill-install skill-package clean
 
 all: help
 
@@ -22,6 +22,8 @@ help:
 	@echo "  make lint          - ruff on scripts/, node --check on browser helpers,"
 	@echo "                       bash -n on hooks, manifest copy check"
 	@echo "  make test          - tests/, then preflight on the dogfood article (local state only)"
+	@echo "  make check         - lint, test and validate"
+	@echo "  make validate      - claude plugin validate on the plugin and marketplace manifests"
 	@echo "  make live          - preflight --live: fetch published URLs, compare to disk"
 	@echo "  make pinned        - preflight --live --pinned: resolve at HEAD's sha"
 	@echo "  make manifest      - fail if root plugin.json differs from .claude-plugin/plugin.json"
@@ -63,6 +65,11 @@ test:
 	python3 -m unittest discover -s tests
 	python3 $(SCRIPTS)/preflight.py $(DOGFOOD)
 
+check: lint test validate
+
+validate: manifest
+	claude plugin validate .
+
 live:
 	python3 $(SCRIPTS)/preflight.py $(DOGFOOD) --live
 
@@ -82,8 +89,7 @@ footprint:
 # reaches the installed copy; uninstall + install snapshots the working tree every
 # time. skill-install is the plain-copy route for hosts without the plugin; using
 # both loads the skill twice.
-install: manifest
-	claude plugin validate .
+install: validate
 	claude plugin marketplace update publishing-kit
 	-claude plugin uninstall --keep-data --scope user $(SKILL_NAME)@publishing-kit
 	claude plugin install --scope user $(SKILL_NAME)@publishing-kit

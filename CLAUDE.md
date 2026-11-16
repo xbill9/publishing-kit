@@ -35,6 +35,9 @@ rule set is narrow on purpose — long measured comments and one-line semicolon
 guards are house style, not defects, so those rules are off. A PostToolUse hook
 runs it on any `.py` file that gets edited.
 
+The Makefile wraps all of this: `make test` (both offline checks), `make lint`,
+`make validate`, `make check` (all three), `make live`; `make help` lists the rest.
+
 ## Layout
 
 - **Skills live at `skills/publishing/`, at the repo root — not `.claude/skills/`.**
