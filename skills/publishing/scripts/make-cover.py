@@ -260,7 +260,8 @@ def render_flow(d, a, W, H, k_unused):
 
     The first attempt at this was a three-column pipeline with eleven labels. It
     was unreadable in a feed card -- destination names at 5px -- because a cover
-    is met at roughly 320px wide and type below about 40pt disappears there.
+    is met at roughly 320px wide, and on a 1376-wide cover type below
+    LEGIBLE_PX * 1376 / CARD_W = 43pt falls under LEGIBLE_PX there.
 
     So the flow is carried by SHAPE and COLOUR, and type is rationed: a headline,
     four destination names, nothing else load-bearing. A page glyph with ruled
