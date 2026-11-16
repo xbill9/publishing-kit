@@ -206,8 +206,20 @@ def _agrees(paper, computed):
 
 
 def disputed_numbers(doc):
-    """[(number token, verdict, record id or statement)] for every paper number an
-    audit record disputes."""
+    """One entry per audit record that disputes something: (the record's paper
+    numbers in order, the positions among them that are disputed, verdict, label,
+    statement).
+
+    A claim is matched against a record as a whole sequence, the way it is traced
+    against evidence. MEASURED 2026-11-16 on five outputs audited by research-kit
+    (this kit's walk-through as published and as corrected, the studio page, the
+    comic, and the write-up of that run): matching any one number of a claim to
+    any one disputed number raised 34 flags, and 22 were about something else --
+    `2.381:1` against a record of exit status 1, `4px` against code-block line
+    counts [2, 2, 1, 4], `95px` against "95 columns". Matched as a sequence, with
+    the unit rule below and the stylesheet stripped, 12 remain, every one a real
+    dispute (the Medium 0 of 4 / 4 of 4, the 320px card width).
+    """
     out = []
 
     def walk(x):
@@ -221,15 +233,43 @@ def disputed_numbers(doc):
             paper, comp = _flat(x["paper_value"]), _flat(x.get("computed"))
             label = str(x.get("id") or x.get("statement") or "")[:60]
             pairs = len(paper) == len(comp) and v == "MISMATCH"
-            for i, pv in enumerate(paper):
-                if pairs and _agrees(pv, comp[i]):
-                    continue
-                out.append((numbers(json.dumps(pv))[0], v, label))
+            toks = [numbers(json.dumps(pv))[0] for pv in paper]
+            bad = {i for i, pv in enumerate(paper) if not (pairs and _agrees(pv, comp[i]))}
+            if bad:
+                out.append((toks, bad, v, label, str(x.get("statement") or "")))
         for y in x.values():
             walk(y)
 
     walk(doc)
     return out
+
+
+UNIT_WORDS = {"px": r"px|pixels?"}
+
+
+def disputes_claim(rec, claim, nums):
+    """Does audit record `rec` dispute `claim`, whose numbers are `nums`?
+
+    The claim's numbers must sit together, in order, in the record's paper value,
+    covering at least one disputed position. A single number with a word unit
+    (`95px`, `15 KB`) must also appear with that unit in the record's statement
+    when the record has one: a record about "95 columns" or "exits 1" is about
+    something else.
+    """
+    toks, bad, _, _, statement = rec
+    k = len(nums)
+    if not k or not any(toks[i:i + k] == nums and bad & set(range(i, i + k))
+                        for i in range(len(toks) - k + 1)):
+        return False
+    unit = re.search(r"\d\s?([A-Za-z]+)$", claim)
+    if k == 1 and unit and statement:
+        u = UNIT_WORDS.get(unit.group(1).lower(), re.escape(unit.group(1)))
+        return re.search(rf"(?<![\d.]){re.escape(nums[0])}\s?(?:{u})\b", statement, re.I) is not None
+    return True
+
+
+# An HTML page's stylesheet is full of lengths (1px, 6px) no reader sees.
+STYLE = re.compile(r"<style\b.*?</style>|\sstyle=(\"[^\"]*\"|'[^']*')", re.S | re.I)
 
 
 DATE = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
@@ -274,6 +314,8 @@ def main():
 
     # strip fenced code: it is usually pasted tool output, i.e. evidence itself
     prose = strip_fenced(text)
+    if src.suffix.lower() in (".html", ".htm"):
+        prose = STYLE.sub(" ", prose)
 
     exempt = list(a.exempt)
     ig = src.parent / ".factsignore"
@@ -343,10 +385,7 @@ def main():
               "outside --evidence.")
         return 1
 
-    disputes = {}
-    for f, _, _, ds in blobs:
-        for tok, verdict, label in ds:
-            disputes.setdefault(tok, (verdict, label, f.name))
+    disputes = [(rec, f.name) for f, _, _, ds in blobs for rec in ds]
 
     unverified, cited, disputed, noted = [], [], [], []
     for c, kind in sorted(claims.items()):
@@ -354,7 +393,8 @@ def main():
         # A verdict outranks a match: the paper's wrong number is in the audit
         # file (as the paper's claim) and usually in the paper too, so it would
         # always trace. Checked first, on whole numbers, for every claim kind.
-        d = None if kind in LITERAL_ONLY else next((disputes[t] for t in nums if t in disputes), None)
+        d = None if kind in LITERAL_ONLY else next(
+            ((rec[2], rec[3], fname) for rec, fname in disputes if disputes_claim(rec, c, nums)), None)
         if d:
             row = next((r for r in noted_rows if c in r[0]), None)
             if row:

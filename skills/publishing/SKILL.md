@@ -345,6 +345,17 @@ still traces. To state a disputed number on purpose, write the recomputed value
 beside it and add a row containing the claim under `## DISPUTED` in the ledger;
 the run then prints it as `NOTED`.
 
+**Correction.** "A claim equal to the paper value" was implemented as *any one
+number* of the claim equal to *any one number* a disputed record stores, and most
+of what it flagged was coincidence. MEASURED 2026-11-16 over five outputs audited
+by research-kit: 34 flags, 22 of them about something else — `2.381:1` against a
+record of exit status 1, `4px` against code-block line counts, `95px` against a
+record about 95 columns, and stylesheet lengths on an HTML page. A claim now has
+to match a record's numbers as a sequence, covering a disputed one; a single
+number with a word unit (`95px`) must carry that unit in the record's `statement`
+when it has one; and an HTML page's `<style>` is not read. The same five outputs
+now raise 12 flags, every one a real dispute.
+
 Two other things a script cannot do, so do them by hand:
 
 - **Check vendor and identity claims**, not just numbers. Archiving the EC2

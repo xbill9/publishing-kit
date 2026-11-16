@@ -176,6 +176,58 @@ class AuditVerdicts(unittest.TestCase):
         self.assertIn("DISPUTED", r.stdout)
 
 
+# Records from research-kit's audits of this kit's walk-through (2026-11-16), each of
+# which disputed a claim it says nothing about: a small integer in the record equal
+# to one number in the claim.
+COLLIDERS = {"equations": [
+    {"id": "C27a_exit_code", "statement": "check-facts it exits 1.", "paper_value": 1,
+     "computed": None, "verdict": "NOT CHECKABLE"},
+    {"id": "C18b_covers_no_numbers", "statement": "both covers carry no numbers",
+     "paper_value": {"numbers_on_covers": 0}, "computed": None, "verdict": "NOT CHECKABLE"},
+    {"id": "C20_each_of_11", "statement": "each of the 11 links was matched",
+     "paper_value": {"matched": 11, "n": 11}, "computed": {"matched": 10, "n": 11}, "verdict": "MISMATCH"},
+    {"id": "M1_95_columns", "statement": "the repo copy stays readable at 95 columns",
+     "paper_value": 95, "computed": None, "verdict": "NOT CHECKABLE"},
+    {"id": "M5_source_shape", "statement": "4 <pre> blocks, lines 2/2/1/4",
+     "paper_value": {"pre_lines": [2, 2, 1, 4]}, "computed": {"pre_lines": [2, 2, 5]}, "verdict": "MISMATCH"},
+    # The real disputes in the same audits, which must still fail.
+    {"id": "E3_medium_0_of_4", "statement": "0 of 4 survived; from real URLs, 4 of 4",
+     "paper_value": {"data_uri": [0, 4], "hosted": [4, 4]}, "computed": None, "verdict": "NOT CHECKABLE"},
+    {"id": "D3_card_width", "statement": "320px is the size a dev.to cover is seen at",
+     "paper_value": 320, "computed": None, "verdict": "NOT CHECKABLE"},
+]}
+
+
+class AuditCollisions(unittest.TestCase):
+    def check(self, article, name="a.md"):
+        with tempfile.TemporaryDirectory() as t:
+            d = pathlib.Path(t)
+            (d / name).write_text(article)
+            (d / "ev").mkdir()
+            (d / "ev" / "audit.json").write_text(json.dumps(COLLIDERS))
+            (d / "ev" / "notes.txt").write_text("1000/420 = 2.381:1; 95px a side; 10 of 11; 1px border; 0 of 4")
+            return run("check-facts", d / name, "--evidence", d / "ev")
+
+    def test_a_shared_small_number_is_not_a_dispute(self):
+        for claim in ("The proxy crops at 2.381:1.", "It loses 95px a side.",
+                      "10 of 11 links matched.", "A 1px border."):
+            r = self.check(claim + "\n")
+            self.assertNotIn("DISPUTED", r.stdout, claim)
+            self.assertEqual(r.returncode, 0, r.stdout)
+
+    def test_control_the_records_own_claims_still_fail(self):
+        for claim in ("0 of 4 survived.", "and 4 of 4 from real URLs.", "a 320px card."):
+            r = self.check(claim + "\n")
+            self.assertIn("DISPUTED", r.stdout, claim)
+            self.assertEqual(r.returncode, 1, r.stdout)
+
+    def test_stylesheet_lengths_are_not_claims(self):
+        page = "<html><style>td{border:1px solid;padding:6px 4px}</style><p>a 320px card</p></html>"
+        r = self.check(page, "index.html")
+        self.assertNotIn("1px", r.stdout)
+        self.assertIn("DISPUTED", r.stdout)  # control: the visible claim is still read
+
+
 class Medium(unittest.TestCase):
     def cells(self, cell):
         return [(t, b, i) for t, b, _, i in medium.runs(cell)]
