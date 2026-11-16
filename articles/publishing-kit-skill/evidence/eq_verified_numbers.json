@@ -1,0 +1,664 @@
+{
+  "paper": "Streamline Publishing with a Claude Code Skill (dev.to, xbill9/publishing-kit)",
+  "primary_source": "paper/devto-publishing-kit.md; evidence/*.txt and CLAIMS.md as archived evidence",
+  "seed": 42,
+  "numpy": "2.5.3",
+  "pillow": "12.3.0",
+  "kit_head": "dec86c0 2026-11-16",
+  "verdict_counts": {
+    "VERIFIED": 15,
+    "MISMATCH": 6,
+    "NOT CHECKABLE": 5
+  },
+  "equations": [
+    {
+      "id": "D1_proxy_ratio",
+      "operator_class": "definition",
+      "statement": "dev.to proxies the cover at width/height = 2.381:1",
+      "paper_value": 2.381,
+      "paper_source": "devto-publishing-kit.md l.53; evidence/devto-cover-crop.txt proxy URL",
+      "computed": {
+        "proxy_w": 1000,
+        "proxy_h": 420,
+        "ratio": 2.380952
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": 4.8e-05,
+      "tolerance": 0.0005,
+      "verdict": "VERIFIED",
+      "reason": "1000/420 = 2.380952, prints as 2.381."
+    },
+    {
+      "id": "B1_crop_rows_kept",
+      "operator_class": "bound",
+      "statement": "a 1376-wide cover keeps 1376/2.381 = 577.9 -> 578 rows",
+      "paper_value": 578,
+      "paper_source": "evidence/devto-cover-crop.txt ARITH line 2",
+      "computed": {
+        "kept_rows": 577.92
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": 0.08,
+      "tolerance": 0.5,
+      "verdict": "VERIFIED",
+      "reason": "1376 * 420 / 1000 = 577.92, rounds to 578."
+    },
+    {
+      "id": "B2_crop_loss_95px",
+      "operator_class": "bound",
+      "statement": "a 1376x768 cover loses 95px off the top and 95px off the bottom",
+      "paper_value": {
+        "lost_top_px": 95,
+        "lost_bottom_px": 95
+      },
+      "paper_source": "devto-publishing-kit.md l.53; evidence ARITH line 3",
+      "computed": {
+        "lost_total_px": 190.08,
+        "lost_top_px": 95.04,
+        "lost_bottom_px": 95.04
+      },
+      "simulated": {
+        "first_row_kept": 95,
+        "last_row_kept": 672,
+        "lost_top": 95,
+        "lost_bottom": 95
+      },
+      "simulation": "Pillow ImageOps.fit(1376x768 row-index image -> 1000x420, centering 0.5) with NEAREST resampling; deterministic, no sampling",
+      "abs_gap": 0.04,
+      "tolerance": 0.5,
+      "verdict": "VERIFIED",
+      "reason": "768 - 577.92 = 190.08 rows, 95.04 a side under a centre crop. Pillow's fit=cover crop on a row-encoded image agrees within 1 row. The proxy URL says gravity=auto, so the 95/95 split assumes centring; the 190-row total does not depend on it."
+    },
+    {
+      "id": "B3_shipped_cover_uncropped",
+      "operator_class": "bound",
+      "statement": "the article's own dev.to covers are 1376x578 (ratio 2.381:1), so nothing is cropped",
+      "paper_value": {
+        "w": 1376,
+        "h": 578
+      },
+      "paper_source": "evidence/devto-cover-crop.txt last MEASURED line; front matter cover_image",
+      "computed": {
+        "sizes": {
+          "cover.77acc7c4.jpg": [
+            1376,
+            578
+          ],
+          "cover.ae4d639e.jpg": [
+            1376,
+            578
+          ]
+        },
+        "rows_lost": {
+          "cover.77acc7c4.jpg": 0.08,
+          "cover.ae4d639e.jpg": 0.08
+        },
+        "ratio": 2.380623
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": 0,
+      "tolerance": 0,
+      "verdict": "VERIFIED",
+      "reason": "Both cover files on disk measure 1376x578. 1376/578 = 2.3806, wider than 2.38095 by 0.0003, so a fit=cover crop removes 0.08 source columns and 0 rows."
+    },
+    {
+      "id": "D2_card_width_in_kit",
+      "operator_class": "definition",
+      "statement": "make-cover.py reports which type sizes survive a 320px feed card",
+      "paper_value": 320,
+      "paper_source": "devto-publishing-kit.md l.36",
+      "computed": {
+        "CARD_W": 320,
+        "LEGIBLE_PX": 10,
+        "min_legible_source_px_at_1376": 43.0,
+        "card_scale_1376": 0.23256
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": 0,
+      "tolerance": 0,
+      "verdict": "VERIFIED",
+      "reason": "CARD_W = 320 in ~/publishing-kit make-cover.py at dec86c0 2026-11-16 (current HEAD, not the 2026-08-31 version). With LEGIBLE_PX = 10, type on a 1376-wide cover must be >= 43.0 source px to survive the card."
+    },
+    {
+      "id": "D3_card_width_is_devto",
+      "operator_class": "definition",
+      "statement": "320px is the size a dev.to cover is seen at in the feed",
+      "paper_value": 320,
+      "paper_source": "devto-publishing-kit.md l.36; CLAIMS.md LOG 2026-08-31",
+      "computed": null,
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": null,
+      "tolerance": null,
+      "verdict": "NOT CHECKABLE",
+      "reason": "No archived measurement of dev.to's feed card. CLAIMS.md files it as LOG, and the only source is the kit's own constant, which records the author's choice, not dev.to's layout."
+    },
+    {
+      "id": "E1_hardwrap_47_of_62",
+      "operator_class": "estimator",
+      "statement": "47 of 62 paragraph-level blocks in a published dev.to article carry <br>",
+      "paper_value": {
+        "k": 47,
+        "n": 62
+      },
+      "paper_source": "devto-publishing-kit.md l.161 (table); evidence/devto-hardwrap.txt",
+      "computed": {
+        "k": 47,
+        "n": 62,
+        "p_plus_li": [
+          58,
+          4
+        ],
+        "rate_pct": 75.81,
+        "wilson95_pct": [
+          63.85,
+          84.75
+        ],
+        "total_br": 88
+      },
+      "simulated": {
+        "bootstrap_mean_pct": 75.799,
+        "bootstrap_se_pct": 5.441,
+        "bootstrap_95_pct": [
+          64.52,
+          85.48
+        ]
+      },
+      "simulation": "parametric bootstrap, 100000 draws of Binomial(62, 47/62), seed 42",
+      "abs_gap": 0,
+      "tolerance": 0,
+      "verdict": "VERIFIED",
+      "reason": "58 + 4 = 62 = the stated total; 47 <= 88 total <br>, consistent with blocks that wrap more than once. MCP verify_wilson_ci gives 63.85-84.75%, same as scipy here. One article was measured, so the interval describes that article's blocks, not dev.to in general."
+    },
+    {
+      "id": "E2_break_in_every_paragraph",
+      "operator_class": "estimator",
+      "statement": "a source wrapped at 95 columns arrives with a stray break in every paragraph",
+      "paper_value": {
+        "share_of_paragraphs": 1.0
+      },
+      "paper_source": "devto-publishing-kit.md l.53",
+      "computed": {
+        "share_of_paragraphs": 0.7581,
+        "blocks_without_br": 15,
+        "source_multiline_paragraphs": 43,
+        "source_lines_ending_two_spaces": 0
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": 0.2419,
+      "tolerance": 0,
+      "verdict": "MISMATCH",
+      "reason": "The archived measurement has 15 of 62 blocks with no <br>. The narrower reading, 'every wrapped paragraph', fits (43 multi-line source paragraphs, 0 explicit breaks), but the evidence does not pair blocks with source paragraphs, so that reading is not shown either."
+    },
+    {
+      "id": "M1_own_source_95_columns",
+      "operator_class": "metric",
+      "statement": "the repo copy stays readable at 95 columns",
+      "paper_value": 95,
+      "paper_source": "devto-publishing-kit.md l.128 (also l.53)",
+      "computed": {
+        "prose_lines_over_95": 20,
+        "max_prose_line": 126,
+        "examples": [
+          [
+            10,
+            97
+          ],
+          [
+            11,
+            96
+          ],
+          [
+            17,
+            96
+          ],
+          [
+            34,
+            96
+          ],
+          [
+            35,
+            97
+          ],
+          [
+            36,
+            96
+          ]
+        ]
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": null,
+      "tolerance": null,
+      "verdict": "NOT CHECKABLE",
+      "reason": "The sentence describes the kit's behaviour, not a width limit on this file. For reference, this file's own source has 20 prose lines longer than 95 characters, so it is wrapped near 95, not at it."
+    },
+    {
+      "id": "E3_medium_data_uri_0_of_4",
+      "operator_class": "estimator",
+      "statement": "Medium images pasted as data URIs: 0 of 4 survived; from real URLs, 4 of 4",
+      "paper_value": {
+        "data_uri_survived": [
+          0,
+          4
+        ],
+        "hosted_survived": [
+          4,
+          4
+        ]
+      },
+      "paper_source": "devto-publishing-kit.md l.162 (table); CLAIMS.md LOG 2026-08-30",
+      "computed": {
+        "this_article_embed_data_uri_imgs": 2,
+        "this_article_hosted_url_imgs": 2
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": null,
+      "tolerance": null,
+      "verdict": "NOT CHECKABLE",
+      "reason": "No archived artifact: CLAIMS.md lists it as LOG from 2026-08-30. This article's own Medium builds carry 2 data-URI and 2 URL images, so the 4 images belong to an earlier article."
+    },
+    {
+      "id": "M2_tldr_five_lines",
+      "operator_class": "metric",
+      "statement": "this article's own TL;DR posted as five separate lines",
+      "paper_value": 5,
+      "paper_source": "devto-publishing-kit.md l.171",
+      "computed": {
+        "tldr_source_lines": 5
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": 0,
+      "tolerance": 0,
+      "verdict": "VERIFIED",
+      "reason": "The TL;DR block quote is 5 source lines; an unwrap that skips block quotes posts each as its own line."
+    },
+    {
+      "id": "M3_five_faults",
+      "operator_class": "metric",
+      "statement": "the run found five faults in the kit itself",
+      "paper_value": 5,
+      "paper_source": "devto-publishing-kit.md l.167",
+      "computed": {
+        "faults_listed": 5
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": 0,
+      "tolerance": 0,
+      "verdict": "VERIFIED",
+      "reason": "Splitting the list after the colon on '; ' gives the count ('TL;DR' contains a bare ';')."
+    },
+    {
+      "id": "M4_description_241_chars",
+      "operator_class": "metric",
+      "statement": "Substack draft subtitle is the front matter description, 241 chars",
+      "paper_value": 241,
+      "paper_source": "evidence/substack-paste.txt draft_subtitle",
+      "computed": {
+        "front_matter_description_chars": 241
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": 0,
+      "tolerance": 0,
+      "verdict": "VERIFIED",
+      "reason": "len() of the description string in the article's front matter."
+    },
+    {
+      "id": "M5_substack_source_shape",
+      "operator_class": "metric",
+      "statement": "hosted HTML source: 4 <pre> blocks, lines 2/2/1/4, chars 87/124/65/225; 2 images; 7 <h4>; 4 link targets, 6 anchors",
+      "paper_value": {
+        "pre_lines": [
+          2,
+          2,
+          1,
+          4
+        ],
+        "pre_chars": [
+          87,
+          124,
+          65,
+          225
+        ],
+        "img": 2,
+        "h4": 7,
+        "link_targets": 4,
+        "anchors": 6
+      },
+      "paper_source": "evidence/substack-paste.txt '## Source'",
+      "computed": {
+        "pre_lines": [
+          2,
+          2,
+          5
+        ],
+        "pre_chars": [
+          87,
+          124,
+          291
+        ],
+        "img": 2,
+        "h4": 7,
+        "link_targets": 4,
+        "anchors": 6
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": null,
+      "tolerance": null,
+      "verdict": "MISMATCH",
+      "reason": "Parsed the archived medium/devto-publishing-kit-hosted.html with html.parser. It holds 3 <pre> blocks, not 4: its third block is the evidence's blocks 3 and 4 joined (65 + 1 newline + 225 = 291 chars, 1 + 4 = 5 lines), so the archived HTML is a different build from the one pasted into Substack. Images, <h4> and links match."
+    },
+    {
+      "id": "M6_org_split_sums",
+      "operator_class": "metric",
+      "statement": "40 articles listed: gde 24, aws-builders 13, none 3",
+      "paper_value": {
+        "total": 40,
+        "gde": 24,
+        "aws-builders": 13,
+        "none": 3
+      },
+      "paper_source": "CLAIMS.md MEASURED; evidence/devto-orgs.txt",
+      "computed": {
+        "total": 40,
+        "sum_of_parts": 40,
+        "gde": 24,
+        "aws-builders": 13,
+        "None": 3
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": 0,
+      "tolerance": 0,
+      "verdict": "VERIFIED",
+      "reason": "24 + 13 + 3 summed in code."
+    },
+    {
+      "id": "M7_fences_23_of_23",
+      "operator_class": "metric",
+      "statement": "23 of 23 opening fences carry a language label",
+      "paper_value": {
+        "labelled": 23,
+        "openers": 23
+      },
+      "paper_source": "CLAIMS.md MEASURED; evidence/devto-roundtrip.txt",
+      "computed": {
+        "labelled_sum": 23,
+        "openers": 23,
+        "bare": 0
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": 0,
+      "tolerance": 0,
+      "verdict": "VERIFIED",
+      "reason": "6 + 14 + 1 + 1 + 1 summed in code, equals the opener count with 0 bare."
+    },
+    {
+      "id": "M8_builder_file_KB",
+      "operator_class": "metric",
+      "statement": "article sizes in KB: 23.1 / 23.3 / 22.5",
+      "paper_value": {
+        "builder-publishing-kit.md": 23.1,
+        "devto-publishing-kit-aws.md": 23.3,
+        "devto-publishing-kit-gde.md": 22.5
+      },
+      "paper_source": "evidence/builder-payload.txt",
+      "computed": {
+        "builder-publishing-kit.md": {
+          "chars": 23644,
+          "chars_over_1024": 23.09,
+          "printed_KB": 23.1
+        },
+        "devto-publishing-kit-aws.md": {
+          "chars": 23827,
+          "chars_over_1024": 23.269,
+          "printed_KB": 23.3
+        },
+        "devto-publishing-kit-gde.md": {
+          "chars": 23044,
+          "chars_over_1024": 22.504,
+          "printed_KB": 22.5
+        }
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": null,
+      "tolerance": 0.05,
+      "verdict": "VERIFIED",
+      "reason": "Each printed KB equals chars/1024 to one decimal. The KB is of characters; with em dashes the byte size is larger."
+    },
+    {
+      "id": "M9_ledger_payload_measured_row",
+      "operator_class": "metric",
+      "statement": "CLAIMS.md MEASURED: Builder payload 22,542 chars / 22.0 KB, 521 lines before unwrap, 408 after",
+      "paper_value": {
+        "chars": 22542,
+        "KB": 22.0,
+        "before": 521,
+        "after": 408
+      },
+      "paper_source": "CLAIMS.md l.35",
+      "computed": {
+        "chars": 23234,
+        "KB": 22.689,
+        "before": 531,
+        "after": 411
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": {
+        "chars": 692,
+        "before": 10,
+        "after": 3
+      },
+      "tolerance": 0,
+      "verdict": "MISMATCH",
+      "reason": "The archived evidence (re-captured 2026-08-31T15:54) says 23234 chars, 531 / 411 lines. The ledger row was not updated; 22542/1024 = 22.01 is internally consistent but has no archived artifact."
+    },
+    {
+      "id": "M10_ledger_payload_traps_row",
+      "operator_class": "metric",
+      "statement": "CLAIMS.md traps table: Builder payload 23,214 chars / 22.7 KB, 531 lines before unwrap, 411 after",
+      "paper_value": {
+        "chars": 23214,
+        "KB": 22.7,
+        "before": 531,
+        "after": 411
+      },
+      "paper_source": "CLAIMS.md l.134",
+      "computed": {
+        "chars": 23234,
+        "KB": 22.689,
+        "before": 531,
+        "after": 411
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": {
+        "chars": 20
+      },
+      "tolerance": 0,
+      "verdict": "MISMATCH",
+      "reason": "Lines and KB match (23234/1024 = 22.69); the character count is 23234 in the evidence against 23,214 in the ledger, a 20-character gap."
+    },
+    {
+      "id": "M11_ledger_cover_sizes",
+      "operator_class": "metric",
+      "statement": "covers: 1376x768 105 KB / 1376x768 104 KB / 1200x675 15 KB",
+      "paper_value": {
+        "KB": [
+          105,
+          104,
+          15
+        ]
+      },
+      "paper_source": "CLAIMS.md l.30",
+      "computed": {
+        "per_cover": {
+          "devto-cover-aws.44aee846.jpg": {
+            "bytes": 106890,
+            "KiB": 104.38,
+            "kB": 106.89
+          },
+          "devto-cover-gde.0d021e90.jpg": {
+            "bytes": 106731,
+            "KiB": 104.23,
+            "kB": 106.73
+          },
+          "builder-cover.2b7f0305.jpg": {
+            "bytes": 15470,
+            "KiB": 15.11,
+            "kB": 15.47
+          }
+        },
+        "claim_reachable": [
+          false,
+          true,
+          true
+        ]
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": null,
+      "tolerance": 0.5,
+      "verdict": "MISMATCH",
+      "reason": "106890 bytes is 104.38 KiB or 106.89 kB; neither rounds to 105. The other two rows match (104.23 KiB, 15.11 KiB)."
+    },
+    {
+      "id": "M12_footprint_total_0_18",
+      "operator_class": "metric",
+      "statement": "skill footprint at 0.18.0: total 4,580 lines",
+      "paper_value": 4580,
+      "paper_source": "evidence/skill-footprint.txt",
+      "computed": {
+        "SKILL_md": 649,
+        "references": 809,
+        "templates": 24,
+        "scripts": 3098,
+        "sum": 4580,
+        "counts": [
+          6,
+          2,
+          14
+        ]
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": 0,
+      "tolerance": 0,
+      "verdict": "VERIFIED",
+      "reason": "SKILL.md + 6 references + 2 templates + 14 scripts summed in code."
+    },
+    {
+      "id": "M13_footprint_ledger_0_2",
+      "operator_class": "metric",
+      "statement": "CLAIMS.md: SKILL.md 446 lines; references 226/148/86/66; six scripts 1,389; 2,370 total (at 0.2.0)",
+      "paper_value": {
+        "total": 2370
+      },
+      "paper_source": "CLAIMS.md l.22",
+      "computed": {
+        "sum_of_listed_parts": 2361,
+        "gap_to_total": 9,
+        "archived_evidence_version": "0.18.0",
+        "archived_total": 4580
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": null,
+      "tolerance": null,
+      "verdict": "NOT CHECKABLE",
+      "reason": "The listed parts sum to 2361, 9 short of 2,370 (the gap could be the description or a file not listed). The archived skill-footprint.txt was overwritten at 0.18.0, so the 0.2.0 figures and the ~187 / ~8k token costs have no artifact."
+    },
+    {
+      "id": "M14_install_pinned_commit",
+      "operator_class": "metric",
+      "statement": "install pinned at commit f7eaac2, equal to HEAD",
+      "paper_value": {
+        "commit": "f7eaac2",
+        "equals_HEAD": true
+      },
+      "paper_source": "CLAIMS.md l.24",
+      "computed": {
+        "pinned": "920fe6c",
+        "HEAD": "920fe6c",
+        "equals_HEAD": true,
+        "inodes_differ": true
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": null,
+      "tolerance": null,
+      "verdict": "MISMATCH",
+      "reason": "The re-captured evidence (0.6.0) shows 920fe6c for both, so pinned == HEAD and the inodes differ (a snapshot) hold; the commit id in the ledger does not appear in the archived file."
+    },
+    {
+      "id": "M15_linkedin_hook_80",
+      "operator_class": "metric",
+      "statement": "LinkedIn hook 80 chars",
+      "paper_value": 80,
+      "paper_source": "CLAIMS.md MEASURED; evidence/linkedin-run.txt",
+      "computed": {
+        "hook_line_chars": 80,
+        "tool_reported": 80
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": 0,
+      "tolerance": 0,
+      "verdict": "VERIFIED",
+      "reason": "len() of the first line above the fold: 'Getting 22 KB of Markdown Into AWS Builder Center Without Touching the Clipboard'."
+    },
+    {
+      "id": "E4_substack_cover_diff",
+      "operator_class": "estimator",
+      "statement": "re-hosted Substack cover: mean abs pixel diff 0.0 vs the new cover, 18.71 vs the old one",
+      "paper_value": {
+        "vs_new": 0.0,
+        "vs_old": 18.71
+      },
+      "paper_source": "evidence/cover-refresh.txt",
+      "computed": {
+        "new_vs_old_local_RGB": 18.775,
+        "new_vs_old_local_L": 18.546
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": 0.065,
+      "tolerance": 0.01,
+      "verdict": "NOT CHECKABLE",
+      "reason": "The re-hosted copy is not archived. If it is 0.0 from the new cover, the triangle inequality forces new-vs-old = 18.71 (within 0.01 for rounding). The local files give 18.775 (RGB) and 18.546 (greyscale), 0.065 off, so the evidence used a method other than these two (it does not name one)."
+    },
+    {
+      "id": "E5_builder_hero_diff",
+      "operator_class": "estimator",
+      "statement": "Builder Center hero: mean abs pixel diff 0.56 vs the new cover, 14.66 vs the old one",
+      "paper_value": {
+        "vs_new": 0.56,
+        "vs_old": 14.66
+      },
+      "paper_source": "evidence/cover-refresh.txt",
+      "computed": {
+        "new_vs_old_local_RGB": 14.671,
+        "new_vs_old_local_L": 14.476
+      },
+      "simulated": null,
+      "simulation": null,
+      "abs_gap": 0.011,
+      "tolerance": 0.56,
+      "verdict": "VERIFIED",
+      "reason": "Triangle inequality: |d(new, old) - 14.66| <= d(hero, new) = 0.56. Local RGB d(new, old) = 14.671, 0.011 from 14.66, inside the bound. The hero itself is not archived."
+    }
+  ]
+}

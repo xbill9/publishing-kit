@@ -1,0 +1,942 @@
+{
+ "inputs": {
+  "article_hardwrap": {
+   "k": 47,
+   "n": 62,
+   "src": "devto-publishing-kit.md:161"
+  },
+  "evidence_hardwrap": {
+   "p": 58,
+   "li": 4,
+   "blocks": 62,
+   "br_blocks": 47,
+   "br_total": 88,
+   "bodytext_multiline": 43,
+   "src": [
+    "evidence/devto-hardwrap.txt:12",
+    "evidence/devto-hardwrap.txt:13",
+    "evidence/devto-hardwrap.txt:14",
+    "evidence/devto-hardwrap.txt:20"
+   ]
+  },
+  "article_medium": {
+   "embed": [
+    0,
+    4
+   ],
+   "hosted": [
+    4,
+    4
+   ],
+   "src": "devto-publishing-kit.md:162"
+  },
+  "fences": {
+   "open": 23,
+   "close": 23,
+   "bare": 0,
+   "by_label": {
+    "```shell": 6,
+    "```plaintext": 14,
+    "```markdown": 1,
+    "```yaml": 1,
+    "```diff": 1
+   },
+   "src": "evidence/devto-roundtrip.txt:14"
+  }
+ },
+ "wilson": {
+  "hardwrap_47_62": {
+   "k": 47,
+   "n": 62,
+   "source": "devto-publishing-kit.md:161; evidence/devto-hardwrap.txt:13",
+   "successes": 47,
+   "total": 62,
+   "rate_pct": 75.81,
+   "wilson_low_pct": 63.85,
+   "wilson_high_pct": 84.75,
+   "z": 1.959964,
+   "formatted": "75.8% (95% Wilson CI [63.8%, 84.8%])"
+  },
+  "medium_embed_0_4": {
+   "k": 0,
+   "n": 4,
+   "source": "devto-publishing-kit.md:162 (no evidence file; CLAIMS.md LOG)",
+   "successes": 0,
+   "total": 4,
+   "rate_pct": 0.0,
+   "wilson_low_pct": 0.0,
+   "wilson_high_pct": 48.99,
+   "z": 1.959964,
+   "formatted": "0.0% (95% Wilson CI [0.0%, 49.0%])"
+  },
+  "medium_hosted_4_4": {
+   "k": 4,
+   "n": 4,
+   "source": "devto-publishing-kit.md:162 (no evidence file; CLAIMS.md LOG)",
+   "successes": 4,
+   "total": 4,
+   "rate_pct": 100.0,
+   "wilson_low_pct": 51.01,
+   "wilson_high_pct": 100.0,
+   "z": 1.959964,
+   "formatted": "100.0% (95% Wilson CI [51.0%, 100.0%])"
+  },
+  "fences_labelled_23_23": {
+   "k": 23,
+   "n": 23,
+   "source": "evidence/devto-roundtrip.txt:15",
+   "successes": 23,
+   "total": 23,
+   "rate_pct": 100.0,
+   "wilson_low_pct": 85.69,
+   "wilson_high_pct": 100.0,
+   "z": 1.959964,
+   "formatted": "100.0% (95% Wilson CI [85.7%, 100.0%])"
+  },
+  "substack_links_first_paste": {
+   "k": 2,
+   "n": 4,
+   "source": "evidence/substack-paste.txt (First paste)",
+   "successes": 2,
+   "total": 4,
+   "rate_pct": 50.0,
+   "wilson_low_pct": 15.0,
+   "wilson_high_pct": 85.0,
+   "z": 1.959964,
+   "formatted": "50.0% (95% Wilson CI [15.0%, 85.0%])"
+  },
+  "substack_links_after_prepare": {
+   "k": 4,
+   "n": 4,
+   "source": "evidence/substack-paste.txt (Second paste)",
+   "successes": 4,
+   "total": 4,
+   "rate_pct": 100.0,
+   "wilson_low_pct": 51.01,
+   "wilson_high_pct": 100.0,
+   "z": 1.959964,
+   "formatted": "100.0% (95% Wilson CI [51.0%, 100.0%])"
+  },
+  "substack_images": {
+   "k": 2,
+   "n": 2,
+   "source": "evidence/substack-paste.txt",
+   "successes": 2,
+   "total": 2,
+   "rate_pct": 100.0,
+   "wilson_low_pct": 34.24,
+   "wilson_high_pct": 100.0,
+   "z": 1.959964,
+   "formatted": "100.0% (95% Wilson CI [34.2%, 100.0%])"
+  }
+ },
+ "tests": {
+  "medium_hosted_vs_embed_fisher_unpaired": {
+   "method": "4/4",
+   "baseline": "0/4",
+   "method_rate_pct": 100.0,
+   "baseline_rate_pct": 0.0,
+   "difference_pts": 100.0,
+   "odds_ratio": "inf",
+   "p_value": 0.02857142857142857,
+   "significant_at_0_05": true,
+   "significant_at_0_01": false
+  },
+  "medium_hosted_vs_embed_mcnemar_paired": {
+   "b": 4,
+   "c": 0,
+   "b_method_only": 4,
+   "c_baseline_only": 0,
+   "discordant": 4,
+   "p_value": 0.125,
+   "significant_at_0_05": false,
+   "significant_at_0_01": false
+  },
+  "substack_links_prepare_vs_first_mcnemar_paired": {
+   "b": 2,
+   "c": 0,
+   "b_method_only": 2,
+   "c_baseline_only": 0,
+   "discordant": 2,
+   "p_value": 0.5,
+   "significant_at_0_05": false,
+   "significant_at_0_01": false
+  },
+  "substack_links_prepare_vs_first_fisher_unpaired": {
+   "method": "4/4",
+   "baseline": "2/4",
+   "method_rate_pct": 100.0,
+   "baseline_rate_pct": 50.0,
+   "difference_pts": 50.0,
+   "odds_ratio": "inf",
+   "p_value": 0.42857142857142855,
+   "significant_at_0_05": false,
+   "significant_at_0_01": false
+  },
+  "wilcoxon": "not run: the paper and evidence contain no paired resource metric (no per-run latency, token or size series); every size figure is a single measurement",
+  "mcnemar_min_discordant_for_p_lt_0.05": 6
+ },
+ "noise_floor": {
+  "hardwrap_62_blocks": {
+   "num_tasks": 62,
+   "baseline_rate_pct": 75.81,
+   "std_error_pct": 5.44,
+   "ci_95_half_width_pct": 10.66,
+   "multiplier_z_alpha_plus_z_power": 2.8016,
+   "min_detectable_lift_vs_fixed_baseline_pts": 15.24,
+   "min_detectable_lift_two_runs_pts": 21.55
+  }
+ },
+ "arithmetic": {
+  "hardwrap_blocks_sum": {
+   "p_plus_li": 62,
+   "stated": 62,
+   "ok": true
+  },
+  "hardwrap_blocks_without_br": 15,
+  "hardwrap_pct": 75.806,
+  "br_per_affected_block": 1.872,
+  "article_matches_evidence_hardwrap": true,
+  "published_minus_bodytext": 4,
+  "fence_labels_sum": {
+   "sum": 23,
+   "opening": 23,
+   "ok": true
+  },
+  "orgs_sum": {
+   "parts": {
+    "gde": 24,
+    "aws-builders": 13,
+    "None": 3
+   },
+   "sum": 40,
+   "stated": 40,
+   "ok": true
+  },
+  "crop": {
+   "ratio_exact": 2.380952380952381,
+   "ratio_3dp": 2.381,
+   "article_ratio": 2.381,
+   "ratio_matches_article": true,
+   "kept_rows_exact": 577.92,
+   "kept_rows_from_rounded_ratio": 577.9084418311634,
+   "lost_each_side_exact": 95.04000000000002,
+   "lost_each_side_rounded_rows": 95.0,
+   "article_loss": 95,
+   "this_cover_ratio": 2.3806228373702423
+  },
+  "cover_kb": {
+   "builder-cover.2b7f0305.jpg": {
+    "bytes": 15470,
+    "KiB": 15.11,
+    "kB": 15.47
+   },
+   "devto-cover-aws.44aee846.jpg": {
+    "bytes": 106890,
+    "KiB": 104.38,
+    "kB": 106.89
+   },
+   "devto-cover-gde.0d021e90.jpg": {
+    "bytes": 106731,
+    "KiB": 104.23,
+    "kB": 106.73
+   }
+  },
+  "builder_payload": {
+   "chars": 23234,
+   "KiB": 22.689,
+   "kB": 23.234,
+   "lines_before_after": [
+    531,
+    411
+   ],
+   "lines_removed": 120
+  },
+  "skill_footprint": {
+   "version_in_file": "0.18.0",
+   "skill_md_lines": 649,
+   "description_chars": 528,
+   "file_count_by_section": {
+    "references": 6,
+    "templates": 2,
+    "scripts": 14
+   },
+   "files_listed": 22,
+   "sum_listed_files": 3931,
+   "sum_plus_skill_md": 4580,
+   "stated_total": 4580,
+   "total_ok": true,
+   "listed_matches_section_counts": true
+  },
+  "linkedin": {
+   "post": 1269,
+   "limit": 3000,
+   "post_share_of_limit": 0.423,
+   "hook": 80,
+   "fold_chars": 140,
+   "hook_within_fold": true,
+   "distinct_FAIL_lines": 5,
+   "distinct_WARN_lines": 1,
+   "distinct_fail_plus_warn": 6
+  },
+  "substack_code_lines_preserved": true,
+  "five_faults_listed": 5,
+  "ledger_vs_evidence": {
+   "skill_md_lines": {
+    "ledger": 446,
+    "evidence": 649
+   },
+   "footprint_total": {
+    "ledger": 2370,
+    "evidence": 4580
+   },
+   "builder_payload_rows": [
+    {
+     "ledger_chars": 22542,
+     "ledger_kb": 22.0,
+     "ledger_lines": [
+      521,
+      408
+     ],
+     "evidence_chars": 23234,
+     "evidence_lines": [
+      531,
+      411
+     ],
+     "match": false
+    },
+    {
+     "ledger_chars": 23214,
+     "ledger_kb": 22.7,
+     "ledger_lines": [
+      531,
+      411
+     ],
+     "evidence_chars": 23234,
+     "evidence_lines": [
+      531,
+      411
+     ],
+     "match": false
+    }
+   ],
+   "cover_kb": {
+    "ledger": [
+     105,
+     104,
+     15
+    ],
+    "evidence_KiB_rounded": [
+     104,
+     104,
+     15
+    ],
+    "evidence_kB_rounded": [
+     107,
+     107,
+     15
+    ],
+    "evidence_order": [
+     "devto-cover-aws.44aee846.jpg",
+     "devto-cover-gde.0d021e90.jpg",
+     "builder-cover.2b7f0305.jpg"
+    ]
+   }
+  }
+ },
+ "dates": {
+  "article_says_measured": "2026-08-31",
+  "hardwrap_measured": "2026-09-16",
+  "hardwrap_days_after_article_date": 16,
+  "medium_0_of_4_log_date": "2026-08-30"
+ },
+ "claims": [
+  {
+   "id": "hardwrap-47-of-62",
+   "statement": "47 of 62 paragraph-level blocks in a published dev.to article carried a stray <br>",
+   "paper_value": {
+    "k": 47,
+    "n": 62
+   },
+   "paper_source": "devto-publishing-kit.md:161",
+   "computed": {
+    "k": 47,
+    "n": 62,
+    "rate_pct": 75.806,
+    "wilson_ci_pct": [
+     63.85,
+     84.75
+    ]
+   },
+   "verdict": "VERIFIED",
+   "conclusion": "HOLDS",
+   "reason": "Matches devto-hardwrap.txt lines 12-13 (58 <p> + 4 <li>). One article; the interval is over blocks of that article and does not generalise to other articles."
+  },
+  {
+   "id": "hardwrap-every-paragraph",
+   "statement": "a source wrapped at 95 columns arrives with a stray break in every paragraph",
+   "paper_value": {
+    "blocks_with_break": "every"
+   },
+   "paper_source": "devto-publishing-kit.md:53",
+   "computed": {
+    "blocks_with_break": 47,
+    "blocks": 62,
+    "blocks_without": 15
+   },
+   "verdict": "MISMATCH",
+   "conclusion": "OVERSTATED",
+   "reason": "The article's own measurement has 15 of 62 blocks with no break. The evidence's mechanism claim ('a break at every wrap') would need the count of source blocks that were actually wrapped, which is not archived (bodytext reports 43 multi-line paragraphs but skips list items and quotes), so 'every wrap' is NOT CHECKABLE; 'every paragraph' is contradicted."
+  },
+  {
+   "id": "medium-0-of-4",
+   "statement": "Medium images pasted as data URIs: 0 of 4 survived",
+   "paper_value": {
+    "k": 0,
+    "n": 4
+   },
+   "paper_source": "devto-publishing-kit.md:162",
+   "computed": {
+    "wilson_ci_pct": [
+     0.0,
+     48.99
+    ]
+   },
+   "verdict": "NOT CHECKABLE",
+   "conclusion": "CANNOT CHECK",
+   "reason": "No evidence file in the archive. CLAIMS.md files it as LOG dated 2026-08-30, not re-measured."
+  },
+  {
+   "id": "medium-4-of-4",
+   "statement": "Medium images from real URLs: 4 of 4 survived",
+   "paper_value": {
+    "k": 4,
+    "n": 4
+   },
+   "paper_source": "devto-publishing-kit.md:162",
+   "computed": {
+    "wilson_ci_pct": [
+     51.01,
+     100.0
+    ]
+   },
+   "verdict": "NOT CHECKABLE",
+   "conclusion": "CANNOT CHECK",
+   "reason": "Same as medium-0-of-4: LOG entry only, no archived artifact."
+  },
+  {
+   "id": "medium-comparison",
+   "statement": "Medium drops data: URI images on paste (0 of 4 vs 4 of 4 hosted)",
+   "paper_value": {
+    "embed": [
+     0,
+     4
+    ],
+    "hosted": [
+     4,
+     4
+    ]
+   },
+   "paper_source": "devto-publishing-kit.md:162; line 54",
+   "computed": {
+    "mcnemar_exact_p": 0.125,
+    "fisher_exact_p": 0.02857142857142857
+   },
+   "verdict": "NOT CHECKABLE",
+   "conclusion": "CANNOT CHECK",
+   "reason": "Paired design (same four images, two builds): exact McNemar b=4, c=0 gives p above 0.05; Fisher, which wrongly treats the builds as independent, gives p below 0.05. The claim is a deterministic mechanism (the editor strips data: URIs); a significance test on four images is the wrong instrument and neither p-value supports or refutes it. Inputs not archived."
+  },
+  {
+   "id": "devto-crop-ratio",
+   "statement": "dev.to proxies the cover at 2.381:1",
+   "paper_value": {
+    "ratio": 2.381
+   },
+   "paper_source": "devto-publishing-kit.md:53",
+   "computed": {
+    "ratio": 2.380952
+   },
+   "verdict": "VERIFIED",
+   "conclusion": "HOLDS",
+   "reason": "width=1000,height=420 in the proxied URL (devto-cover-crop.txt:7); a single fetch."
+  },
+  {
+   "id": "devto-crop-95px",
+   "statement": "a 1376x768 cover loses 95px off the top and bottom",
+   "paper_value": {
+    "px_each_side": 95
+   },
+   "paper_source": "devto-publishing-kit.md:54",
+   "computed": {
+    "px_each_side_exact": 95.04,
+    "px_each_side_rounded_rows": 95.0
+   },
+   "verdict": "VERIFIED",
+   "conclusion": "HOLDS",
+   "reason": "Arithmetic from one measured display size; assumes a centre crop, which the URL's gravity=auto does not guarantee."
+  },
+  {
+   "id": "five-faults",
+   "statement": "The run also found five faults in the kit itself",
+   "paper_value": {
+    "count": 5
+   },
+   "paper_source": "devto-publishing-kit.md:167",
+   "computed": {
+    "count": 5
+   },
+   "verdict": "VERIFIED",
+   "conclusion": "HOLDS",
+   "reason": "Count of semicolon-separated items listed in the same paragraph; the faults themselves have no archived artifact apart from toolchain-run.txt evidence for some (CLAIMS.md)."
+  },
+  {
+   "id": "measured-date",
+   "statement": "the destination behaviours described here were measured on 2026-08-31",
+   "paper_value": {
+    "date": "2026-08-31"
+   },
+   "paper_source": "devto-publishing-kit.md:184",
+   "computed": {
+    "hardwrap_measured": "2026-09-16",
+    "medium_log_date": "2026-08-30"
+   },
+   "verdict": "MISMATCH",
+   "conclusion": "OVERSTATED",
+   "reason": "The 47-of-62 figure was measured 16 days later (2026-09-16); the 0-of-4 figure is a log entry dated 2026-08-30. Neither of the article's two headline numbers was measured on the date the footer gives."
+  },
+  {
+   "id": "fences-23-of-23",
+   "statement": "23 of 23 opening fences carry a language label in a stored body (CLAIMS.md; not in the article)",
+   "paper_value": {
+    "k": 23,
+    "n": 23
+   },
+   "paper_source": "CLAIMS.md:29",
+   "computed": {
+    "labels_sum": 23,
+    "wilson_ci_pct": [
+     85.69,
+     100.0
+    ]
+   },
+   "verdict": "VERIFIED",
+   "conclusion": "HOLDS",
+   "reason": "Per-label counts sum to the opening-fence count; one article."
+  },
+  {
+   "id": "orgs-40",
+   "statement": "40 articles listed: gde 24, aws-builders 13, none 3 (CLAIMS.md)",
+   "paper_value": {
+    "total": 40,
+    "parts": [
+     24,
+     13,
+     3
+    ]
+   },
+   "paper_source": "CLAIMS.md:32",
+   "computed": {
+    "total": 40,
+    "sum_parts": 40
+   },
+   "verdict": "VERIFIED",
+   "conclusion": "HOLDS",
+   "reason": "Parts sum to total; per_page=40 means the listing may be truncated at 40."
+  },
+  {
+   "id": "ledger-footprint",
+   "statement": "SKILL.md 446 lines; 2,370 total lines (CLAIMS.md, cites skill-footprint.txt)",
+   "paper_value": {
+    "skill_md_lines": 446,
+    "total": 2370
+   },
+   "paper_source": "CLAIMS.md:21-22",
+   "computed": {
+    "skill_md_lines": 649,
+    "total": 4580,
+    "evidence_version": "0.18.0"
+   },
+   "verdict": "MISMATCH",
+   "conclusion": "CANNOT CHECK",
+   "reason": "The archived skill-footprint.txt is at publishing 0.18.0, the ledger row is 'at 0.2.0'; the file was overwritten by a later capture, so the ledger row has no surviving artifact. The later file is internally consistent (sum of listed files + SKILL.md = 4580, stated 4580)."
+  },
+  {
+   "id": "ledger-builder-payload-0",
+   "statement": "Builder payload 22542 chars, lines (521, 408) (CLAIMS.md)",
+   "paper_value": {
+    "chars": 22542,
+    "lines": [
+     521,
+     408
+    ]
+   },
+   "paper_source": "CLAIMS.md",
+   "computed": {
+    "chars": 23234,
+    "lines": [
+     531,
+     411
+    ]
+   },
+   "verdict": "MISMATCH",
+   "conclusion": "CANNOT CHECK",
+   "reason": "Compared with evidence/builder-payload.txt serve-body.py payload line."
+  },
+  {
+   "id": "ledger-builder-payload-1",
+   "statement": "Builder payload 23214 chars, lines (531, 411) (CLAIMS.md)",
+   "paper_value": {
+    "chars": 23214,
+    "lines": [
+     531,
+     411
+    ]
+   },
+   "paper_source": "CLAIMS.md",
+   "computed": {
+    "chars": 23234,
+    "lines": [
+     531,
+     411
+    ]
+   },
+   "verdict": "MISMATCH",
+   "conclusion": "CANNOT CHECK",
+   "reason": "Compared with evidence/builder-payload.txt serve-body.py payload line."
+  },
+  {
+   "id": "ledger-cover-kb",
+   "statement": "covers 105 KB / 104 KB / 15 KB (CLAIMS.md, cites toolchain-run.txt)",
+   "paper_value": {
+    "kb": [
+     105,
+     104,
+     15
+    ]
+   },
+   "paper_source": "CLAIMS.md:30",
+   "computed": {
+    "KiB_rounded": [
+     104,
+     104,
+     15
+    ],
+    "kB_rounded": [
+     107,
+     107,
+     15
+    ]
+   },
+   "verdict": "MISMATCH",
+   "conclusion": "HOLDS",
+   "reason": "Byte counts in toolchain-run.txt converted both ways (1024 and 1000); the file was re-captured after the ledger row, so the 105 KB value has no surviving artifact. The size class (about 100 KB vs 15 KB) holds."
+  },
+  {
+   "id": "linkedin-1269",
+   "statement": "LinkedIn post 1,269 chars, hook 80 chars (CLAIMS.md)",
+   "paper_value": {
+    "post": 1269,
+    "hook": 80
+   },
+   "paper_source": "CLAIMS.md:36",
+   "computed": {
+    "post": 1269,
+    "hook": 80,
+    "fold": 140
+   },
+   "verdict": "VERIFIED",
+   "conclusion": "HOLDS",
+   "reason": "Read from linkedin-run.txt."
+  }
+ ],
+ "raw_mcp_calls": [
+  {
+   "tool": "verify_wilson_ci",
+   "arguments": {
+    "successes": 47,
+    "total": 62
+   },
+   "output": {
+    "successes": 47,
+    "total": 62,
+    "rate_pct": 75.81,
+    "wilson_low_pct": 63.85,
+    "wilson_high_pct": 84.75,
+    "z": 1.959964,
+    "formatted": "75.8% (95% Wilson CI [63.8%, 84.8%])"
+   }
+  },
+  {
+   "tool": "verify_wilson_ci",
+   "arguments": {
+    "successes": 0,
+    "total": 4
+   },
+   "output": {
+    "successes": 0,
+    "total": 4,
+    "rate_pct": 0.0,
+    "wilson_low_pct": 0.0,
+    "wilson_high_pct": 48.99,
+    "z": 1.959964,
+    "formatted": "0.0% (95% Wilson CI [0.0%, 49.0%])"
+   }
+  },
+  {
+   "tool": "verify_wilson_ci",
+   "arguments": {
+    "successes": 4,
+    "total": 4
+   },
+   "output": {
+    "successes": 4,
+    "total": 4,
+    "rate_pct": 100.0,
+    "wilson_low_pct": 51.01,
+    "wilson_high_pct": 100.0,
+    "z": 1.959964,
+    "formatted": "100.0% (95% Wilson CI [51.0%, 100.0%])"
+   }
+  },
+  {
+   "tool": "verify_wilson_ci",
+   "arguments": {
+    "successes": 23,
+    "total": 23
+   },
+   "output": {
+    "successes": 23,
+    "total": 23,
+    "rate_pct": 100.0,
+    "wilson_low_pct": 85.69,
+    "wilson_high_pct": 100.0,
+    "z": 1.959964,
+    "formatted": "100.0% (95% Wilson CI [85.7%, 100.0%])"
+   }
+  },
+  {
+   "tool": "verify_wilson_ci",
+   "arguments": {
+    "successes": 2,
+    "total": 4
+   },
+   "output": {
+    "successes": 2,
+    "total": 4,
+    "rate_pct": 50.0,
+    "wilson_low_pct": 15.0,
+    "wilson_high_pct": 85.0,
+    "z": 1.959964,
+    "formatted": "50.0% (95% Wilson CI [15.0%, 85.0%])"
+   }
+  },
+  {
+   "tool": "verify_wilson_ci",
+   "arguments": {
+    "successes": 4,
+    "total": 4
+   },
+   "output": {
+    "successes": 4,
+    "total": 4,
+    "rate_pct": 100.0,
+    "wilson_low_pct": 51.01,
+    "wilson_high_pct": 100.0,
+    "z": 1.959964,
+    "formatted": "100.0% (95% Wilson CI [51.0%, 100.0%])"
+   }
+  },
+  {
+   "tool": "verify_wilson_ci",
+   "arguments": {
+    "successes": 2,
+    "total": 2
+   },
+   "output": {
+    "successes": 2,
+    "total": 2,
+    "rate_pct": 100.0,
+    "wilson_low_pct": 34.24,
+    "wilson_high_pct": 100.0,
+    "z": 1.959964,
+    "formatted": "100.0% (95% Wilson CI [34.2%, 100.0%])"
+   }
+  },
+  {
+   "tool": "verify_fisher_exact",
+   "arguments": {
+    "k_method": 4,
+    "n_method": 4,
+    "k_baseline": 0,
+    "n_baseline": 4
+   },
+   "output": {
+    "method": "4/4",
+    "baseline": "0/4",
+    "method_rate_pct": 100.0,
+    "baseline_rate_pct": 0.0,
+    "difference_pts": 100.0,
+    "odds_ratio": "inf",
+    "p_value": 0.02857142857142857,
+    "significant_at_0_05": true,
+    "significant_at_0_01": false
+   }
+  },
+  {
+   "tool": "verify_mcnemar_exact",
+   "arguments": {
+    "b": 4,
+    "c": 0
+   },
+   "output": {
+    "b_method_only": 4,
+    "c_baseline_only": 0,
+    "discordant": 4,
+    "p_value": 0.125,
+    "significant_at_0_05": false,
+    "significant_at_0_01": false
+   }
+  },
+  {
+   "tool": "verify_mcnemar_exact",
+   "arguments": {
+    "b": 2,
+    "c": 0
+   },
+   "output": {
+    "b_method_only": 2,
+    "c_baseline_only": 0,
+    "discordant": 2,
+    "p_value": 0.5,
+    "significant_at_0_05": false,
+    "significant_at_0_01": false
+   }
+  },
+  {
+   "tool": "verify_fisher_exact",
+   "arguments": {
+    "k_method": 4,
+    "n_method": 4,
+    "k_baseline": 2,
+    "n_baseline": 4
+   },
+   "output": {
+    "method": "4/4",
+    "baseline": "2/4",
+    "method_rate_pct": 100.0,
+    "baseline_rate_pct": 50.0,
+    "difference_pts": 50.0,
+    "odds_ratio": "inf",
+    "p_value": 0.42857142857142855,
+    "significant_at_0_05": false,
+    "significant_at_0_01": false
+   }
+  },
+  {
+   "tool": "verify_mcnemar_exact",
+   "arguments": {
+    "b": 1,
+    "c": 0
+   },
+   "output": {
+    "b_method_only": 1,
+    "c_baseline_only": 0,
+    "discordant": 1,
+    "p_value": 1.0,
+    "significant_at_0_05": false,
+    "significant_at_0_01": false
+   }
+  },
+  {
+   "tool": "verify_mcnemar_exact",
+   "arguments": {
+    "b": 2,
+    "c": 0
+   },
+   "output": {
+    "b_method_only": 2,
+    "c_baseline_only": 0,
+    "discordant": 2,
+    "p_value": 0.5,
+    "significant_at_0_05": false,
+    "significant_at_0_01": false
+   }
+  },
+  {
+   "tool": "verify_mcnemar_exact",
+   "arguments": {
+    "b": 3,
+    "c": 0
+   },
+   "output": {
+    "b_method_only": 3,
+    "c_baseline_only": 0,
+    "discordant": 3,
+    "p_value": 0.25,
+    "significant_at_0_05": false,
+    "significant_at_0_01": false
+   }
+  },
+  {
+   "tool": "verify_mcnemar_exact",
+   "arguments": {
+    "b": 4,
+    "c": 0
+   },
+   "output": {
+    "b_method_only": 4,
+    "c_baseline_only": 0,
+    "discordant": 4,
+    "p_value": 0.125,
+    "significant_at_0_05": false,
+    "significant_at_0_01": false
+   }
+  },
+  {
+   "tool": "verify_mcnemar_exact",
+   "arguments": {
+    "b": 5,
+    "c": 0
+   },
+   "output": {
+    "b_method_only": 5,
+    "c_baseline_only": 0,
+    "discordant": 5,
+    "p_value": 0.0625,
+    "significant_at_0_05": false,
+    "significant_at_0_01": false
+   }
+  },
+  {
+   "tool": "verify_mcnemar_exact",
+   "arguments": {
+    "b": 6,
+    "c": 0
+   },
+   "output": {
+    "b_method_only": 6,
+    "c_baseline_only": 0,
+    "discordant": 6,
+    "p_value": 0.03125,
+    "significant_at_0_05": true,
+    "significant_at_0_01": false
+   }
+  },
+  {
+   "tool": "leaderboard_noise_floor",
+   "arguments": {
+    "num_tasks": 62,
+    "baseline_rate": 0.7580645161290323
+   },
+   "output": {
+    "num_tasks": 62,
+    "baseline_rate_pct": 75.81,
+    "std_error_pct": 5.44,
+    "ci_95_half_width_pct": 10.66,
+    "multiplier_z_alpha_plus_z_power": 2.8016,
+    "min_detectable_lift_vs_fixed_baseline_pts": 15.24,
+    "min_detectable_lift_two_runs_pts": 21.55
+   }
+  }
+ ]
+}
