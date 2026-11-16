@@ -10,9 +10,10 @@ the front matter IS the payload -- title, tags and cover_image all ride inside
     publish-devto.py --update <id> <article>.md
     publish-devto.py --org <id> <org-slug>
 
-THE PRE-FLIGHT GATES THE PUBLISH. --create and --update run check-article.py
-first and refuse on any FAIL, because every check in it describes something that
-is invisible locally and permanent once published. --force is deliberate.
+THE PRE-FLIGHT GATES THE PUBLISH. --create and --update run check-article.py and
+check-facts.py (over <article dir>/evidence) first and refuse on any FAIL, because
+every check in them describes something that is invisible locally and permanent
+once published. --force is deliberate.
 
 The key is read from $DEV_TO_API_KEY or ~/.devto.key and is never accepted on the
 command line, where it would land in shell history and process listings.
@@ -84,18 +85,37 @@ def call(method, path, payload=None):
         return e.code, {"error": e.read().decode()[:400]}
 
 
+def number_check(article):
+    """check-facts.py over <article dir>/evidence, as preflight.py runs it.
+
+    Until 0.36.2 only check-article.py ran here, so a number an audit disputes --
+    research-kit's records staged in evidence/ -- stopped preflight.py and was
+    posted by --create anyway. A missing evidence/ fails too, as it does in
+    preflight.py: a number check over nothing is not a pass.
+    """
+    checker = pathlib.Path(__file__).with_name("check-facts.py")
+    r = subprocess.run([sys.executable, str(checker), str(article),
+                        "--evidence", str(article.parent / "evidence")],
+                       capture_output=True, text=True)
+    return r.returncode, r.stdout.rstrip()
+
+
 def preflight(article, force):
-    """Refuse to publish anything the pre-flight fails. It exits non-zero."""
+    """Refuse to publish anything the pre-flight fails: the article checks and the
+    number check. Each exits non-zero."""
     checker = pathlib.Path(__file__).with_name("check-article.py")
     root = subprocess.run(["git", "rev-parse", "--show-toplevel"],
                           cwd=article.parent, capture_output=True, text=True).stdout.strip()
     r = subprocess.run([sys.executable, str(checker), str(article),
                         "--repo-root", root or "."], capture_output=True, text=True)
     print(r.stdout.rstrip())
-    if r.returncode and not force:
-        sys.exit("\nrefusing to publish: the pre-flight failed. --force overrides.")
-    if r.returncode:
-        print("\n--force given; publishing over a failed pre-flight")
+    facts_rc, facts_out = number_check(article)
+    print("\n" + facts_out)
+    failed = [n for n, rc in (("check-article", r.returncode), ("check-facts", facts_rc)) if rc]
+    if failed and not force:
+        sys.exit(f"\nrefusing to publish: {', '.join(failed)} failed. --force overrides.")
+    if failed:
+        print(f"\n--force given; publishing over a failed {', '.join(failed)}")
 
 
 def listing(endpoint):

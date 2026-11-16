@@ -482,6 +482,49 @@ class AdvocuDraft(unittest.TestCase):
         self.assertEqual(self.calls, [])
 
 
+class DevtoNumberCheck(unittest.TestCase):
+    """publish-devto.py ran check-article.py only, so a number an audit disputes
+    stopped preflight.py and was posted by --create anyway."""
+
+    def article(self, d, text, ledger=None, evidence=True):
+        a = d / "a.md"
+        a.write_text(text)
+        if evidence:
+            (d / "evidence").mkdir()
+            (d / "evidence" / "audit.json").write_text(json.dumps(AUDIT))
+            (d / "evidence" / "paper.md").write_text("p = 4.2e-9; 39.5% [31.5, 48.1]")
+        if ledger:
+            (d / "CLAIMS.md").write_text(ledger)
+        return a
+
+    def test_disputed_number_fails_the_number_check(self):
+        with tempfile.TemporaryDirectory() as t:
+            rc, out = devto.number_check(self.article(pathlib.Path(t), "Fisher p = 4.2e-9.\n"))
+            self.assertEqual(rc, 1, out)
+            self.assertIn("DISPUTED", out)
+
+    def test_control_noted_and_clean_numbers_pass(self):
+        with tempfile.TemporaryDirectory() as t:
+            a = self.article(pathlib.Path(t), "Fisher p = 4.2e-9.\n", "## DISPUTED\n\n| 4.2e-9 | kept |\n")
+            self.assertEqual(devto.number_check(a)[0], 0)
+        with tempfile.TemporaryDirectory() as t:
+            self.assertEqual(devto.number_check(self.article(pathlib.Path(t), "It resolves 39.5%.\n"))[0], 0)
+
+    def test_missing_evidence_fails(self):
+        with tempfile.TemporaryDirectory() as t:
+            self.assertEqual(devto.number_check(self.article(pathlib.Path(t), "p = 4.2e-9\n", evidence=False))[0], 1)
+
+    def test_preflight_refuses_on_the_number_check_alone(self):
+        ok = subprocess.CompletedProcess([], 0, "check-article: 0 fail", "")
+        with unittest.mock.patch.object(devto.subprocess, "run", return_value=ok), \
+             unittest.mock.patch.object(devto, "number_check", return_value=(1, "  DISPUTED x")), \
+             contextlib.redirect_stdout(io.StringIO()):
+            with self.assertRaises(SystemExit) as e:
+                devto.preflight(pathlib.Path("a.md"), force=False)
+            self.assertIn("check-facts", str(e.exception))
+            devto.preflight(pathlib.Path("a.md"), force=True)  # control: --force still overrides
+
+
 class DevtoUpdate(unittest.TestCase):
     """The API is faked: a real run would touch a live article."""
 

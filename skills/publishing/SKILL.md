@@ -526,6 +526,15 @@ python3 scripts/publish-devto.py --org <id> aws-builders
 describes something invisible locally and permanent once published. `--force` is
 deliberate and should be rare.
 
+**Correction.** "The pre-flight" here meant `check-article.py` alone, so the number
+check never ran on the way out. MEASURED 2026-11-16: with research-kit's audit
+records staged in its `evidence/`, the walk-through as published failed
+`preflight.py` on 3 disputed numbers, and `--create` would have posted it.
+`--create` and `--update` now also run `check-facts.py` over the article's
+`evidence/` and refuse on a disputed or untraced number, or a missing `evidence/`.
+The same `--create` now prints `refusing to publish: check-facts failed` and
+creates nothing.
+
 The key is read from `$DEV_TO_API_KEY` or `~/.devto.key`, never from the command
 line, where it would land in shell history and process listings. `--org-slug` on
 create routes the article in the same run.
