@@ -429,7 +429,8 @@ it used to force text back on at every size. The two-bar image is still what
 
 **Which cover to draw is the author's choice, not the kit's.** The house style
 sets the default (`references/house-style.md` → "Covers"); for this author it is
-abstract and textless.
+a textless picture drawn for each article's own subject, with the `--flow`
+fan-out kept for articles whose subject is a fan-out.
 
 **`make-cover.py` and `make-linkedin.py` both need Pillow**, and nothing warns you
 until a run dies on `ModuleNotFoundError: No module named 'PIL'` -- `check-article.py`

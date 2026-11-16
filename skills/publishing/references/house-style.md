@@ -124,23 +124,35 @@ toolchain has, how many artifacts a run produces. State those where they are che
 to regenerate, or derive them from a script, and keep them out of headlines,
 covers and openers.
 
-## Covers: abstract by default
+## Covers: a textless picture of this article's subject
 
 Stated by the author 2026-10-02, after a wireframe cover (headline, eyebrow,
 four labelled cards, a footer URL) was rejected as trash: **a cover is an
-abstract illustration with graphics, not text and not hard-coded numbers.**
+illustration with graphics, not text and not hard-coded numbers.** Amended by
+the author 2026-11-16, after the `--flow` fan-out had become the default for
+every article: "it's getting boring." **Each cover is drawn for its own
+article.**
 
-- **No type and no figures on the cover by default.** Draw the article's
-  subject as a shape — a source fanning out, a pipeline, two things side by
-  side — and let colour carry identity. The title, numbers and claims live in
-  the article and its title field, where they can be read and kept current.
-- **Use `make-cover.py --no-text`**, with `--flow` when the subject has a
-  shape: it draws one page with light fanning to one shape per `--dest`, in
-  that destination's colour. `--sizes devto,builder` keeps the same textless
-  design at both sizes.
+- **No type and no figures on the cover.** The title, numbers and claims live
+  in the article and its title field, where they can be read and kept current.
+- **Draw the subject as a picture, not a diagram of the toolchain.** Pick the
+  object or metaphor the article is about and draw that: a document under a
+  magnifying glass inside a review loop for an article about auditing one
+  (`articles/research-kit-publishing-kit/make_review_cover.py` in
+  xbill9/claude-research-skills). Use the kit's palette from `make-cover.py`
+  (surface, paper, blue, orange) so covers still look like one family.
+- **Do not repeat the last cover's composition.** Before drawing, look at the
+  most recent covers in the repo; if the new one would read the same at
+  feed-card size, draw something else.
+- **`make-cover.py --no-text --flow` only when the article's subject is a
+  fan-out**, such as one source going to several destinations. It is no
+  longer the default.
 - **Do not use the two-bar `--no-text` cover unless the article compares two
   quantities.** Without `--flow` it draws a comparison, and a cover that
   asserts something the article does not say is worse than a plain one.
+- **Draw in code and check it.** Pillow, at 2x then downsampled, both sizes
+  (1376x578 dev.to, 1200x675 Builder Center), named by a hash of the bytes.
+  Open both renders and judge them at feed-card size before using them.
 - Text and stat tiles (`--headline`, `--tile`) only when the author asks for
   them on that article.
 
