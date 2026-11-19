@@ -1,19 +1,19 @@
 # Streamline Publishing with a Claude Code Skill
 
-*Subtitle: A Claude Code skill that turns one markdown file into dev.to, AWS Builder Center, Medium and LinkedIn versions, checks them before they ship, and posts the ones with an API — plus the debugging tools for when a destination mangles something.*
+*Subtitle: A Claude Code skill that turns one markdown file into dev.to, AWS Builder Center, Medium, Substack and LinkedIn versions, checks them before they ship, and posts the ones with an API — plus the debugging tools for when a destination mangles something.*
 
 > **TL;DR:** [publishing-kit](https://github.com/xbill9/publishing-kit) packages the whole
 > publishing lifecycle as a Claude Code skill. Write one markdown file, and it builds the dev.to,
-> AWS Builder Center, Medium and LinkedIn versions, checks them, and posts the ones that have an
-> API. This article, its cover and all four of its artifacts were produced by the thing the
+> AWS Builder Center, Medium, Substack and LinkedIn versions, checks them, and posts the ones that
+> have an API. This article, its cover and all of its artifacts were produced by the thing the
 > article is about — dogfooding all the way down. More on that at the end.
 
-Publishing one technical article to four places involves a lot of ceremony: making
+Publishing one technical article to five places involves a lot of ceremony: making
 a cover at whatever size each destination wants, rendering tables to images because Medium's
 importer eats them, stripping emoji for AWS, checking that every number in the piece came from a
 real run, getting a long markdown file into a browser editor that has no API, remembering which
 organization the article routes to, and writing the announcement post afterwards — by which
-point you have four slightly different files and no idea which one is current.
+point you have five slightly different files and no idea which one is current.
 
 I packaged all of that into **[publishing-kit](https://github.com/xbill9/publishing-kit)** — a
 Claude Code skill and a set of small scripts — so you can just ask Claude to publish.
@@ -40,17 +40,19 @@ should not be doing by hand.
 - **Post where there is an API:** `publish-devto.py --create` takes the front matter as the
   payload, so title, tags and cover ride along with the body, and `--org-slug` routes it to a
   community channel. No browser.
-- **Drive the editors that have none:** AWS Builder Center and Medium are Chrome work, and the
-  skill knows the route — payload through `window.name`, a checksum on both sides, an emptiness
-  assertion before the paste, and a landmark count after it.
+- **Drive the editors that have none:** AWS Builder Center, Medium, Substack and LinkedIn's
+  article editor are browser work, and the skill knows the route — payload through `window.name`,
+  a checksum on both sides, an emptiness assertion before the paste, and a landmark count after it.
 
 It also encodes the hard-won details you would otherwise learn the day after publishing: that
 dev.to renders markdown with hard breaks **on**, so a hard-wrapped source arrives with a
 stray break in most paragraphs; that dev.to does not host your cover but proxies it at 2.381:1,
 so a 1376x768 cover would lose 95px off the top and bottom, which is why the kit renders dev.to
 covers at 1376x578; that Medium drops `data:` URI images on paste,
-so the self-contained build arrives with no pictures at all; and that LinkedIn's Posts API cannot
-create a draft, because `PUBLISHED` is the only state it accepts on creation.
+so the self-contained build arrives with no pictures at all; that LinkedIn's Posts API cannot
+create a draft, because `PUBLISHED` is the only state it accepts on creation; and that LinkedIn's
+article editor saves two heading levels, keeps no inline code formatting, and crops a 1376x578
+cover to 1027x578.
 
 ## Install
 
@@ -120,9 +122,9 @@ usually an image regenerated after its commit. Every other check in the kit
 reasons about local state — is the file there, is it tracked — and each of those can pass while
 the published URL serves something else.
 
-**The paragraphs look ragged.** `check-article.py` reports hard-wrapped paragraphs with the line
-number of the first one, and `publish-devto.py` unwraps on the way out, so your repo copy keeps its line wrapping and the published page carries
-none of it.
+**The paragraphs look ragged.** `check-article.py` reports hard-wrapped paragraphs with the
+line number of the first one, and `publish-devto.py` unwraps on the way out, so your repo copy
+keeps its line wrapping and the published page carries none of it.
 
 **An image is missing on Medium.** You pasted `-embed.html`. Paste `-hosted.html`, which
 references real URLs Medium re-hosts, and commit the images first.
@@ -149,17 +151,21 @@ belong in prose you have to remember to update.
 
 Every artifact here came out of the kit. The cover was rendered by `make-cover.py`, the Builder
 Center version was derived by `make-builder.py`, the Medium build by `make-medium.py`, and the
-dev.to draft posted by `publish-devto.py`.
+dev.to draft posted by `publish-devto.py`. The LinkedIn article is that same Medium build, pasted
+through `linkedin-article.js`.
 
-These two numbers are real, and both were found by using the kit on itself:
+These three numbers are real, and all three were found by using the kit on itself:
 
 | | measured |
 | --- | --- |
 | dev.to, hard-wrapped paragraphs | **47 of 62** in a published article carried a stray break |
 | Medium, images pasted as data URIs | **0 of 4** survived; from real URLs, 4 of 4 (kit log, 2026-08-30) |
+| LinkedIn article, inline code formatting removed before the paste | **41** links for 4 real targets; with the formatting kept, 4 of 4 (kit log, 2026-11-19) |
 
 The first one had been happening to my articles for months. The second cost a full re-do the
-first time it happened. Both are missing from the destinations' docs, and both are now checks.
+first time it happened. The third linked `make-medium.py` to `http://make-medium.py`, along with
+every other file name in the piece. All three are missing from the destinations' docs, and all
+three are now checks.
 
 The run also found five faults in the kit itself, which is the point of eating your own cooking:
 `make-medium.py` had another project's repo hardcoded as its default image base;
@@ -178,4 +184,4 @@ lines — while the check that should have caught it skipped block quotes too, a
 
 *Issues and PRs welcome. This is a third-party community project, not affiliated with dev.to,
 Medium, AWS or LinkedIn — and the destination behaviours described here were measured
-between 2026-08-30 and 2026-09-16, so check them again before you trust them.*
+between 2026-08-30 and 2026-11-19, so check them again before you trust them.*

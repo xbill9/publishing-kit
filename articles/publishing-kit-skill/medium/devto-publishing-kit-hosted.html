@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc 3.11" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>Streamline Publishing with a Claude Code Skill</title>
-  <meta name="description" content="A Claude Code skill that turns one markdown file into dev.to, AWS Builder Center, Medium and LinkedIn versions, checks them before they ship, and posts the ones with an API — plus the debugging tools for when a destination mangles something." />
+  <meta name="description" content="A Claude Code skill that turns one markdown file into dev.to, AWS Builder Center, Medium, Substack and LinkedIn versions, checks them before they ship, and posts the ones with an API — plus the debugging tools for when a destination mangles something." />
   <style>
     /* Default styles provided by pandoc.
     ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -193,19 +193,19 @@
 <p><strong>TL;DR:</strong> <a
 href="https://github.com/xbill9/publishing-kit">publishing-kit</a>
 packages the whole publishing lifecycle as a Claude Code skill. Write
-one markdown file, and it builds the dev.to, AWS Builder Center, Medium
-and LinkedIn versions, checks them, and posts the ones that have an API.
-This article, its cover and all four of its artifacts were produced by
-the thing the article is about — dogfooding all the way down. More on
-that at the end.</p>
+one markdown file, and it builds the dev.to, AWS Builder Center, Medium,
+Substack and LinkedIn versions, checks them, and posts the ones that
+have an API. This article, its cover and all of its artifacts were
+produced by the thing the article is about — dogfooding all the way
+down. More on that at the end.</p>
 </blockquote>
-<p>Publishing one technical article to four places involves a lot of
+<p>Publishing one technical article to five places involves a lot of
 ceremony: making a cover at whatever size each destination wants,
 rendering tables to images because Medium's importer eats them,
 stripping emoji for AWS, checking that every number in the piece came
 from a real run, getting a long markdown file into a browser editor that
 has no API, remembering which organization the article routes to, and
-writing the announcement post afterwards — by which point you have four
+writing the announcement post afterwards — by which point you have five
 slightly different files and no idea which one is current.</p>
 <p>I packaged all of that into <strong><a
 href="https://github.com/xbill9/publishing-kit">publishing-kit</a></strong>
@@ -242,10 +242,10 @@ payload, so title, tags and cover ride along with the body, and
 <code>--org-slug</code> routes it to a community channel. No
 browser.</li>
 <li><strong>Drive the editors that have none:</strong> AWS Builder
-Center and Medium are Chrome work, and the skill knows the route —
-payload through <code>window.name</code>, a checksum on both sides, an
-emptiness assertion before the paste, and a landmark count after
-it.</li>
+Center, Medium, Substack and LinkedIn's article editor are browser work,
+and the skill knows the route — payload through
+<code>window.name</code>, a checksum on both sides, an emptiness
+assertion before the paste, and a landmark count after it.</li>
 </ul>
 <p>It also encodes the hard-won details you would otherwise learn the
 day after publishing: that dev.to renders markdown with hard breaks
@@ -254,9 +254,11 @@ in most paragraphs; that dev.to does not host your cover but proxies it
 at 2.381:1, so a 1376x768 cover would lose 95px off the top and bottom,
 which is why the kit renders dev.to covers at 1376x578; that Medium
 drops <code>data:</code> URI images on paste, so the self-contained
-build arrives with no pictures at all; and that LinkedIn's Posts API
-cannot create a draft, because <code>PUBLISHED</code> is the only state
-it accepts on creation.</p>
+build arrives with no pictures at all; that LinkedIn's Posts API cannot
+create a draft, because <code>PUBLISHED</code> is the only state it
+accepts on creation; and that LinkedIn's article editor saves two
+heading levels, keeps no inline code formatting, and crops a 1376x578
+cover to 1027x578.</p>
 <h4 id="install">Install</h4>
 <p>The fastest path is the plugin marketplace:</p>
 <pre class="shell"><code>/plugin marketplace add xbill9/publishing-kit
@@ -346,14 +348,17 @@ this article, and its cover 🐕🍖</h4>
 <code>make-cover.py</code>, the Builder Center version was derived by
 <code>make-builder.py</code>, the Medium build by
 <code>make-medium.py</code>, and the dev.to draft posted by
-<code>publish-devto.py</code>.</p>
-<p>These two numbers are real, and both were found by using the kit on
-itself:</p>
+<code>publish-devto.py</code>. The LinkedIn article is that same Medium
+build, pasted through <code>linkedin-article.js</code>.</p>
+<p>These three numbers are real, and all three were found by using the
+kit on itself:</p>
 <p><img src="https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/devto-publishing-kit-table-1.png"
 alt="Table: measured" /></p>
 <p>The first one had been happening to my articles for months. The
-second cost a full re-do the first time it happened. Both are missing
-from the destinations' docs, and both are now checks.</p>
+second cost a full re-do the first time it happened. The third linked
+<code>make-medium.py</code> to <code>http://make-medium.py</code>, along
+with every other file name in the piece. All three are missing from the
+destinations' docs, and all three are now checks.</p>
 <p>The run also found five faults in the kit itself, which is the point
 of eating your own cooking: <code>make-medium.py</code> had another
 project's repo hardcoded as its default image base;
@@ -380,6 +385,6 @@ href="https://claude.com/claude-code">claude.com/claude-code</a></li>
 <p><em>Issues and PRs welcome. This is a third-party community project,
 not affiliated with dev.to, Medium, AWS or LinkedIn — and the
 destination behaviours described here were measured between 2026-08-30
-and 2026-09-16, so check them again before you trust them.</em></p>
+and 2026-11-19, so check them again before you trust them.</em></p>
 </body>
 </html>
