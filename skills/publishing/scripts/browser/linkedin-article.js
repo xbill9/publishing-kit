@@ -98,6 +98,15 @@ window.lia = (() => {
       n.append(...h.childNodes); h.replaceWith(n); headings[tag]++; headingLevels.push(+tag[1]);
     }
     for (const e of doc.querySelectorAll("pre, pre code")) e.removeAttribute("class");
+    // MEASURED 2026-11-19: an <img> alone in a <p> (make-medium.py's form for an
+    // image with no caption) pasted as nothing: 9 images sent, 0 in the editor, no
+    // placeholder. The same 9 inside <figure> each became a figureImage with a urn.
+    let imagesFigured = 0;
+    for (const im of [...doc.querySelectorAll("p > img")]) {
+      const para = im.parentElement;
+      if (para.textContent.trim() || para.querySelectorAll("img").length !== 1) continue;
+      const f = doc.createElement("figure"); f.append(im); para.replaceWith(f); imagesFigured++;
+    }
 
     // MEASURED 2026-11-19 with a probe paste. The schema's blockquote and listItem
     // each hold exactly one paragraph: a two-paragraph quote kept the first and
@@ -131,7 +140,7 @@ window.lia = (() => {
     };
     const html = doc.body.innerHTML;
     window.name = JSON.stringify({ lia: 1, html, expect });
-    return { html: html.length, carried: window.name.length, first: doc.body.textContent.trim().slice(0, 60), coverDropped, inlineCode, codeLinksUnwrapped: codeLinks, quotesSplit, nestedItemsHoisted: nestedItems, images: expect.alts.length, ...expect };
+    return { html: html.length, carried: window.name.length, first: doc.body.textContent.trim().slice(0, 60), coverDropped, imagesFigured, inlineCode, codeLinksUnwrapped: codeLinks, quotesSplit, nestedItemsHoisted: nestedItems, images: expect.alts.length, ...expect };
   }
 
   // The reading every other helper is built on: the editor's own document.

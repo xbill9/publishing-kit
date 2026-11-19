@@ -187,6 +187,18 @@ Each figure has an optional caption field (`Add a caption (optional)`); it was
 left empty. As on every destination that fetches by URL, the images must be
 committed and pushed before the paste.
 
+**An image alone in a `<p>` is dropped.** MEASURED 2026-11-19 on a second
+article: `make-medium.py` writes an uncaptioned image as `<p><img></p>`, and all
+9 such images pasted as nothing (0 `inlineImage`, no placeholder, no error).
+Wrapped in `<figure>` the same 9 each became a `figureImage` with a `urn` and,
+after a reload, a `media.licdn.com` source. `lia.stash()` now does that wrap and
+reports `imagesFigured`. The first run's images were already in `<figure>`.
+
+**A leading summary keeps the body cover.** `stash()` drops the leading image
+only when nothing precedes it; with Medium's summary-then-cover order the cover
+is the second block and stays, duplicating the cover slot. On that run it was
+removed by hand on `127.0.0.1` before the navigation.
+
 ## The cover is its own slot, and it crops to 16:9
 
 Above the title is `Add a cover image or video to your article`, so the cover
