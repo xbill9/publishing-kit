@@ -26,9 +26,12 @@
 //   lia.audit()                           -> what the reload loaded, against the stash
 //   await lia.clear(<article id>)         only to replace a body you pasted
 //
-// There is no publish helper. Next opens a "Create post modal" whose button reads
-// Publish; nothing here was published, so that click and everything after it is
-// unmeasured and stays with the author.
+// Publishing, ONLY when the author said to publish in this session. Open the
+// modal with a real click on Next (a scripted click on it is untested), then:
+//   lia.publishSettings()                 -> {audience, postText, button}  read them out
+//   lia.publish({audience: "Anyone", postText: ""})   refuses on any mismatch
+//   (the tab moves to /pulse/<slug>/?published=t; evaluate this file again)
+//   lia.published()                       -> {url, editId, post}
 //
 // Every helper refuses ({refused: ...}) instead of acting when its precondition
 // fails; a guard inside one script is a real guard, unlike one inside a batch.
@@ -61,7 +64,10 @@ window.lia = (() => {
   async function stash({ keepCover = false } = {}) {
     if (!/^(127\.0\.0\.1|localhost)$/.test(location.hostname))
       return { refused: "stash() adapts the HTML and must run on 127.0.0.1, before navigating to LinkedIn" };
-    const src = await (await fetch(location.href)).text();
+    // MEASURED 2026-11-19: with a plain fetch the tab's HTTP cache answered, and a
+    // rebuilt article went in as its previous version, with every count agreeing
+    // with the (equally stale) stash. no-store reads the file the server has now.
+    const src = await (await fetch(location.href, { cache: "no-store" })).text();
     const doc = new DOMParser().parseFromString(src, "text/html");
     if (!doc.body.children.length) return { refused: "the page parsed to no elements" };
     doc.querySelectorAll("header, h1.title, style, script, link, meta, title").forEach((e) => e.remove());
@@ -125,7 +131,7 @@ window.lia = (() => {
     };
     const html = doc.body.innerHTML;
     window.name = JSON.stringify({ lia: 1, html, expect });
-    return { html: html.length, carried: window.name.length, coverDropped, inlineCode, codeLinksUnwrapped: codeLinks, quotesSplit, nestedItemsHoisted: nestedItems, images: expect.alts.length, ...expect };
+    return { html: html.length, carried: window.name.length, first: doc.body.textContent.trim().slice(0, 60), coverDropped, inlineCode, codeLinksUnwrapped: codeLinks, quotesSplit, nestedItemsHoisted: nestedItems, images: expect.alts.length, ...expect };
   }
 
   // The reading every other helper is built on: the editor's own document.
@@ -273,5 +279,44 @@ window.lia = (() => {
     return { cleared: true, chars: ed.innerText.trim().length, images: ed.querySelectorAll("img").length };
   }
 
-  return { stash, paste, setTitle, coverInput, coverNext, audit, clear };
+  // Next opens a "Create post modal": a post box ("Tell your network what your
+  // article is about…"), the audience, Schedule post and Publish.
+  // MEASURED 2026-11-19: Publish was enabled with the post box empty, and one
+  // scripted click on it published the article and moved the tab to
+  // /pulse/<slug>/?published=t within four seconds. The click runs after this
+  // returns, because that navigation ends any script still in the page.
+  const postModal = () => [...document.querySelectorAll("[role=dialog]")].find((d) => d.getClientRects().length && /Create post modal/.test(d.innerText)) || null;
+  function publishSettings() {
+    const d = postModal();
+    if (!d) return null;
+    const labels = [...d.querySelectorAll("button")].map((b) => b.innerText.trim().replace(/\s+/g, " "));
+    const box = d.querySelector('[contenteditable="true"]');
+    const go = [...d.querySelectorAll("button")].find((b) => b.innerText.trim() === "Publish");
+    return { audience: ((labels.find((t) => /Post to /.test(t)) || "").match(/Post to (.*)$/) || [])[1] || null, postText: box ? box.innerText.trim() : null, button: go ? (go.disabled ? "Publish (disabled)" : "Publish") : null };
+  }
+  function publish(expect) {
+    const s = publishSettings();
+    if (!s) return { refused: "the Create post modal is not open; click Next in the editor first and read lia.publishSettings()" };
+    if (!expect || typeof expect.audience !== "string" || typeof expect.postText !== "string")
+      return { refused: "pass {audience, postText} as read out to the author; publishing cannot be undone from here", settings: s };
+    for (const k of ["audience", "postText"])
+      if (expect[k] !== s[k]) return { refused: `${k} is ${JSON.stringify(s[k])}, expected ${JSON.stringify(expect[k])}`, settings: s };
+    if (s.button !== "Publish") return { refused: `the button reads ${s.button}`, settings: s };
+    const go = [...postModal().querySelectorAll("button")].find((b) => b.innerText.trim() === "Publish");
+    setTimeout(() => go.click(), 100);
+    return { clicked: "Publish", settings: s };
+  }
+
+  // On the published page. The slug is LinkedIn's: "Streamline Publishing with a
+  // Claude Code Skill" became streamline-publishing-claude-code-skill-<author>-<5
+  // characters>, so take the URL from here, never from the title.
+  function published() {
+    if (!/^\/pulse\/[^/]+\/?$/.test(location.pathname) || /^\/pulse\/draft\b/.test(location.pathname))
+      return { published: false, refused: "not on a /pulse/<slug>/ page" };
+    const href = (re) => [...document.querySelectorAll("a[href]")].map((a) => a.getAttribute("href")).find((h) => re.test(h)) || null;
+    const edit = href(/^\/article\/edit\/\d+/), post = href(/^\/feed\/update\/urn:li:/);
+    return { published: true, url: location.origin + location.pathname, editId: edit ? edit.match(/\d+/)[0] : null, post: post ? location.origin + post : null, title: document.title.replace(/^\(\d+\)\s*/, "").replace(/ \| LinkedIn$/, "") };
+  }
+
+  return { stash, paste, setTitle, coverInput, coverNext, audit, clear, publishSettings, publish, published };
 })();

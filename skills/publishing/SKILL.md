@@ -845,6 +845,10 @@ the post above.** No new generator: the editor has no table node, so the
 on one article, in a visible tab, to a saved draft. **Nothing was published**,
 so `Publish` and everything after it is unmeasured and is the author's click.
 
+**Correction.** The same article was published later that day, so `Publish`, the
+URL and the public fetch are now measured (below). Publishing remains the
+author's decision; `lia.publish()` refuses without the settings read out first.
+
 The order is forced by one property: **HTML cannot be parsed on the editor
 page.** `DOMParser` there returned no elements for a source of 269 tags, and the
 paste that followed went in as one paragraph of plain text. So
@@ -878,9 +882,20 @@ inline code and any heading level; after a reload it is what LinkedIn stored.
 on the final run: 4 of 4 link targets, 3 code blocks with their line counts,
 7 headings, and the same 7,527 non-space characters on both sides.
 
+**Check that the stash is the current build.** MEASURED 2026-11-19: the tab's
+HTTP cache served the previous `-hosted.html` from `127.0.0.1`, the old version
+was pasted, and the audit agreed with it because the stash was equally stale.
+`lia.stash()` now fetches with `no-store` and returns `first` and `inkChars`;
+read them against the file just built.
+
 `Next` in the editor opens a post box whose button reads `Publish`, and the
 preview page (`Manage` → `Preview`, a real click) has a `Publish` button of its
-own. There is no publish helper and no `links.txt` key for the article yet. The
+own. MEASURED 2026-11-19: `Publish` is enabled with the post box empty, one
+click publishes and moves the tab to `/pulse/<slug>/?published=t`, and the slug
+is LinkedIn's own (`streamline-publishing-claude-code-skill-<author>-kay8c`), so
+take the URL from `lia.published()`. Record it as `linkedin-article = <url>` in
+`links.txt`. **A `/pulse/` slug that does not exist answers 200** after a
+redirect to an article-not-found page, which `check-links.py` now fails. The
 route, the probe table and the unmeasured list are in
 `references/linkedin-article.md`.
 

@@ -52,6 +52,15 @@ MEASURED, not LOG, not cut. It does now, against the live article.
 | the source asks for none of them: 0 lines end in two spaces | `devto-hardwrap.txt` |
 | the article measured is `.../the-cheapest-cuda-gpu-on-aws-has-an-arm-cpu-...` (4531800), published 2026-08-31 | `devto-hardwrap.txt` |
 
+## MEASURED 2026-11-19 — the LinkedIn article paste, archived here
+
+| Claim | Artifact |
+| --- | --- |
+| 41 links for 4 real targets with inline code formatting removed; 4 of 4 with it kept | `linkedin-article-paste.txt` |
+| `make-medium.py` linked to `http://make-medium.py` | `linkedin-article-paste.txt` |
+| the article editor saves two heading levels and no inline code formatting | `linkedin-article-paste.txt` |
+| a 1376x578 cover is cropped to 1027x578 in the cover slot | `linkedin-article-paste.txt` |
+
 ## Read from the source, not asserted
 
 | Claim | Where it is verifiable |

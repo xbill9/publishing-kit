@@ -419,6 +419,9 @@ def main():
     # out of the same links.txt. A post cannot link to itself and the URL does not
     # exist until it is posted, so the key is neither rendered nor required here.
     links.pop("linkedin", None)
+    # "linkedin-article" is the long-form copy on linkedin.com/pulse, recorded so
+    # check-links.py fetches it. The post is on the same site, so it is not rendered.
+    links.pop("linkedin-article", None)
     out = pathlib.Path(a.out) if a.out else src.parent / f"linkedin-{src.stem}.txt"
 
     print(f"\n{src.name} -> {out.name}")

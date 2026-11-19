@@ -162,6 +162,9 @@ FILE_EXT = ("md|markdown|py|sh|js|mjs|ts|rs|go|rb|java|json|ya?ml|toml|ini|cfg|"
 FILENAME = re.compile(rf"(?<![\w.@-])([A-Za-z0-9][\w-]*(?:\.[\w-]+)*\.(?:{FILE_EXT}))(?![\w.-])")
 
 
+NOT_FOUND_LANDING = re.compile(r"[?&]trk=article_not_found\b")
+
+
 class _Chain(urllib.request.HTTPRedirectHandler):
     def __init__(self):
         self.hops = []
@@ -213,6 +216,12 @@ def verdict(url, res):
                 f"cookies", False)
     if st == 0:
         return (f"no response ({final})", False)
+    # MEASURED 2026-11-19: linkedin.com/pulse/<a slug that does not exist> answers
+    # 200, having redirected to /top-content/?trk=article_not_found. The published
+    # article's own URL answered 200 with no redirect, so the status alone passed both.
+    if NOT_FOUND_LANDING.search(final) and not NOT_FOUND_LANDING.search(url):
+        return (f"HTTP {st}, but it landed on LinkedIn's article-not-found page "
+                f"({short(final, 60)})", False)
     if st >= 400:
         return (f"HTTP {st} to a browser UA", st == 403 and bool(BOT_WALLED.match(url)))
     return None

@@ -50,3 +50,12 @@ levels 1, 4, 5, 6  paragraphs, 16px
 cover.ae4d639e.jpg          1376x578 -> preview 1027x578 (cropped to 16:9)
 cover-builder.cabd79f3.jpg  1200x675 -> preview 1200x675
 Title textarea              maxLength 150
+
+## Rebuilt article, pasted and published the same day
+non-space chars    7853 in the source, 7853 in the editor after a reload; problems: []
+Create post modal  audience "Post to Anyone", post text empty, Publish enabled
+published URL      https://www.linkedin.com/pulse/streamline-publishing-claude-code-skill-william-mclean-kay8c/
+feed post          https://www.linkedin.com/feed/update/urn:li:ugcPost:7529262224239013889/
+published page     3 <pre> (2/2/5 lines), 3 blockquotes, 10 list items, 4 link targets, cover 1200x675
+public fetch       HTTP 200, title and the edit's new text present
+missing slug       HTTP 200 after a redirect to /top-content/?trk=article_not_found

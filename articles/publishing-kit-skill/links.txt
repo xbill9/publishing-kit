@@ -15,3 +15,4 @@ medium     = https://xbill999.medium.com/streamline-publishing-with-a-claude-cod
 linkedin   = https://www.linkedin.com/feed/update/urn:li:activity:7500566496419397632/
 repo       = https://github.com/xbill9/publishing-kit
 substack   = https://xbill9.substack.com/p/streamline-publishing-with-a-claude
+linkedin-article = https://www.linkedin.com/pulse/streamline-publishing-claude-code-skill-william-mclean-kay8c/

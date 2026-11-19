@@ -10,6 +10,11 @@ into a new article draft, in a visible tab, and reading the draft back after a
 reload. **Nothing was published**: the route ends at a saved draft, and every
 step after the `Publish` button is unmeasured.
 
+**Correction.** That last sentence held for the first run only. Later the same
+day the article was rebuilt, pasted again and published, and `Publish`, the
+published URL and the public fetch are measured under "Publishing" below. What
+is still unmeasured is listed at the end.
+
 ## How the article gets there
 
 **Browser automation, pasting the same `-hosted.html` that `make-medium.py`
@@ -20,7 +25,8 @@ tab goes to LinkedIn, so there is no `make-linkedin-article.py` to drift from it
 1. `python3 -m http.server 8901 --bind 127.0.0.1` from the repo root.
 2. Open the hosted HTML on `127.0.0.1` in the tab, evaluate
    `linkedin-article.js` there, then `await lia.stash()`. It writes the adapted
-   HTML and the counts to compare against into `window.name`.
+   HTML and the counts to compare against into `window.name`. Read its `first`
+   and `inkChars` against the file you just built (next section).
 3. Navigate the same tab to `https://www.linkedin.com/article/new/`.
    `window.name` arrived intact (16,791 characters on the first run), unlike on
    `linkedin.com/feed`, where `references/linkedin.md` records it arriving empty.
@@ -33,6 +39,23 @@ tab goes to LinkedIn, so there is no `make-linkedin-article.py` to drift from it
 `/article/edit/<id>/` after the paste, with `Draft - saved` in the corner. Open
 `/article/new/` once per article; to redo a body, `lia.clear(<id>)` and paste
 again on the same URL.
+
+## The tab's cache can hand over the previous build
+
+MEASURED 2026-11-19. The article was edited and `make-medium.py` re-run, and the
+`-hosted.html` on disk held the new text. The tab had opened the same
+`127.0.0.1` URL earlier in the day, and both the navigation and `stash()`'s
+`fetch(location.href)` were answered from the HTTP cache. The previous version
+went into the editor, and `lia.audit()` read `problems: []`, because the stash
+it compares against was the same stale copy: 7,527 non-space characters on both
+sides, the figure from the run before the edit.
+
+`stash()` now fetches with `cache: "no-store"` and returns `first` and
+`inkChars`; the re-run read 7,853, and an audit of the stale draft against the
+fresh stash reported `7527 non-space characters, sent 7853`. An audit that
+agrees with the stash says the paste was faithful to the stash. That the stash
+is the current build is a separate reading: compare `inkChars` with the number
+from the earlier run, or look for a phrase the edit added.
 
 ## HTML cannot be parsed in the page
 
@@ -218,8 +241,61 @@ post text is required, the published URL's shape, and how an edit to a published
 article is saved. Publishing is the author's click, and there is no `links.txt`
 key for the article yet.
 
+**Correction.** The first three of those four are measured in the next section,
+and the key now exists. How an edit to a published article is saved is still
+unmeasured.
+
+## Publishing
+
+MEASURED 2026-11-19, publishing this kit's article at the author's request, in a
+visible tab.
+
+- **`Next` took a ref click** from `find` this time; the earlier run used a
+  coordinate click. A scripted `.click()` on `Next` is untested.
+- **`Publish` is enabled with the post box empty.** The modal read `Post to
+  Anyone`, the box held no text, and one scripted click on `Publish` published
+  the article. The post text is optional.
+- **The tab moves to `/pulse/<slug>/?published=t`** within four seconds, under a
+  dialog headed `Congrats on publishing your latest article`, with share buttons
+  and `Get the link to this article`. Dismiss it.
+- **The slug is LinkedIn's.** "Streamline Publishing with a Claude Code Skill"
+  published as `/pulse/streamline-publishing-claude-code-skill-william-mclean-kay8c/`:
+  "with" and "a" are gone, and the author's name and five characters are added.
+  Take the URL from the page, never from the title.
+- **Publishing also creates a feed post.** The published page links `Edit
+  article` (`/article/edit/<id>/`, the draft's id) and `View post`
+  (`/feed/update/urn:li:ugcPost:<id>/`).
+- **The published page matches the draft**: 3 `<pre>` of 2, 2 and 5 lines,
+  3 blockquotes, 10 list items, the 4 link targets, and the cover at 1200x675.
+
+`lia.publishSettings()`, `lia.publish({audience, postText})` and
+`lia.published()` carry this route. `publish()` refuses unless the audience and
+the post text it finds are the ones it was given, and clicks after returning,
+since the navigation ends a script still running in the page. The publish above
+was driven step by step with that same click before the three functions were
+written; their refusals are covered in `tests/`.
+
+## Links: a 200 from `/pulse/` proves nothing
+
+MEASURED 2026-11-19 with `check-links.py`'s fetch (browser User-Agent, no
+cookies). The published article answered 200 at its own URL, and the served page
+held the title and a sentence added in that day's edit. **A slug that does not
+exist also answered 200**: `linkedin.com/pulse/this-slug-does-not-exist-zz9zz9/`
+redirected to `/top-content/?trk=article_not_found`, titled "Top Content on
+LinkedIn". `check-links.py` now fails a URL that lands on
+`trk=article_not_found`. The feed post's URL answered 200 as well.
+
+Record the article in `links.txt` as `linkedin-article = <url>`; a draft has no
+public URL, so `PENDING` until then. `check-links.py` fetches it.
+`make-linkedin.py` accepts the key and leaves it out of the post, which is on the
+same site. The Slack and Google Chat posts do not carry it.
+
 ## Not measured
 
+- Editing a published article: whether `/article/edit/<id>/` saves to the live
+  page or to a draft copy, and what the button reads.
+- What a post text typed into the `Create post modal` looks like on the feed
+  post, and scheduling.
 - A hidden tab. Every step above ran with `document.visibilityState === "visible"`.
 - Image size limits, and what the editor does with an image URL it cannot fetch.
 - Whether a newsletter issue (`Create newsletter`) uses the same editor.

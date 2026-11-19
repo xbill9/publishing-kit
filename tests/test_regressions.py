@@ -371,6 +371,12 @@ class Links(unittest.TestCase):
             u = f"https://raw.githubusercontent.com/u/r/{ref}/art/img/x.png"
             self.assertEqual(links.local_for(u, d), d / "img/x.png")
 
+    def test_a_missing_linkedin_article_is_not_a_200(self):
+        gone = (200, "https://www.linkedin.com/top-content/?trk=article_not_found", ["x"])
+        there = (200, "https://www.linkedin.com/pulse/a-real-slug-abc12/", [])
+        self.assertIn("article-not-found", links.verdict("https://www.linkedin.com/pulse/gone/", gone)[0])
+        self.assertIsNone(links.verdict("https://www.linkedin.com/pulse/a-real-slug-abc12/", there))
+
     def test_parentheses_stay_in_the_url(self):
         u = "https://en.wikipedia.org/wiki/Foo_(bar)"
         self.assertEqual(links.MD_LINK.findall(f"[x]({u})"), [u])
@@ -715,6 +721,34 @@ class BrowserHelpers(unittest.TestCase):
         self.assertIn("not on linkedin.com/article", got["paste"])
         got = self.article_audit(self.ARTICLE, host="evil-linkedin.com")
         self.assertIn("not on linkedin.com/article", got["paste"])
+
+    def article_publish(self, expect, text="", disabled=False):
+        return self.node(r"""
+          const fs = require('fs'), vm = require('vm');
+          let clicks = 0;
+          const btn = (t, d) => ({innerText: t, disabled: !!d, click() { clicks++; }});
+          const buttons = [btn('Dismiss'), btn('William McLean\nPost to Anyone'), btn('Publish', DISABLED)];
+          const dlg = {innerText: 'Create post modal', getClientRects: () => [1],
+            querySelectorAll: () => buttons, querySelector: () => ({innerText: TEXT})};
+          const w = {setTimeout: (f) => f(), location: {hostname: 'www.linkedin.com', pathname: '/article/edit/7/'},
+            document: {querySelectorAll: (q) => q === '[role=dialog]' ? [dlg] : [], querySelector: () => null}};
+          w.window = w;
+          vm.runInContext(fs.readFileSync('browser/linkedin-article.js', 'utf8'), vm.createContext(w));
+          const r = w.lia.publish(EXPECT);
+          console.log(JSON.stringify({clicks, refused: r.refused || null}));
+        """.replace("EXPECT", json.dumps(expect)).replace("TEXT", json.dumps(text))
+           .replace("DISABLED", json.dumps(disabled)))
+
+    def test_article_publish_clicks_only_on_the_settings_it_was_told(self):
+        self.assertEqual(self.article_publish({"audience": "Anyone", "postText": ""}),
+                         {"clicks": 1, "refused": None})
+        for expect, text, disabled in ((None, "", False), ({"audience": "Anyone"}, "", False),
+                                       ({"audience": "Connections only", "postText": ""}, "", False),
+                                       ({"audience": "Anyone", "postText": ""}, "typed by someone", False),
+                                       ({"audience": "Anyone", "postText": ""}, "", True)):
+            got = self.article_publish(expect, text, disabled)
+            self.assertEqual(got["clicks"], 0, (expect, text, disabled))
+            self.assertTrue(got["refused"])
 
 
 class LinkedInRepo(unittest.TestCase):
