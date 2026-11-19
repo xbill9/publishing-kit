@@ -75,9 +75,12 @@ window.lia = (() => {
     let coverDropped = null;
     const firstImg = doc.body.querySelector("img");
     if (firstImg && !keepCover) {
-      const before = doc.createRange();
-      before.setStart(doc.body, 0); before.setEndBefore(firstImg);
-      if (!before.toString().trim()) {
+      // make-medium.py puts the cover first, or after the summary paragraph when
+      // the article opens with one; either way it sits above the first heading.
+      // MEASURED 2026-11-19: with "nothing before it" as the test, a cover behind a
+      // summary paragraph stayed in the body and doubled the cover slot.
+      const h = doc.body.querySelector("h1,h2,h3,h4,h5,h6");
+      if (!h || (firstImg.compareDocumentPosition(h) & Node.DOCUMENT_POSITION_FOLLOWING)) {
         coverDropped = firstImg.getAttribute("src");
         (firstImg.closest("figure") || (firstImg.parentElement.children.length === 1 && firstImg.parentElement !== doc.body ? firstImg.parentElement : firstImg)).remove();
       }

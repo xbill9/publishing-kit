@@ -199,6 +199,12 @@ only when nothing precedes it; with Medium's summary-then-cover order the cover
 is the second block and stays, duplicating the cover slot. On that run it was
 removed by hand on `127.0.0.1` before the navigation.
 
+**Correction.** `stash()` now drops the first image when it sits above the
+first heading, which covers both of `make-medium.py`'s positions for the cover.
+MEASURED 2026-11-19 on a third article whose cover follows a summary paragraph:
+`coverDropped` named the cover and the body kept its two table images.
+`keepCover: true` still keeps it.
+
 ## The cover is its own slot, and it crops to 16:9
 
 Above the title is `Add a cover image or video to your article`, so the cover
