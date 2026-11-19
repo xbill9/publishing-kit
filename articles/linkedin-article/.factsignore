@@ -1,0 +1,4 @@
+# check-facts parses the localhost address 127.0.0.1 as a version string "127.0.0".
+# It is an IP literal in serve-body.py's output, not a version claim, and there is
+# nothing for it to trace to. Exempt with the reason recorded, per the skill's rule.
+127.0.0

@@ -1,0 +1,2 @@
+publishing-kit 0.37.1 (.claude-plugin/plugin.json at 32e2072), 2026-11-19
+Claude Code on Linux; Chrome, visible tab

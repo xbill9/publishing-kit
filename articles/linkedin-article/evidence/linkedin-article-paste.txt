@@ -1,0 +1,61 @@
+# LinkedIn article paste of this article, read back from the editor after a reload
+# 2026-11-19, linkedin.com/article/edit/7529254866788106240, visible tab.
+# Input: medium/devto-publishing-kit-hosted.html, adapted on 127.0.0.1 by
+# scripts/browser/linkedin-article.js (lia.stash), carried in through window.name.
+# Readings are editor.getJSON() on the page's Tiptap instance.
+
+## Source (hosted HTML, header removed)
+<pre> blocks         3, lines 2/2/5
+<img>              2 (cover, table), raw.githubusercontent.com
+link targets       4 distinct; 2 of them wrap <code>
+sections           7 <h4>
+inline <code>      40 outside <pre>
+
+## Paste of the HTML as-is, before a reload
+codeBlock          3, lines 2/2/5
+heading            7, all level 3
+link targets       2 of 4 (the two missing wrapped <code>)
+mark:code          40
+mark:bold          19
+images             2, each with a urn:li:digitalmediaAsset, alt ""
+
+## The same draft after a reload
+mark:code          0
+mark:bold          19
+images             2, src on media.licdn.com
+
+## Paste with all 40 inline <code> unwrapped first
+mark:link          41
+link targets       18 distinct, 4 of them in the source
+                   added: http://make-medium.py http://make-builder.py http://dev.to
+                          http://SKILL.md http://window.name and others
+                   https://claude.com/claude-code arrived as http://claude.com/claude-code
+
+## Paste with <code> unwrapped inside links only (codeLinksUnwrapped: 2), after a reload
+link targets       4 of 4
+heading            7, level 2 (set on the nodes after the paste)
+codeBlock          3, lines 2/2/5
+listItem           10
+blockquote         3
+images             1 (the cover is dropped from the body), re-hosted, alt "Table: measured"
+non-space chars    7527 in the source, 7527 in the editor
+lia.audit()        problems: []
+
+## Heading levels 1 to 6 inserted through the editor, after a reload
+level 2            H2, 24px, weight 600
+level 3            H3, 20px, weight 600
+levels 1, 4, 5, 6  paragraphs, 16px
+
+## Cover slot ("Add a cover image or video to your article")
+cover.ae4d639e.jpg          1376x578 -> preview 1027x578 (cropped to 16:9)
+cover-builder.cabd79f3.jpg  1200x675 -> preview 1200x675
+Title textarea              maxLength 150
+
+## Rebuilt article, pasted and published the same day
+non-space chars    7853 in the source, 7853 in the editor after a reload; problems: []
+Create post modal  audience "Post to Anyone", post text empty, Publish enabled
+published URL      https://www.linkedin.com/pulse/streamline-publishing-claude-code-skill-william-mclean-kay8c/
+feed post          https://www.linkedin.com/feed/update/urn:li:ugcPost:7529262224239013889/
+published page     3 <pre> (2/2/5 lines), 3 blockquotes, 10 list items, 4 link targets, cover 1200x675
+public fetch       HTTP 200, title and the edit's new text present
+missing slug       HTTP 200 after a redirect to /top-content/?trk=article_not_found

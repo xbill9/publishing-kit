@@ -1,0 +1,23 @@
+# lia.stash() on http://127.0.0.1:8901/articles/publishing-kit-skill/medium/devto-publishing-kit-hosted.html
+# 2026-11-19, publishing-kit at 6ab22c8 (helper with the <figure> wrap), Chrome, visible tab.
+{"html":11358,"carried":12023,"first":"TL;DR: publishing-kit\npackages the whole publishing lifecycl","coverDropped":"https://raw.githubusercontent.com/xbill9/publishing-kit/main/articles/publishing-kit-skill/medium/img/cover.ae4d639e.jpg","imagesFigured":1,"inlineCode":41,"codeLinksUnwrapped":2,"quotesSplit":0,"nestedItemsHoisted":0,"images":1,"links":["https://github.com/xbill9/publishing-kit","https://github.com/xbill9/publishing-kit/blob/main/skills/publishing/SKILL.md","https://github.com/xbill9/publishing-kit/tree/main/articles/publishing-kit-skill","https://claude.com/claude-code"],"alts":["Table: measured"],"codeBlockLines":[2,2,5],"headings":{"h2":7,"h3":0},"headingLevels":[2,2,2,2,2,2,2],"listItems":10,"blockquotes":3,"tables":0,"inkChars":7853}
+
+# lia.paste() on https://www.linkedin.com/article/edit/7529254866788106240/, the run that was published
+{"chars":9462,"id":"7529254866788106240","images":[{"alt":"Table: measured","rehosted":false,"urn":"urn:li:digitalmediaAsset:D5612AQG98xGoS3wdNw"}],"pasted":true,"status":"Draft - saved","uploadsPending":0}
+
+# lia.audit() after a reload, same run (fields read out)
+problems [], title "Streamline Publishing with a Claude Code Skill", cover true, status "Draft - saved",
+links 4, code block lines [2,2,5], h2 7, inkChars 7853,
+images [{"alt":"Table: measured","rehosted":true,"urn":"urn:li:digitalmediaAsset:D5612AQG98xGoS3wdNw"}]
+
+# The same audit run on the draft holding the previous build, against the fresh stash
+problems ["7527 non-space characters, sent 7853"]
+
+# On the editor page, before any adapting was moved to 127.0.0.1
+DOMParser.parseFromString(src, "text/html"): 269 "<" in src, body.children.length 0
+window.trustedTypes.defaultPolicy.name "default"
+window.name carried from 127.0.0.1 to linkedin.com/article/new/: 16791 characters, intact
+
+# Second article, same day (kit commit 6ab22c8, references/linkedin-article.md)
+<p><img></p>: 9 of 9 images dropped, 0 inlineImage, no placeholder
+<figure><img></figure>: 9 of 9 became a figureImage with a urn

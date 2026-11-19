@@ -1,0 +1,19 @@
+# 2026-11-19, in articles/publishing-kit-skill
+$ python3 ../../skills/publishing/scripts/make-medium.py devto-publishing-kit.md medium
+devto-publishing-kit.md: 1 tables, 0 diagrams
+   USE THIS   -> medium/devto-publishing-kit-hosted.html  (paste or import; needs medium/img committed AND pushed)
+   not this   -> medium/devto-publishing-kit-embed.html   (133 KB; data: URIs, Medium drops them all on paste)
+
+$ python3 skills/publishing/scripts/check-links.py articles/publishing-kit-skill/devto-publishing-kit.md   (links.txt lines)
+  ok    links.txt devto-gde: HTTP 200
+  ok    links.txt devto-aws: HTTP 200
+  ok    links.txt builder: HTTP 200
+  ok    links.txt medium: HTTP 200
+  ok    links.txt linkedin: HTTP 200
+  ok    links.txt repo: HTTP 200
+  ok    links.txt substack: HTTP 200
+  ok    links.txt linkedin-article: HTTP 200
+
+$ python3 make_cover.py   (articles/linkedin-article)
+wrote cover.dbf080b2.jpg  1376x578  40 KB
+wrote cover-builder.df7c615f.jpg  1200x675  43 KB
