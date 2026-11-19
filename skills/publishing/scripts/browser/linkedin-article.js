@@ -19,7 +19,7 @@
 //   (navigate the SAME tab to https://www.linkedin.com/article/new/; evaluate this file)
 //   await lia.paste()                     -> {pasted:true, id, images:[{urn, alt}]}
 //   lia.setTitle(TITLE)                   -> {title}
-//   lia.coverInput()                      then: find "Publishing proxy file input"
+//   await lia.coverInput()                then: find "Publishing proxy file input"
 //                                         -> file_upload(<16:9 cover>, ref)
 //   await lia.coverNext()                 -> {cover:true}
 //   (reload the tab, evaluate this file again)
@@ -43,6 +43,7 @@ window.lia = (() => {
   const onEditor = () => /(^|\.)linkedin\.com$/.test(location.hostname) && /^\/article\/(new|edit)\b/.test(location.pathname);
   const stashed = () => { try { const p = JSON.parse(window.name); return p && p.lia === 1 ? p : null; } catch (e) { return null; } };
   const norm = (u) => u.replace(/\/$/, "");
+  const MARK = (i) => `[[lia-image-${i}]]`;
   const TITLE_MAX = 150; // the Title textarea's maxLength, MEASURED 2026-11-19
 
   // Runs on 127.0.0.1 with the -hosted.html from make-medium.py open in the tab.
@@ -101,16 +102,6 @@ window.lia = (() => {
       n.append(...h.childNodes); h.replaceWith(n); headings[tag]++; headingLevels.push(+tag[1]);
     }
     for (const e of doc.querySelectorAll("pre, pre code")) e.removeAttribute("class");
-    // MEASURED 2026-11-19: an <img> alone in a <p> (make-medium.py's form for an
-    // image with no caption) pasted as nothing: 9 images sent, 0 in the editor, no
-    // placeholder. The same 9 inside <figure> each became a figureImage with a urn.
-    let imagesFigured = 0;
-    for (const im of [...doc.querySelectorAll("p > img")]) {
-      const para = im.parentElement;
-      if (para.textContent.trim() || para.querySelectorAll("img").length !== 1) continue;
-      const f = doc.createElement("figure"); f.append(im); para.replaceWith(f); imagesFigured++;
-    }
-
     // MEASURED 2026-11-19 with a probe paste. The schema's blockquote and listItem
     // each hold exactly one paragraph: a two-paragraph quote kept the first and
     // DROPPED the second, and a nested list ran into its parent item as
@@ -131,19 +122,35 @@ window.lia = (() => {
       parent.after(...items); inner.remove(); nestedItems += items.length;
     }
 
+    // Images leave the body here and go in one at a time after the paste.
+    // MEASURED 2026-11-19, three articles: pasted with the body, <p><img></p>
+    // arrived on one article (1 of 1, twice) and was dropped on another (0 of 9);
+    // <figure><img></figure> arrived on that one (9 of 9) and was dropped on a
+    // third (0 of 2). On the third, the same image pasted alone at the end of
+    // the paragraph before it became a figureImage with a urn, placed after that
+    // paragraph. So each image is replaced by a marker paragraph, and paste()
+    // puts the image in at its marker.
+    const inkChars = doc.body.textContent.replace(/\s+/g, "").length;
+    const images = [...doc.querySelectorAll("img")].map((im, i) => {
+      const holder = im.closest("figure") || (im.parentElement !== doc.body && !im.parentElement.textContent.trim() && im.parentElement.querySelectorAll("img").length === 1 ? im.parentElement : im);
+      const m = doc.createElement("p"); m.textContent = MARK(i);
+      holder.replaceWith(m);
+      return { src: im.getAttribute("src"), alt: im.getAttribute("alt") || "" };
+    });
+
     const expect = {
       links: [...new Set([...doc.querySelectorAll("a[href]")].map((a) => a.getAttribute("href")).filter((u) => /^https?:/.test(u)).map(norm))],
-      alts: [...doc.querySelectorAll("img")].map((i) => i.getAttribute("alt") || ""),
+      alts: images.map((im) => im.alt), images,
       codeBlockLines: [...doc.querySelectorAll("pre")].map((p) => p.textContent.replace(/\n$/, "").split("\n").length),
       headings, headingLevels,
       listItems: doc.querySelectorAll("li").length,
       blockquotes: doc.querySelectorAll("blockquote").length,
       tables: doc.querySelectorAll("table").length,
-      inkChars: doc.body.textContent.replace(/\s+/g, "").length,
+      inkChars,
     };
     const html = doc.body.innerHTML;
     window.name = JSON.stringify({ lia: 1, html, expect });
-    return { html: html.length, carried: window.name.length, first: doc.body.textContent.trim().slice(0, 60), coverDropped, imagesFigured, inlineCode, codeLinksUnwrapped: codeLinks, quotesSplit, nestedItemsHoisted: nestedItems, images: expect.alts.length, ...expect };
+    return { html: html.length, carried: window.name.length, first: doc.body.textContent.trim().slice(0, 60), coverDropped, inlineCode, codeLinksUnwrapped: codeLinks, quotesSplit, nestedItemsHoisted: nestedItems, images: expect.alts.length, ...expect };
   }
 
   // The reading every other helper is built on: the editor's own document.
@@ -166,7 +173,9 @@ window.lia = (() => {
     return { types, links: [...links], codeBlockLines, images, inkChars: text(j).replace(/\s+/g, "").length, first: text(blocks[0] || {}).slice(0, 80), last: text(blocks.at(-1) || {}).slice(0, 80) };
   }
 
-  const saveStatus = () => (document.body.innerText.match(/Draft - [^\n]*/) || [null])[0];
+  // The corner badge. MEASURED 2026-11-19: matched over the whole page, the
+  // pattern found "Draft - saved" inside the pasted article's own text.
+  const saveStatus = () => { const ed = editorEl(); return ([...document.querySelectorAll("div,span,p")].filter((e) => !e.children.length && !(ed && ed.contains(e))).map((e) => e.textContent.trim()).find((t) => /^Draft - \w+$/.test(t))) || null; };
 
   // A synthetic paste of text/html only. MEASURED 2026-11-19: each <img> on
   // raw.githubusercontent.com became an inlineImage with a
@@ -185,14 +194,28 @@ window.lia = (() => {
     dt.setData("text/html", p.html);
     // dispatchEvent returns false here: that is preventDefault, not refusal.
     ed.dispatchEvent(new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }));
-    let r = null;
-    for (let i = 0; i < 40; i++) {
-      await sleep(500);
-      r = read();
-      if (r.images.length === p.expect.alts.length && r.images.every((im) => im.urn) && !r.types.imagePlaceholder) break;
+    await sleep(1500);
+    const E = ed.editor, imagesIn = [];
+    const find = (token) => { let hit = null; E.state.doc.descendants((n, pos) => { if (!hit && n.isTextblock && n.textContent === token) hit = { pos, size: n.nodeSize }; }); return hit; };
+    const withUrn = () => read().images.filter((im) => im.urn).length;
+    for (let i = 0; i < p.expect.images.length; i++) {
+      const m = find(MARK(i));
+      if (!m) { imagesIn.push({ i, refused: "its marker is not in the editor" }); continue; }
+      const before = withUrn(), im = p.expect.images[i];
+      E.commands.setTextSelection(m.pos + m.size - 1);
+      const one = new DataTransfer(), holder = document.createElement("p"), tag = document.createElement("img");
+      tag.setAttribute("src", im.src); tag.setAttribute("alt", im.alt); holder.append(tag);
+      one.setData("text/html", holder.outerHTML);
+      ed.dispatchEvent(new ClipboardEvent("paste", { clipboardData: one, bubbles: true, cancelable: true }));
+      for (let k = 0; k < 40 && withUrn() === before; k++) await sleep(500);
+      if (withUrn() === before) { imagesIn.push({ i, refused: "no image appeared; its marker is left in place" }); continue; }
+      const again = find(MARK(i));
+      if (again) E.view.dispatch(E.state.tr.delete(again.pos, again.pos + again.size));
+      imagesIn.push({ i, ok: true });
     }
+    let r = read();
     // setNodeMarkup keeps a node's size, so every position stays valid in one transaction.
-    const E = ed.editor, tr = E.state.tr;
+    const tr = E.state.tr;
     let k = 0, h = 0;
     E.state.doc.descendants((n, pos) => {
       if (n.type.name === "inlineImage") tr.setNodeMarkup(pos, null, { ...n.attrs, alt: p.expect.alts[k++] || "" });
@@ -201,7 +224,7 @@ window.lia = (() => {
     if (tr.docChanged) E.view.dispatch(tr);
     for (let i = 0; i < 20 && !articleId(); i++) await sleep(500);
     r = read();
-    return { pasted: true, id: articleId(), chars: ed.innerText.length, images: r.images, uploadsPending: r.images.filter((im) => !im.urn).length + (r.types.imagePlaceholder || 0), status: saveStatus() };
+    return { pasted: true, id: articleId(), chars: ed.innerText.length, imagesIn, images: r.images, uploadsPending: r.images.filter((im) => !im.urn).length + (r.types.imagePlaceholder || 0), status: saveStatus() };
   }
 
   function setTitle(title) {
@@ -224,7 +247,7 @@ window.lia = (() => {
   // 16:9; a 1200x675 file previewed whole. Upload the 16:9 cover.
   const coverSet = () => [...document.querySelectorAll("button")].some((b) => /remove the cover image/i.test(b.getAttribute("aria-label") || ""));
   const coverDialog = () => [...document.querySelectorAll("[role=dialog]")].find((d) => d.getClientRects().length && /Add cover image or video/.test(d.innerText)) || null;
-  function coverInput() {
+  async function coverInput() {
     if (!onEditor()) return { refused: "not on the article editor" };
     if (coverSet()) return { refused: "the article already has a cover; remove it in the editor first" };
     if (!coverDialog()) {
@@ -234,7 +257,12 @@ window.lia = (() => {
       HTMLInputElement.prototype.click = function () { if (this.type === "file") return; return orig.apply(this, arguments); };
       try { b.click(); } finally { HTMLInputElement.prototype.click = orig; }
     }
-    const i = document.querySelector("#media-editor-file-selector__file-input") || (coverDialog() || document).querySelector("input[type=file]");
+    // MEASURED 2026-11-19: read in the same tick as the click, the input was absent.
+    let i = null;
+    for (let k = 0; k < 20 && !i; k++) {
+      i = document.querySelector("#media-editor-file-selector__file-input") || (coverDialog() || document).querySelector("input[type=file]");
+      if (!i) await sleep(250);
+    }
     if (!i) return { refused: "the dialog opened without a file input; read it again in a second script" };
     i.setAttribute("aria-label", "Publishing proxy file input");
     return { input: true, accept: i.accept };
@@ -276,6 +304,7 @@ window.lia = (() => {
     // Every non-space character, so text the editor drops shows up whatever dropped it.
     if (r.inkChars !== e.inkChars) problems.push(`${r.inkChars} non-space characters, sent ${e.inkChars}`);
     if (e.tables) problems.push(`the source held ${e.tables} <table>; the editor has no table node`);
+    if (/\[\[lia-image-\d+\]\]/.test(JSON.stringify(editorEl().editor.getJSON()))) problems.push("an image marker is still in the body");
     if (t.imagePlaceholder) problems.push(`${t.imagePlaceholder} image placeholder(s) still uploading`);
     return { ...out, compared: true, problems };
   }

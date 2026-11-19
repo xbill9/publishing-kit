@@ -875,6 +875,10 @@ What `lia.stash()` and `lia.paste()` change, and why:
   previewed as 1027x578.
 - **Image alt text arrives empty** and is written back on the nodes. The images
   themselves are re-hosted on `media.licdn.com` from their URL.
+- **Images go in one at a time.** MEASURED 2026-11-19 over three articles: sent
+  with the body, an image arrived or vanished whichever wrapper it had
+  (`<p>` 1 of 1 and 0 of 9, `<figure>` 9 of 9 and 0 of 2). Pasted alone at a
+  marker paragraph, each one arrived, so that is what `lia.paste()` does.
 
 **Audit after a reload.** The editor's document after the paste still shows
 inline code and any heading level; after a reload it is what LinkedIn stored.

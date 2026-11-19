@@ -1,0 +1,14 @@
+Publishing Markdown to a LinkedIn Article from an Agent Skill
+
+LinkedIn's article editor saves two heading levels and no inline code, and its page cannot parse HTML. A step by step walk-through of the LinkedIn article destination in publishing-kit, tested by publishing the kit's own walk-through through it.
+
+What is in it:
+
+- 🟢 Multi-line code kept, 3 blocks with the same line counts.
+- 🟢 All 4 link targets kept, with the two links around inline code unwrapped.
+- 🟢 The table image re-hosted by LinkedIn, alt text restored.
+- 🟢 7853 non-space characters in the source and in the saved article.
+
+dev.to (Google Developer Experts): https://dev.to/gde/publishing-markdown-to-a-linkedin-article-from-an-agent-skill-1hbj
+Substack: https://xbill9.substack.com/p/publishing-markdown-to-a-linkedin
+GitHub: https://github.com/xbill9/publishing-kit

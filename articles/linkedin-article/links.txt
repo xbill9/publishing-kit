@@ -1,6 +1,7 @@
 # Destination URLs for the LinkedIn, Slack and Google Chat posts. PENDING fails
 # the run on purpose: a post whose links do not resolve is worse than no post.
 devto-gde  = https://dev.to/gde/publishing-markdown-to-a-linkedin-article-from-an-agent-skill-1hbj
-substack   = PENDING
-linkedin-article = PENDING
+substack   = https://xbill9.substack.com/p/publishing-markdown-to-a-linkedin
+linkedin-article = https://www.linkedin.com/pulse/publishing-markdown-linkedin-article-from-agent-skill-william-mclean-kg40c/
+linkedin   = https://www.linkedin.com/feed/update/urn:li:activity:7529270144112525312/
 repo       = https://github.com/xbill9/publishing-kit

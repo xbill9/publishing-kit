@@ -1,0 +1,46 @@
+# This article, published 2026-11-19 with publishing-kit (helper as committed after this run)
+
+## dev.to
+publish-devto.py --publish 5076355
+   5076355  published  org=gde
+   https://dev.to/gde/publishing-markdown-to-a-linkedin-article-from-an-agent-skill-1hbj
+
+## Substack (draft 225701989, visible tab)
+ss.prepare()       anchors 6, codeLinksUnwrapped 0, images 3, pres 6, preClassesCleared 6
+ss.audit()         code_block 6 (lines 4/6/3/10/1/7), image2 3 all re-hosted with alt, h3 20,
+                   5 link targets of 5, title and 245-character subtitle stored
+ss.publish({email: true, audience: "everyone", comments: "everyone", scheduled: false})
+                   the tab moved at once ("Inspected target navigated or closed")
+ss.published()     slug publishing-markdown-to-a-linkedin, email_sent_at 2026-11-19T19:46:33.718Z
+                   https://xbill9.substack.com/p/publishing-markdown-to-a-linkedin
+
+## LinkedIn article (edit id 7529268998178381825, visible tab)
+lia.stash()        coverDropped .../medium/img/cover.dbf080b2.jpg (it follows a summary paragraph),
+                   2 images, 47 inline code, 6 code blocks, 20 headings, 30 list items, 5 links,
+                   inkChars 10652
+body paste with <figure><img></figure> for both table images: 0 of 2 images in the editor
+the same image pasted alone as <p><img></p> at the end of the paragraph before it:
+                   1 inlineImage with a urn, placed after that paragraph
+lia.paste() with a marker paragraph per image, each image pasted alone at its marker:
+                   imagesIn [{i:0, ok:true}, {i:1, ok:true}], both with a urn and their alt text
+lia.coverNext()    cover true, preview 1200x675
+lia.audit() after a reload: problems [], 5 links, code 4/6/3/10/1/7, h2 20, listItem 30,
+                   2 images re-hosted with alt, inkChars 10652, cover true, status "Draft - saved"
+scripted .click() on Next opened the Create post modal
+lia.publishSettings()  {audience: "Anyone", postText: "", button: "Publish"}
+lia.publish({audience: "Anyone", postText: ""})  -> {clicked: "Publish"}
+lia.published()    url https://www.linkedin.com/pulse/publishing-markdown-linkedin-article-from-agent-skill-william-mclean-kg40c/
+                   editId 7529268998178381825
+                   post https://www.linkedin.com/feed/update/urn:li:ugcPost:7529269770094047232/
+published page     6 <pre>, 30 list items, cover 1200x675
+
+## LinkedIn post (composer on /sharing/compose, visible tab)
+payload            window.name set on 127.0.0.1 read 13531 characters on linkedin.com/article/new/
+                   and 0 on linkedin.com/feed; copied to sessionStorage on /article/new/, it read
+                   back whole on the feed
+li.moveProxyFileToEditor()  preview 1200x627, size 44760
+li.insertPost()    14 paragraphs; li.verifyPost() normalizedEqual true, 842 of 842 characters
+li.next() and li.verifyPost() reported imageAttached false with a 1200x627 blob: image in the composer
+li.post()          toast "Post successful. View post"
+                   https://www.linkedin.com/feed/update/urn:li:activity:7529270144112525312/
+post page          title, bullets and the three link labels present

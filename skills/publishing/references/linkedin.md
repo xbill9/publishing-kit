@@ -422,9 +422,15 @@ from its source instead, and pass the post text as a JSON string literal from
 that, `li.verifyPost()` reported `normalizedEqual: true` and 16 `<p>` for 16
 source lines.
 
+**`sessionStorage` carries it instead.** MEASURED 2026-11-19: `window.name` set
+on `127.0.0.1` read 13,531 characters on `linkedin.com/article/new/` and 0 on
+`linkedin.com/feed`. Copied into `sessionStorage` on `/article/new/` (opening
+that page creates nothing until something is typed), it read back whole on the
+feed in the same tab, and the helper and the post text both came from it.
+
 ## The helper's image check reads false with the image attached
 
-MEASURED 2026-11-04 on the ProseMirror composer. After `file_upload`, `li.moveProxyFileToEditor()` reported `preview: "1200x627"`, and `li.next()` returned `imageAttached: false`. `li.verifyPost()` also returned false, while a screenshot showed the cover in the composer and a `blob:` image was on the page. The post went out with the cover. `attachedImage()` requires `naturalWidth >= 600` on a `blob:`/`data:` image, and the composer's thumbnail evidently fails that. Confirm the cover with a screenshot, or from the published post, before treating `false` as missing. The fix belongs in `attachedImage()` once the thumbnail's natural size is read.
+MEASURED 2026-11-04 on the ProseMirror composer. After `file_upload`, `li.moveProxyFileToEditor()` reported `preview: "1200x627"`, and `li.next()` returned `imageAttached: false`. `li.verifyPost()` also returned false, while a screenshot showed the cover in the composer and a `blob:` image was on the page. The post went out with the cover. `attachedImage()` requires `naturalWidth >= 600` on a `blob:`/`data:` image, and the composer's thumbnail evidently fails that. Confirm the cover with a screenshot, or from the published post, before treating `false` as missing. The fix belongs in `attachedImage()` once the thumbnail's natural size is read. MEASURED 2026-11-19: the composer held a `blob:` image with `naturalWidth` 1200 and `naturalHeight` 627 while both helpers read false, so the size test passes and the lookup's scope is what misses it.
 
 Two hyphens render close together in the post font: `--exec` looks like one dash on the post page, and `innerText` holds two U+002D. Nothing is converted.
 

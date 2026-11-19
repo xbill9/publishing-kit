@@ -199,6 +199,21 @@ only when nothing precedes it; with Medium's summary-then-cover order the cover
 is the second block and stays, duplicating the cover slot. On that run it was
 removed by hand on `127.0.0.1` before the navigation.
 
+**Correction.** Neither wrapper is reliable, so `stash()` no longer wraps
+anything. MEASURED 2026-11-19 on a third article: its two table images, sent as
+`<figure><img></figure>` with the body, both pasted as nothing (0 of 2), where
+the second article's nine had all arrived that way. Across three articles the
+record is `<p><img></p>` 1 of 1 (twice) and 0 of 9, `<figure><img></figure>` 9 of
+9 and 0 of 2; what decides it is not isolated. **One image pasted alone did
+arrive**: `<p><img></p>` pasted with the caret at the end of the paragraph before
+it became a `figureImage` with a `urn`, placed directly after that paragraph.
+So `stash()` now replaces every body image with a marker paragraph
+(`[[lia-image-0]]`), and `paste()` pastes each image alone at the end of its
+marker, waits for its `urn`, and deletes the marker. On that article both went in
+(`imagesIn: [{i: 0, ok: true}, {i: 1, ok: true}]`) and the reload read 2 re-hosted
+images with their alt text and `problems: []`. A marker left in the body means
+its image did not arrive; `audit()` reports it.
+
 **Correction.** `stash()` now drops the first image when it sits above the
 first heading, which covers both of `make-medium.py`'s positions for the cover.
 MEASURED 2026-11-19 on a third article whose cover follows a summary paragraph:
@@ -227,6 +242,12 @@ does not belong in the body. `lia.stash()` drops the leading image that
 `lia.coverInput()` and `lia.coverNext()` carry this route. The upload above was
 driven step by step before those two functions were written; of the two, only
 `coverInput()`'s refusal on an article that already has a cover has run.
+
+**Correction.** Both have run since. MEASURED 2026-11-19 on a later article:
+`coverInput()` clicked the button and returned `the dialog opened without a file
+input`, because it read the dialog in the same tick; the input was there a moment
+later and took the file. It now waits up to five seconds. `coverNext()` returned
+`{cover: true, preview: "1200x675"}`.
 
 ## Title
 
@@ -270,6 +291,8 @@ visible tab.
 
 - **`Next` took a ref click** from `find` this time; the earlier run used a
   coordinate click. A scripted `.click()` on `Next` is untested.
+  **Correction.** MEASURED 2026-11-19 on the next article: `find` returned no ref
+  for `Next`, and a scripted `.click()` on the button opened the modal.
 - **`Publish` is enabled with the post box empty.** The modal read `Post to
   Anyone`, the box held no text, and one scripted click on `Publish` published
   the article. The post text is optional.
@@ -292,6 +315,17 @@ the post text it finds are the ones it was given, and clicks after returning,
 since the navigation ends a script still running in the page. The publish above
 was driven step by step with that same click before the three functions were
 written; their refusals are covered in `tests/`.
+
+**Correction.** All three have run on a real publish since. MEASURED 2026-11-19:
+`publishSettings()` read `{audience: "Anyone", postText: "", button: "Publish"}`,
+`publish({audience: "Anyone", postText: ""})` returned `{clicked: "Publish"}`, and
+on the published page `published()` returned the URL
+(`/pulse/publishing-markdown-linkedin-article-from-agent-skill-william-mclean-kg40c/`:
+"to" and "a" dropped from the title), the edit id and the feed post's URL.
+
+**The save badge is read from outside the editor.** The helper matched `Draft -
+saved` over the whole page, and on an article that quotes that phrase it returned
+a line of the article's own text. It now reads the badge element.
 
 ## Links: a 200 from `/pulse/` proves nothing
 
