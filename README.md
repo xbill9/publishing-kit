@@ -66,7 +66,10 @@ published post.
 entirely and flattens `<pre>` to a single line. `make-medium.py` renders them to
 PNG at 2x and emits a self-contained paste variant and a hosted import variant.
 Substack has no tables either, so the same hosted file feeds it, adapted in the
-page by `scripts/browser/substack-editor.js` (`references/substack.md`).
+page by `scripts/browser/substack-editor.js` (`references/substack.md`). A LinkedIn
+article takes the same file through `scripts/browser/linkedin-article.js`, which
+adapts it on `127.0.0.1` because the editor's page cannot parse HTML
+(`references/linkedin-article.md`).
 
 **Traces every factual claim to an artifact.** `check-facts.py` extracts prices,
 measurements, versions and cloud identifiers, then reports which appear in no
@@ -95,6 +98,7 @@ which numbers you are asserting from memory.
 | `serve-body.py` | Serves an article body on localhost so a browser can copy it into a rich-text editor. Strips the title and subtitle, prints a checksum. |
 | `browser/builder-gate.js` | Paste into a Builder Center draft's preview page. Captures the publish gate's own API response and returns the exact links behind "Broken Links" / "Malicious Links", which the UI hides. Click Publish only on a draft known to fail. |
 | `browser/linkedin-composer.js` | Paste into linkedin.com/feed. `window.li` helpers that open the composer, attach an image through a light-DOM proxy input (the real upload input is in a shadow root and the page's CSP blocks fetching), insert and verify the text, and post only when told to, returning the post URL from the success toast. |
+| `browser/linkedin-article.js` | Evaluate on `127.0.0.1` with the Medium hosted HTML open, then again in linkedin.com/article/new. `window.lia` helpers that adapt the HTML for the article editor (two heading levels, one paragraph per quote and list item, no link around inline code), paste it, restore image alt text, set the title, upload the 16:9 cover and `audit()` the draft against the source. No publish helper. |
 | `browser/builder-editor.js` | Paste into the Builder Center editor. `window.bc` helpers to swap links and text by select-and-paste (typing is dropped in a hidden tab), edit code blocks through their Ace dialog, upload images at a verified slot, and `audit()` a draft. Each helper refuses when its precondition fails. |
 
 ## Typical run

@@ -1,6 +1,6 @@
 ---
 name: publishing
-description: Trigger when writing up or publishing a technical article to AWS Builder Center, dev.to, Medium, Substack, or LinkedIn — including "write this up", "make an article", "builder center", "dev.to post", "medium version", "substack post", "linkedin post", "announce the article", "cover image", or turning a benchmark or deployment into a paper. Also covers the optional announcements and records afterwards: "slack post", "google chat post", "advocu activity". Covers the five destination formats and their incompatibilities, the table/code-to-image generator, mandatory cover images, the LinkedIn draft whose links must resolve, and a pre-flight check that fails the build.
+description: Trigger when writing up or publishing a technical article to AWS Builder Center, dev.to, Medium, Substack, or LinkedIn — including "write this up", "make an article", "builder center", "dev.to post", "medium version", "substack post", "linkedin post", "linkedin article", "announce the article", "cover image", or turning a benchmark or deployment into a paper. Also covers the optional announcements and records afterwards: "slack post", "google chat post", "advocu activity". Covers the five destination formats and their incompatibilities, the table/code-to-image generator, mandatory cover images, the LinkedIn draft whose links must resolve, and a pre-flight check that fails the build.
 metadata:
   short-description: Publish technical articles without silent format failures
 ---
@@ -81,7 +81,8 @@ draft.
 | **Medium** | **Browser automation.** Paste `-hosted.html` into the editor. No publishing API exists. | editor draft |
 | **Substack** | **Browser automation.** Paste Medium's `-hosted.html` through `ss.prepare()`, which adapts it in the page. Read back from the stored draft. | editor draft |
 | **AWS Builder Center** | **Browser automation.** One JS-bridge paste into the `contenteditable` — chunking is not needed. A WAF drops saves whose body matches an attack signature; see `references/browser-publishing.md`. No publishing API exists. | autosaved draft |
-| **LinkedIn** | API exists, but `PUBLISHED` is the only state accepted on creation, so posting through it *is* publishing. | composer only |
+| **LinkedIn** (post) | API exists, but `PUBLISHED` is the only state accepted on creation, so posting through it *is* publishing. | composer only |
+| **LinkedIn** (article) | **Browser automation.** Paste Medium's `-hosted.html`, adapted by `lia.stash()` on `127.0.0.1` before the tab reaches LinkedIn. Read back after a reload. | saved draft |
 
 So the browser work is not laziness about reading API docs — for Medium, Substack
 and Builder Center **there is no API to read.** Everything in
@@ -107,6 +108,7 @@ look first. So, before touching a destination's editor:
 | AWS Builder Center — editor | `scripts/browser/builder-editor.js` (`window.bc`) | `references/browser-publishing.md` → "Editing a Builder Center draft in place" |
 | AWS Builder Center — publish gate | `scripts/browser/builder-gate.js` (`window.gate`) | `SKILL.md` → "Links" and `references/browser-publishing.md` → "Publishing runs a gate" |
 | LinkedIn composer | `scripts/browser/linkedin-composer.js` (`window.li`) | `references/linkedin.md` → "Attaching the cover and posting" |
+| LinkedIn article editor | `scripts/browser/linkedin-article.js` (`window.lia`), on `127.0.0.1` first and again in the editor | `references/linkedin-article.md` |
 | Medium | — | `references/browser-publishing.md` → "Medium" and `references/medium.md` |
 | Substack | `scripts/browser/substack-editor.js` (`window.ss`) | `references/substack.md` |
 | Kaggle benchmark page | `scripts/browser/kaggle-benchmark.js` (`window.kg`) | `references/kaggle.md` |
@@ -834,6 +836,53 @@ the same arrangement `references/house-style.md` has with the articles.
 
 Which figures here are first-party and which are third-party consensus, plus the
 mention-matching rules, are in `references/linkedin.md`.
+
+## LinkedIn article — Medium's hosted HTML, adapted before the tab gets there
+
+**The long-form article at `linkedin.com/article/new/`, a separate thing from
+the post above.** No new generator: the editor has no table node, so the
+`-hosted.html` from `make-medium.py` is the input. All of it MEASURED 2026-11-19
+on one article, in a visible tab, to a saved draft. **Nothing was published**,
+so `Publish` and everything after it is unmeasured and is the author's click.
+
+The order is forced by one property: **HTML cannot be parsed on the editor
+page.** `DOMParser` there returned no elements for a source of 269 tags, and the
+paste that followed went in as one paragraph of plain text. So
+`scripts/browser/linkedin-article.js` runs twice: `lia.stash()` on `127.0.0.1`
+adapts the file and puts it in `window.name`, then the same file is evaluated
+again in the editor for `lia.paste()`, `lia.setTitle()` and `lia.audit()`.
+Evaluate the file's text each time; `eval` of a carried copy threw on one load.
+
+What `lia.stash()` and `lia.paste()` change, and why:
+
+- **Only two heading levels are saved.** Levels 1, 4, 5 and 6 reloaded as
+  paragraphs, and the paste lands every heading at level 3. Sections become
+  `Heading` (level 2), set on the nodes after the paste.
+- **A link around inline code is dropped**, as on Substack; those `<code>` are
+  unwrapped. Every other inline `<code>` stays in the paste although the saved
+  draft keeps none of it: without the mark the editor links bare file names
+  (`make-medium.py` → `http://make-medium.py`, 41 link marks for 4 targets).
+- **A blockquote keeps its first paragraph and drops the rest; a nested list
+  runs into its parent item.** Quotes are split per paragraph and nested items
+  moved up.
+- **The cover has its own slot and it crops to 16:9**, so the leading body image
+  is dropped and the 1200x675 Builder Center cover is uploaded there
+  (`lia.coverInput()`, `file_upload`, `lia.coverNext()`). A 1376x578 cover
+  previewed as 1027x578.
+- **Image alt text arrives empty** and is written back on the nodes. The images
+  themselves are re-hosted on `media.licdn.com` from their URL.
+
+**Audit after a reload.** The editor's document after the paste still shows
+inline code and any heading level; after a reload it is what LinkedIn stored.
+`lia.audit()` compares it with the stash and returns `problems`, which read `[]`
+on the final run: 4 of 4 link targets, 3 code blocks with their line counts,
+7 headings, and the same 7,527 non-space characters on both sides.
+
+`Next` in the editor opens a post box whose button reads `Publish`, and the
+preview page (`Manage` → `Preview`, a real click) has a `Publish` button of its
+own. There is no publish helper and no `links.txt` key for the article yet. The
+route, the probe table and the unmeasured list are in
+`references/linkedin-article.md`.
 
 ## AWS Builder Center
 

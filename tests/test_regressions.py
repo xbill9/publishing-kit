@@ -664,6 +664,58 @@ class BrowserHelpers(unittest.TestCase):
             self.assertEqual(got["clicks"], 0, stored)
             self.assertIn("should_send_email", got["refused"], stored)
 
+    def article_audit(self, doc, host="www.linkedin.com", path="/article/edit/7/"):
+        """linkedin-article.js against a faked editor whose document is `doc`."""
+        expect = {"links": ["https://a/x"], "alts": ["alt one"], "codeBlockLines": [2],
+                  "headings": {"h2": 1, "h3": 0}, "headingLevels": [2], "listItems": 0,
+                  "blockquotes": 1, "tables": 0, "inkChars": len("HeadQuotedab")}
+        return self.node(r"""
+          const fs = require('fs'), vm = require('vm');
+          const ed = {editor: {getJSON: () => (DOC)}, innerText: 'x', querySelector: () => null};
+          const w = {setTimeout, name: JSON.stringify({lia: 1, html: '<p>x</p>', expect: EXPECT}),
+            location: {hostname: HOST, pathname: PATH},
+            document: {body: {innerText: 'Draft - saved'}, querySelectorAll: () => [],
+              querySelector: (q) => q.includes('ProseMirror') ? ed : null}};
+          w.window = w;
+          vm.runInContext(fs.readFileSync('browser/linkedin-article.js', 'utf8'), vm.createContext(w));
+          Promise.all([w.lia.audit(), w.lia.paste(), w.lia.stash()]).then(([a, p, s]) =>
+            console.log(JSON.stringify({problems: a.problems || null, audit: a.refused || null,
+              paste: p.refused || null, stash: s.refused || null})));
+        """.replace("DOC", json.dumps(doc)).replace("EXPECT", json.dumps(expect))
+           .replace("HOST", json.dumps(host)).replace("PATH", json.dumps(path)))
+
+    ARTICLE = {"type": "doc", "content": [
+        {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "Head"}]},
+        {"type": "blockquote", "content": [{"type": "paragraph", "content": [
+            {"type": "text", "text": "Quoted", "marks": [{"type": "link", "attrs": {"href": "https://a/x/"}}]}]}]},
+        {"type": "codeBlock", "content": [{"type": "text", "text": "a\nb"}]},
+        {"type": "figureImage", "content": [{"type": "inlineImage", "attrs": {
+            "src": "https://media.licdn.com/i", "urn": "urn:li:digitalmediaAsset:1", "alt": "alt one"}}]}]}
+
+    def test_article_audit_passes_a_matching_draft(self):
+        got = self.article_audit(self.ARTICLE)
+        self.assertEqual(got["problems"], [])
+        self.assertIn("refusing to paste on top", got["paste"])
+        self.assertIn("127.0.0.1", got["stash"])
+
+    def test_article_audit_names_what_the_editor_dropped_or_added(self):
+        doc = json.loads(json.dumps(self.ARTICLE))
+        doc["content"][0]["attrs"]["level"] = 3                      # the paste's own level
+        doc["content"][1]["content"][0]["content"][0]["text"] = "Quo"  # a dropped paragraph
+        doc["content"][2]["content"][0]["marks"] = [{"type": "link", "attrs": {"href": "http://make-medium.py"}}]
+        doc["content"][3]["content"][0]["attrs"]["alt"] = ""
+        problems = " | ".join(self.article_audit(doc)["problems"])
+        for want in ("0 h2, sent 1", "1 h3, sent 0", "non-space characters, sent 12",
+                     "http://make-medium.py", "alt text differs"):
+            self.assertIn(want, problems)
+
+    def test_article_helpers_refuse_off_the_editor(self):
+        got = self.article_audit(self.ARTICLE, host="www.linkedin.com", path="/feed/")
+        self.assertIn("not on the article editor", got["audit"])
+        self.assertIn("not on linkedin.com/article", got["paste"])
+        got = self.article_audit(self.ARTICLE, host="evil-linkedin.com")
+        self.assertIn("not on linkedin.com/article", got["paste"])
+
 
 class LinkedInRepo(unittest.TestCase):
     """Standing rule 2026-11-10: every LinkedIn post links the article's GitHub repo."""
