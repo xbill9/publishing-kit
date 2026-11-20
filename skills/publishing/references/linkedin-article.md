@@ -353,3 +353,9 @@ same site. The Slack and Google Chat posts do not carry it.
 - Whether a newsletter issue (`Create newsletter`) uses the same editor.
 - Whether any LinkedIn API can create or draft a native article. Not looked up
   here; `references/linkedin.md` covers the Posts API, which cannot draft a post.
+
+## The first image can miss while the draft is being created
+
+MEASURED 2026-11-20 on the zombie-sweep-gcp article, visible tab, five table images. `paste()`'s image loop ran while `/article/new/` was still becoming `/article/edit/<id>/`: image 0 returned `no image appeared; its marker is left in place` and images 1 to 4 arrived. Pasting image 0 alone at its marker again, after the URL had changed, gave it a `urn` within the 30 s wait. Because `paste()` writes alts in document order, the missing image had shifted every alt by one; re-running the alt pass after the retry put all five back in source order, and the reload audit read `problems: []`. Retry a missed image at its marker, then rewrite the alts, before reloading.
+
+On the same run, `(0, eval)(js)` from `window.name` threw `EvalError` (no `unsafe-eval`) on the first load of `/article/new/`, as recorded above; the needed functions were inlined into the evaluated script instead.
