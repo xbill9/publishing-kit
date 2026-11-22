@@ -333,7 +333,14 @@ def main():
                      f"cannot fetch: {relative[:3]}")
             if refs:
                 seg = refs[0].split("/medium/img/")[0].rstrip("/").split("/")[-1]
-                if seg != d.name:
+                # an article at the repo root has the branch, not a directory, before /medium/img
+                top = subprocess.run(["git", "-C", str(d), "rev-parse", "--show-toplevel"],
+                                     capture_output=True, text=True).stdout.strip()
+                at_root = top and pathlib.Path(top).resolve() == d.resolve()
+                if at_root:
+                    branch = subprocess.run(["git", "-C", str(d), "rev-parse", "--abbrev-ref", "HEAD"],
+                                            capture_output=True, text=True).stdout.strip()
+                if (seg != branch) if at_root else (seg != d.name):
                     fail(f"{h.name} points <img> at '{seg}/medium/img' but this "
                          f"article lives in '{d.name}' -- those URLs 404")
                 else:
