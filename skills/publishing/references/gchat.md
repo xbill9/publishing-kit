@@ -127,3 +127,12 @@ overwrites the selection in one step.
 
 After inserting, check the *other* composer is still empty. That is the cheap
 proof that nothing leaked into a new topic.
+
+## The Chat connector cannot post to an external space
+
+MEASURED 2026-11-23 in GDE AlloyDB Content Sprint (`AAQAYafl_-8`, marked External):
+`mcp__chat__send_message` returned "This tool cannot send messages in external spaces."
+`list_messages` still reads it. Post through the browser as above: `insertText` into
+`History is on`, real click in the composer, `ctrl+End space BackSpace` to enable Send,
+one real click on the arrow. A `#` inserted with `insertText` opened no picker, and the
+message posted once.
