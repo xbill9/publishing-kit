@@ -485,3 +485,7 @@ MEASURED 2026-11-10, filing the coding-agent-updater article in a visible tab. `
 Advocu's tag list has `AI - Antigravity` and `AI - Antigravity CLI` beside `Open Source`.
 
 `Cloud - Databases` is not an Advocu tag: MEASURED 2026-11-20, `--draft` with it returned 400 `#/tags/1: Cloud - Databases is not a valid enum value` and created no draft. `Google Cloud`, `AI - Agent Development Kit (ADK)` and `Open Source` were accepted. The draft then finished from `Drafts` -> `Edit` -> `Next` with all step-1 fields filled; step 2's input was labelled, the WebP uploaded (`ant-upload-list-item-done`, 200x200 preview), and a scripted `.click()` on Submit moved Activities from 399 to 400 on a fresh load.
+
+## A tag on older activities can be refused by the draft API
+
+MEASURED 2026-11-24. `--tag "AI - Agents"` answered `HTTP 400 ... #/tags/3: AI - Agents is not a valid enum value`, although `GET /activities` showed that tag on 203 earlier activities. `Google Workspace`, `Workspace - Google Workspace (REST) APIs`, `Identity - Google OAuth` and `Open Source` were accepted. Reading tags off past activities finds candidates, and the draft API's 400 is the check. No draft was created by the refused call.
